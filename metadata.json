@@ -1,0 +1,5 @@
+{
+  "name": "ModelHub",
+  "description": "Frontend wireframe for an AI API platform similar to ModelHub/Kie.ai, featuring dashboard, model marketplace, billing, and API key management.",
+  "requestFramePermissions": []
+}
