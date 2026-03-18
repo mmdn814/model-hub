@@ -9,10 +9,12 @@ interface ApiKey {
   id: string;
   name: string;
   key: string;
-  expires: string;
-  lastUsed: string;
+  expires: string | null;
+  firstUsed: string | null;
+  lastUsed: string | null;
   usage: number;
   limit: number;
+  reset: string;
   status: "active" | "disabled";
 }
 
@@ -25,30 +27,36 @@ export default function ApiKeys() {
       id: "1",
       name: "test-bookmarks",
       key: "sk-or-v1-0d4...8bb",
-      expires: "Never",
-      lastUsed: "10 days ago",
+      expires: null,
+      firstUsed: "2024-03-01T10:00:00Z",
+      lastUsed: "2024-03-15T14:30:00Z",
       usage: 0.005,
       limit: 1,
+      reset: "N/A",
       status: "active"
     },
     {
       id: "2",
       name: "lover-demp",
       key: "sk-or-v1-146...fdc",
-      expires: "Never",
-      lastUsed: "11 days ago",
+      expires: "2024-12-31T23:59:59Z",
+      firstUsed: "2024-03-05T08:15:00Z",
+      lastUsed: "2024-03-14T09:20:00Z",
       usage: 0.008,
       limit: 2,
+      reset: "Monthly",
       status: "active"
     },
     {
       id: "3",
       name: "openclaw",
       key: "sk-or-v1-6db...b0d",
-      expires: "Never",
-      lastUsed: "1 month ago",
+      expires: null,
+      firstUsed: "2024-02-15T11:45:00Z",
+      lastUsed: "2024-02-28T16:10:00Z",
       usage: 0.346,
       limit: 2,
+      reset: "N/A",
       status: "active"
     }
   ]);
@@ -65,7 +73,7 @@ export default function ApiKeys() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editKey, setEditKey] = useState<ApiKey | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", limit: "" });
+  const [editForm, setEditForm] = useState({ name: "", limit: "", reset: "N/A", expiration: "No expiration" });
   
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -73,6 +81,34 @@ export default function ApiKeys() {
     reset: "N/A",
     expiration: "No expiration"
   });
+
+  const formatLocalTime = (dateString: string | null) => {
+    if (!dateString || dateString === "Never") return t("Never");
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(date);
+  };
+
+  const formatUTCTime = (dateString: string | null) => {
+    if (!dateString || dateString === "Never") return t("Never");
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'UTC',
+      timeZoneName: 'short'
+    }).format(date);
+  };
 
   const handleCreateSubmit = () => {
     // Mock creation
@@ -83,10 +119,12 @@ export default function ApiKeys() {
       id: Date.now().toString(),
       name: createForm.name || "Untitled Key",
       key: newKeyString.substring(0, 13) + "..." + newKeyString.substring(newKeyString.length - 3),
-      expires: createForm.expiration === "No expiration" ? "Never" : createForm.expiration,
-      lastUsed: "Never",
+      expires: createForm.expiration === "No expiration" ? null : createForm.expiration,
+      firstUsed: null,
+      lastUsed: null,
       usage: 0,
       limit: createForm.limit ? parseFloat(createForm.limit) : 0, // 0 means unlimited here for display
+      reset: createForm.reset,
       status: "active"
     };
     
@@ -109,7 +147,9 @@ export default function ApiKeys() {
       setKeys(keys.map(k => k.id === editKey.id ? { 
         ...k, 
         name: editForm.name || k.name, 
-        limit: editForm.limit ? parseFloat(editForm.limit) : k.limit 
+        limit: editForm.limit ? parseFloat(editForm.limit) : k.limit,
+        reset: editForm.reset,
+        expires: editForm.expiration === "No expiration" ? null : editForm.expiration
       } : k));
       setIsEditModalOpen(false);
       setEditKey(null);
@@ -191,8 +231,8 @@ export default function ApiKeys() {
                     </div>
                     <div className="text-slate-400 text-sm font-mono mt-0.5">{k.key}</div>
                   </td>
-                  <td className="py-4 px-4 text-slate-500 text-sm">{k.expires}</td>
-                  <td className="py-4 px-4 text-slate-500 text-sm">{k.lastUsed}</td>
+                  <td className="py-4 px-4 text-slate-500 text-sm">{formatUTCTime(k.expires)}</td>
+                  <td className="py-4 px-4 text-slate-500 text-sm">{formatLocalTime(k.lastUsed)}</td>
                   <td className="py-4 px-4 text-slate-500 text-sm">{k.usage.toFixed(3)} credits</td>
                   <td className="py-4 px-4">
                     <div className="flex flex-col gap-1.5 w-32">
@@ -261,13 +301,18 @@ export default function ApiKeys() {
                             <DevAnnotation
                               elementName="Edit 选项"
                               componentType="Menu Item"
-                              functionDesc="编辑密钥名称和限额"
+                              functionDesc="编辑密钥名称、限额和过期时间"
                               interactionRule="点击弹出编辑弹窗，新限额不能低于已产生消耗"
                             >
                               <DropdownMenu.Item 
                                 onClick={() => {
                                   setEditKey(k);
-                                  setEditForm({ name: k.name, limit: k.limit.toString() });
+                                  setEditForm({ 
+                                    name: k.name, 
+                                    limit: k.limit.toString(),
+                                    reset: k.reset || "N/A",
+                                    expiration: k.expires ? k.expires : "No expiration"
+                                  });
                                   setIsEditModalOpen(true);
                                   setActiveDropdown(null);
                                 }}
@@ -394,12 +439,12 @@ export default function ApiKeys() {
                     onChange={(e) => setCreateForm({...createForm, expiration: e.target.value})}
                   >
                     <option>No expiration</option>
-                    <option>7 days</option>
-                    <option>30 days</option>
-                    <option>Custom</option>
+                    <option value={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}>7 days</option>
+                    <option value={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}>30 days</option>
                   </select>
                   <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
+                <p className="text-xs text-slate-400 mt-1.5">{t("Expiration time is based on UTC-0 server time.")}</p>
               </div>
             </div>
             
@@ -537,8 +582,20 @@ export default function ApiKeys() {
                 <span className="font-medium">{overviewKey.limit} credits</span>
               </div>
               <div className="flex justify-between border-b pb-2">
+                <span className="text-slate-500">{t("Reset limit every")}</span>
+                <span className="font-medium">{overviewKey.reset}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-slate-500">{t("First Used")}</span>
+                <span className="font-medium">{formatLocalTime(overviewKey.firstUsed)}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
                 <span className="text-slate-500">{t("Last Used")}</span>
-                <span className="font-medium">{overviewKey.lastUsed}</span>
+                <span className="font-medium">{formatLocalTime(overviewKey.lastUsed)}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-slate-500">{t("Expires")}</span>
+                <span className="font-medium">{formatUTCTime(overviewKey.expires)}</span>
               </div>
             </div>
             <div className="mt-8 flex justify-end">
@@ -593,6 +650,44 @@ export default function ApiKeys() {
                 {parseFloat(editForm.limit) < editKey.usage && (
                   <p className="text-red-500 text-xs mt-2">Limit cannot be lower than current usage ({editKey.usage.toFixed(3)} credits).</p>
                 )}
+              </div>
+
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                  {t("Reset limit every...")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                </label>
+                <div className="relative">
+                  <select 
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={editForm.reset}
+                    onChange={(e) => setEditForm({...editForm, reset: e.target.value})}
+                  >
+                    <option>N/A</option>
+                    <option>Monthly</option>
+                    <option>Weekly</option>
+                    <option>Daily</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                  {t("Expiration")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                </label>
+                <div className="relative">
+                  <select 
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={editForm.expiration}
+                    onChange={(e) => setEditForm({...editForm, expiration: e.target.value})}
+                  >
+                    <option>No expiration</option>
+                    <option value={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}>7 days</option>
+                    <option value={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}>30 days</option>
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <p className="text-xs text-slate-400 mt-1.5">{t("Expiration time is based on UTC-0 server time.")}</p>
               </div>
             </div>
             

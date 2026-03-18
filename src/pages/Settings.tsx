@@ -80,12 +80,46 @@ export default function Settings() {
       </DevAnnotation>
 
       <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
-        <div className="flex items-center gap-2 mb-8">
-          <ShieldCheck className="w-5 h-5 text-blue-500" />
-          <h3 className="text-sm font-bold text-slate-400 tracking-widest uppercase">
-            {t("LINKED ACCOUNTS")}
-          </h3>
-        </div>
+        <DevAnnotation
+          customContent={
+            <div className="space-y-3 text-sm">
+              <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">身份认证 (Auth) [更新]</div>
+              <p><span className="font-semibold">第三方登录：</span>支持 Google 和 GitHub OAuth 2.0。</p>
+              
+              <div className="space-y-1">
+                <div className="font-bold text-[#f57f17]">多账号关联 (Account Linking) [新增]</div>
+                <div className="pl-2">
+                  <span className="font-semibold">逻辑描述：</span>允许已登录用户在“设置 (Settings)”页面关联另一个平台的社交账号。<br/>
+                  <span className="font-semibold">场景示例：</span>用户通过 Google 登录后，可以在设置中链接其 GitHub 账户。关联成功后，用户未来无论是通过 Google 还是 GitHub 登录，均指向同一个系统唯一 User ID，共享余额、密钥及日志。
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="font-bold text-[#f57f17]">账户冲突处理与防冒领机制 [新增]</div>
+                <div className="pl-2">
+                  <span className="font-semibold">唯一性原则：</span>一个社交账号（如特定的 Google 邮箱或 GitHub ID）在全系统中只能绑定至一个用户 ID。<br/>
+                  <span className="font-semibold">冲突校验：</span>若用户尝试关联一个已经被其他系统账户绑定的社交账号时，系统必须拦截该请求。<br/>
+                  <span className="font-semibold">错误提示：</span>例如，用户 A (Google) 退出后，通过新的 GitHub 账号登录（产生用户 B）。若用户 B 尝试链接用户 A 已经绑定的 Google 账号，系统应弹出明确提示：“该 Google 账号已被其他用户绑定，请先在原账户解绑或联系支持。”
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="font-bold text-[#f57f17]">其他机制</div>
+                <div className="pl-2">
+                  <span className="font-semibold">退出登录 (Sign Out)：</span>清除 JWT Token 并重定向回产品首页。<br/>
+                  <span className="font-semibold">数据持久化：</span>基于第三方唯一 ID 锁定用户，再次登录自动承接历史余额、密钥及日志。
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <div className="flex items-center gap-2 mb-8">
+            <ShieldCheck className="w-5 h-5 text-blue-500" />
+            <h3 className="text-sm font-bold text-slate-400 tracking-widest uppercase">
+              {t("LINKED ACCOUNTS")}
+            </h3>
+          </div>
+        </DevAnnotation>
 
         <div className="space-y-4">
           {/* Google Account */}
