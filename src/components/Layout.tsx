@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User } from "lucide-react";
+import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
@@ -8,6 +8,7 @@ import { DevAnnotation } from "@/components/DevAnnotation";
 const navItems = [
   { icon: LayoutDashboard, labelKey: "Dashboard", path: "/" },
   { icon: Box, labelKey: "Models", path: "/models" },
+  { icon: Tag, labelKey: "Pricing", path: "/pricing" },
   { icon: CreditCard, labelKey: "Billing", path: "/billing" },
   { icon: Key, labelKey: "API Keys", path: "/keys" },
   { icon: FileText, labelKey: "API Logs", path: "/logs" },

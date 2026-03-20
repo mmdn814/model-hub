@@ -8,6 +8,7 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Models from "./pages/Models";
 import ModelDetails from "./pages/ModelDetails";
+import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
 import ApiKeys from "./pages/ApiKeys";
 import Login from "./pages/Login";
@@ -23,6 +24,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="models" element={<Models />} />
           <Route path="models/:id" element={<ModelDetails />} />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="billing" element={<Billing />} />
           <Route path="keys" element={<ApiKeys />} />
           <Route path="logs" element={<Logs />} />

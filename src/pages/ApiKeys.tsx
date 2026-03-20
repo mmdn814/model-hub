@@ -58,6 +58,18 @@ export default function ApiKeys() {
       limit: 2,
       reset: "N/A",
       status: "active"
+    },
+    {
+      id: "4",
+      name: "unlimited-key",
+      key: "sk-or-v1-999...999",
+      expires: null,
+      firstUsed: "2024-03-10T10:00:00Z",
+      lastUsed: "2024-03-19T14:30:00Z",
+      usage: 1.234,
+      limit: 0,
+      reset: "N/A",
+      status: "active"
     }
   ]);
 
@@ -147,7 +159,7 @@ export default function ApiKeys() {
       setKeys(keys.map(k => k.id === editKey.id ? { 
         ...k, 
         name: editForm.name || k.name, 
-        limit: editForm.limit ? parseFloat(editForm.limit) : k.limit,
+        limit: editForm.limit ? parseFloat(editForm.limit) : 0,
         reset: editForm.reset,
         expires: editForm.expiration === "No expiration" ? null : editForm.expiration
       } : k));
@@ -237,13 +249,13 @@ export default function ApiKeys() {
                   <td className="py-4 px-4">
                     <div className="flex flex-col gap-1.5 w-32">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-700">{k.limit} credits</span>
+                        <span className="text-slate-700">{k.limit === 0 ? "unlimited" : `${k.limit} credits`}</span>
                         <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-wider">TOTAL</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full rounded-full ${k.usage / k.limit > 0.9 ? 'bg-red-500' : 'bg-slate-400'}`}
-                          style={{ width: `${Math.min((k.usage / k.limit) * 100, 100)}%` }}
+                          className={`h-full rounded-full ${k.limit > 0 && k.usage / k.limit > 0.9 ? 'bg-red-500' : 'bg-slate-400'}`}
+                          style={{ width: k.limit > 0 ? `${Math.min((k.usage / k.limit) * 100, 100)}%` : '0%' }}
                         ></div>
                       </div>
                     </div>
@@ -309,7 +321,7 @@ export default function ApiKeys() {
                                   setEditKey(k);
                                   setEditForm({ 
                                     name: k.name, 
-                                    limit: k.limit.toString(),
+                                    limit: k.limit === 0 ? "" : k.limit.toString(),
                                     reset: k.reset || "N/A",
                                     expiration: k.expires ? k.expires : "No expiration"
                                   });
@@ -396,37 +408,68 @@ export default function ApiKeys() {
                 />
               </div>
               
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                  {t("Credit limit (optional)")} <Info className="w-3.5 h-3.5 text-slate-400" />
-                </label>
-                <input 
-                  type="number" 
-                  placeholder="Leave blank for unlimited"
-                  className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={createForm.limit}
-                  onChange={(e) => setCreateForm({...createForm, limit: e.target.value})}
-                />
-              </div>
-              
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                  {t("Reset limit every...")} <Info className="w-3.5 h-3.5 text-slate-400" />
-                </label>
-                <div className="relative">
-                  <select 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={createForm.reset}
-                    onChange={(e) => setCreateForm({...createForm, reset: e.target.value})}
-                  >
-                    <option>N/A</option>
-                    <option>Monthly</option>
-                    <option>Weekly</option>
-                    <option>Daily</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <DevAnnotation
+                elementName="额度限制与重置周期"
+                componentType="Form Fields"
+                functionDesc="设置 API Key 的调用额度上限及重置规则"
+                customContent={
+                  <div className="space-y-3 text-sm">
+                    <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">字段约束与互斥逻辑</div>
+                    <ul className="space-y-2">
+                      <li><span className="font-semibold">额度限制 (Limit):</span> 选填。若填写，必须为<span className="text-red-600 font-bold">大于 0</span> 的数值（不能为负数或 0）。留空表示无限制 (Unlimited)。</li>
+                      <li><span className="font-semibold">重置周期 (Reset):</span> 仅在设置了具体额度限制时可选（如 Monthly, Weekly, Daily）。</li>
+                      <li><span className="font-semibold">互斥逻辑:</span> 当额度限制为空（无限制）时，重置周期将被强制锁定为 "N/A" 且不可更改。</li>
+                    </ul>
+                  </div>
+                }
+              >
+                <div className="space-y-5">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Credit limit (optional)")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                    </label>
+                    <input 
+                      type="number" 
+                      min="0.01"
+                      step="0.01"
+                      placeholder="Leave blank for unlimited"
+                      className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={createForm.limit}
+                      onChange={(e) => {
+                        const newLimit = e.target.value;
+                        setCreateForm({
+                          ...createForm, 
+                          limit: newLimit,
+                          reset: newLimit ? createForm.reset : "N/A"
+                        });
+                      }}
+                    />
+                    {createForm.limit !== "" && parseFloat(createForm.limit) <= 0 && (
+                      <p className="text-red-500 text-xs mt-2">Limit must be greater than 0.</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Reset limit every...")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                    </label>
+                    <div className="relative">
+                      <select 
+                        className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none ${!createForm.limit ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
+                        value={createForm.reset}
+                        onChange={(e) => setCreateForm({...createForm, reset: e.target.value})}
+                        disabled={!createForm.limit}
+                      >
+                        <option>N/A</option>
+                        <option>Monthly</option>
+                        <option>Weekly</option>
+                        <option>Daily</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </DevAnnotation>
               
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
@@ -457,7 +500,7 @@ export default function ApiKeys() {
               </button>
               <button 
                 onClick={handleCreateSubmit}
-                disabled={!createForm.name}
+                disabled={!createForm.name || (createForm.limit !== "" && parseFloat(createForm.limit) <= 0)}
                 className="px-5 py-2.5 text-sm font-medium bg-[#6366f1] hover:bg-[#4f46e5] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
               >
                 {t("Create secret key")}
@@ -579,7 +622,7 @@ export default function ApiKeys() {
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-slate-500">{t("Limit")}</span>
-                <span className="font-medium">{overviewKey.limit} credits</span>
+                <span className="font-medium">{overviewKey.limit === 0 ? "unlimited" : `${overviewKey.limit} credits`}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-slate-500">{t("Reset limit every")}</span>
@@ -645,9 +688,16 @@ export default function ApiKeys() {
                   step="0.01"
                   className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   value={editForm.limit}
-                  onChange={(e) => setEditForm({...editForm, limit: e.target.value})}
+                  onChange={(e) => {
+                    const newLimit = e.target.value;
+                    setEditForm({
+                      ...editForm, 
+                      limit: newLimit,
+                      reset: newLimit ? editForm.reset : "N/A"
+                    });
+                  }}
                 />
-                {parseFloat(editForm.limit) < editKey.usage && (
+                {editForm.limit && parseFloat(editForm.limit) < editKey.usage && (
                   <p className="text-red-500 text-xs mt-2">Limit cannot be lower than current usage ({editKey.usage.toFixed(3)} credits).</p>
                 )}
               </div>
@@ -658,9 +708,10 @@ export default function ApiKeys() {
                 </label>
                 <div className="relative">
                   <select 
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none ${!editForm.limit ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
                     value={editForm.reset}
                     onChange={(e) => setEditForm({...editForm, reset: e.target.value})}
+                    disabled={!editForm.limit}
                   >
                     <option>N/A</option>
                     <option>Monthly</option>
@@ -700,7 +751,7 @@ export default function ApiKeys() {
               </button>
               <button 
                 onClick={handleEditSubmit}
-                disabled={!editForm.name || (parseFloat(editForm.limit) < editKey.usage)}
+                disabled={!editForm.name || (!!editForm.limit && parseFloat(editForm.limit) < editKey.usage)}
                 className="px-5 py-2.5 text-sm font-medium bg-[#6366f1] hover:bg-[#4f46e5] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
               >
                 {t("Save Changes")}
