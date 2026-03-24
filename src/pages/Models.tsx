@@ -228,7 +228,7 @@ export default function Models() {
                       </div>
                     </div>
                     
-                    <p className="text-sm text-zinc-600 mb-4 line-clamp-2 min-h-[40px]">
+                    <p className="text-sm text-zinc-600 mb-4 truncate">
                       {model.description}
                     </p>
                     

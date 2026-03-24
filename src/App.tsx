@@ -14,23 +14,26 @@ import ApiKeys from "./pages/ApiKeys";
 import Login from "./pages/Login";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="models" element={<Models />} />
-          <Route path="models/:id" element={<ModelDetails />} />
-          <Route path="pricing" element={<Pricing />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="keys" element={<ApiKeys />} />
-          <Route path="logs" element={<Logs />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <TooltipProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="models" element={<Models />} />
+            <Route path="models/:id" element={<ModelDetails />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="billing" element={<Billing />} />
+            <Route path="keys" element={<ApiKeys />} />
+            <Route path="logs" element={<Logs />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   );
 }
