@@ -52,9 +52,9 @@ export default function Layout() {
         <div className="h-16 flex items-center px-6 border-b border-zinc-200">
           <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
             <div className="w-8 h-8 bg-zinc-900 rounded-md flex items-center justify-center">
-              <span className="text-white text-sm">MH</span>
+              <span className="text-white text-sm">PT</span>
             </div>
-            ModelHub
+            Powertokens
           </div>
         </div>
         

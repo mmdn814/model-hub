@@ -164,9 +164,15 @@ export default function Settings() {
                   {t("GitHub Account")}
                 </span>
               </div>
-              <button className="text-sm font-bold text-blue-500 tracking-wide uppercase hover:underline">
-                {t("CONNECT")}
-              </button>
+              <div className="relative group flex items-center">
+                <button className="text-sm font-bold text-blue-500 tracking-wide uppercase hover:underline">
+                  {t("CONNECT")}
+                </button>
+                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                  {t("Once connected, logging in with either account will access this same profile on the platform.")}
+                  <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                </div>
+              </div>
             </div>
           </DevAnnotation>
         </div>

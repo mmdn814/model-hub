@@ -32,7 +32,7 @@ export default function ApiKeys() {
       lastUsed: "2024-03-15T14:30:00Z",
       usage: 0.005,
       limit: 1,
-      reset: "N/A",
+      reset: "TOTAL",
       status: "active"
     },
     {
@@ -44,7 +44,7 @@ export default function ApiKeys() {
       lastUsed: "2024-03-14T09:20:00Z",
       usage: 0.008,
       limit: 2,
-      reset: "Monthly",
+      reset: "MONTHLY",
       status: "active"
     },
     {
@@ -56,7 +56,7 @@ export default function ApiKeys() {
       lastUsed: "2024-02-28T16:10:00Z",
       usage: 0.346,
       limit: 2,
-      reset: "N/A",
+      reset: "TOTAL",
       status: "active"
     },
     {
@@ -68,7 +68,7 @@ export default function ApiKeys() {
       lastUsed: "2024-03-19T14:30:00Z",
       usage: 1.234,
       limit: 0,
-      reset: "N/A",
+      reset: "TOTAL",
       status: "active"
     }
   ]);
@@ -85,12 +85,13 @@ export default function ApiKeys() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editKey, setEditKey] = useState<ApiKey | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", limit: "", reset: "N/A", expiration: "No expiration" });
+  const [editForm, setEditForm] = useState({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration" });
   
   const [createForm, setCreateForm] = useState({
     name: "",
     limit: "",
-    reset: "N/A",
+    reset: "TOTAL",
+    customDays: "30",
     expiration: "No expiration"
   });
 
@@ -136,14 +137,14 @@ export default function ApiKeys() {
       lastUsed: null,
       usage: 0,
       limit: createForm.limit ? parseFloat(createForm.limit) : 0, // 0 means unlimited here for display
-      reset: createForm.reset,
+      reset: createForm.reset === "CUSTOM" ? `CUSTOM (${createForm.customDays} days)` : createForm.reset,
       status: "active"
     };
     
     setKeys([newKey, ...keys]);
     setIsCreateModalOpen(false);
     setIsKeyCreatedModalOpen(true);
-    setCreateForm({ name: "", limit: "", reset: "N/A", expiration: "No expiration" });
+    setCreateForm({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration" });
   };
 
   const handleDeleteConfirm = () => {
@@ -160,7 +161,7 @@ export default function ApiKeys() {
         ...k, 
         name: editForm.name || k.name, 
         limit: editForm.limit ? parseFloat(editForm.limit) : 0,
-        reset: editForm.reset,
+        reset: editForm.reset === "CUSTOM" ? `CUSTOM (${editForm.customDays} days)` : editForm.reset,
         expires: editForm.expiration === "No expiration" ? null : editForm.expiration
       } : k));
       setIsEditModalOpen(false);
@@ -250,7 +251,13 @@ export default function ApiKeys() {
                     <div className="flex flex-col gap-1.5 w-32">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-700">{k.limit === 0 ? "unlimited" : `${k.limit} credits`}</span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-wider">TOTAL</span>
+                        <div className="relative group flex items-center">
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded tracking-wider cursor-help">{k.reset}</span>
+                          <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                            {t("TOTAL: Lifetime limit; MONTHLY: Resets on the 1st of each month (UTC); WEEKLY: Resets every Monday (UTC); CUSTOM: Resets based on custom period.")}
+                            <div className="absolute top-full right-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                          </div>
+                        </div>
                       </div>
                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div 
@@ -319,10 +326,18 @@ export default function ApiKeys() {
                               <DropdownMenu.Item 
                                 onClick={() => {
                                   setEditKey(k);
+                                  let resetType = k.reset || "TOTAL";
+                                  let customDays = "30";
+                                  if (k.reset && k.reset.startsWith("CUSTOM")) {
+                                    resetType = "CUSTOM";
+                                    const match = k.reset.match(/\d+/);
+                                    if (match) customDays = match[0];
+                                  }
                                   setEditForm({ 
                                     name: k.name, 
                                     limit: k.limit === 0 ? "" : k.limit.toString(),
-                                    reset: k.reset || "N/A",
+                                    reset: resetType,
+                                    customDays: customDays,
                                     expiration: k.expires ? k.expires : "No expiration"
                                   });
                                   setIsEditModalOpen(true);
@@ -416,9 +431,16 @@ export default function ApiKeys() {
                   <div className="space-y-3 text-sm">
                     <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">字段约束与互斥逻辑</div>
                     <ul className="space-y-2">
-                      <li><span className="font-semibold">额度限制 (Limit):</span> 选填。若填写，必须为<span className="text-red-600 font-bold">大于 0</span> 的数值（不能为负数或 0）。留空表示无限制 (Unlimited)。</li>
-                      <li><span className="font-semibold">重置周期 (Reset):</span> 仅在设置了具体额度限制时可选（如 Monthly, Weekly, Daily）。</li>
-                      <li><span className="font-semibold">互斥逻辑:</span> 当额度限制为空（无限制）时，重置周期将被强制锁定为 "N/A" 且不可更改。</li>
+                      <li>
+                        <span className="font-semibold">额度限制 (Limit):</span> 选填。若填写，必须为<span className="text-red-600 font-bold">大于 0</span> 的数值。留空表示无限制 (Unlimited)。
+                        <div className="mt-2 text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
+                          <p className="mb-1">API Key 设置的 Limit 是一个<strong>“相对虚拟上限”</strong>，而非从账户中隔离扣除的“真实预留款”。</p>
+                          <p className="mb-1"><strong>设置关系：</strong>允许将单个 Key 的 Limit 设置得比账户当前真实余额大（例如账户只有 100 Credits，但 Key 限制可以设为 10,000 Credits）。所有 API Keys 的 Limit 总和也允许大于账户真实总余额。</p>
+                          <p><strong>扣费关系：</strong>发生实际调用时，费用永远直接从账户总余额中扣除。任何一个前提条件达到底线（即：该 Key 的独立 Usage 触碰到了自身的 Limit，或者账户总余额归零），都会直接触发拦截并返回 402 Payment Required。</p>
+                        </div>
+                      </li>
+                      <li><span className="font-semibold">重置周期 (Reset):</span> 仅在设置了具体额度限制时可选（如 TOTAL, MONTHLY, WEEKLY, CUSTOM）。</li>
+                      <li><span className="font-semibold">互斥逻辑:</span> 当额度限制为空（无限制）时，重置周期将被强制锁定为 "TOTAL" 且不可更改。</li>
                     </ul>
                   </div>
                 }
@@ -426,7 +448,16 @@ export default function ApiKeys() {
                 <div className="space-y-5">
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                      {t("Credit limit (optional)")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                      {t("Credit limit (optional)")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-80 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-4 shadow-lg z-10 pointer-events-none">
+                          <p className="mb-2">API Key 设置的 Limit 是一个<strong>“相对虚拟上限”</strong>，而非从账户中隔离扣除的“真实预留款”。</p>
+                          <p className="mb-2"><strong>设置关系：</strong>用户在创建/编辑 Key 时，允许将单个 Key 的 Limit 设置得比账户当前真实余额大（例如账户只有 100 Credits，但 Key 限制可以设为 10,000 Credits）。所有 API Keys 的 Limit 总和也允许大于账户真实总余额。</p>
+                          <p><strong>扣费关系：</strong>发生实际调用时，费用永远直接从账户总余额中扣除。任何一个前提条件达到底线（即：该 Key 的独立 Usage 触碰到了自身的 Limit，或者账户总余额归零），都会直接触发拦截并返回 402 Payment Required。</p>
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
                     </label>
                     <input 
                       type="number" 
@@ -440,7 +471,7 @@ export default function ApiKeys() {
                         setCreateForm({
                           ...createForm, 
                           limit: newLimit,
-                          reset: newLimit ? createForm.reset : "N/A"
+                          reset: newLimit ? createForm.reset : "TOTAL"
                         });
                       }}
                     />
@@ -451,7 +482,14 @@ export default function ApiKeys() {
                   
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                      {t("Reset limit every...")} <Info className="w-3.5 h-3.5 text-slate-400" />
+                      {t("Limit Type")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("TOTAL: Lifetime limit; MONTHLY: Resets on the 1st of each month (UTC); WEEKLY: Resets every Monday (UTC); CUSTOM: Resets based on custom period.")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
                     </label>
                     <div className="relative">
                       <select 
@@ -460,13 +498,27 @@ export default function ApiKeys() {
                         onChange={(e) => setCreateForm({...createForm, reset: e.target.value})}
                         disabled={!createForm.limit}
                       >
-                        <option>N/A</option>
-                        <option>Monthly</option>
-                        <option>Weekly</option>
-                        <option>Daily</option>
+                        <option value="TOTAL">TOTAL</option>
+                        <option value="MONTHLY">MONTHLY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="CUSTOM">CUSTOM</option>
                       </select>
                       <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
+                    {createForm.reset === "CUSTOM" && (
+                      <div className="mt-4">
+                        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                          {t("Custom days")}
+                        </label>
+                        <input 
+                          type="number" 
+                          min="1"
+                          className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={createForm.customDays}
+                          onChange={(e) => setCreateForm({...createForm, customDays: e.target.value})}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </DevAnnotation>
@@ -625,7 +677,7 @@ export default function ApiKeys() {
                 <span className="font-medium">{overviewKey.limit === 0 ? "unlimited" : `${overviewKey.limit} credits`}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
-                <span className="text-slate-500">{t("Reset limit every")}</span>
+                <span className="text-slate-500">{t("Limit Type")}</span>
                 <span className="font-medium">{overviewKey.reset}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
@@ -679,48 +731,103 @@ export default function ApiKeys() {
                 />
               </div>
               
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                  {t("Limit (credits)")}
-                </label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={editForm.limit}
-                  onChange={(e) => {
-                    const newLimit = e.target.value;
-                    setEditForm({
-                      ...editForm, 
-                      limit: newLimit,
-                      reset: newLimit ? editForm.reset : "N/A"
-                    });
-                  }}
-                />
-                {editForm.limit && parseFloat(editForm.limit) < editKey.usage && (
-                  <p className="text-red-500 text-xs mt-2">Limit cannot be lower than current usage ({editKey.usage.toFixed(3)} credits).</p>
-                )}
-              </div>
+              <DevAnnotation
+                elementName="额度限制与重置周期"
+                componentType="Form Fields"
+                functionDesc="设置 API Key 的调用额度上限及重置规则"
+                customContent={
+                  <div className="space-y-3 text-sm">
+                    <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">字段约束与互斥逻辑</div>
+                    <ul className="space-y-2">
+                      <li>
+                        <span className="font-semibold">额度限制 (Limit):</span> 选填。若填写，必须为<span className="text-red-600 font-bold">大于 0</span> 的数值。留空表示无限制 (Unlimited)。
+                        <div className="mt-2 text-slate-600 bg-slate-50 p-2 rounded border border-slate-100">
+                          <p className="mb-1">API Key 设置的 Limit 是一个<strong>“相对虚拟上限”</strong>，而非从账户中隔离扣除的“真实预留款”。</p>
+                          <p className="mb-1"><strong>设置关系：</strong>允许将单个 Key 的 Limit 设置得比账户当前真实余额大（例如账户只有 100 Credits，但 Key 限制可以设为 10,000 Credits）。所有 API Keys 的 Limit 总和也允许大于账户真实总余额。</p>
+                          <p><strong>扣费关系：</strong>发生实际调用时，费用永远直接从账户总余额中扣除。任何一个前提条件达到底线（即：该 Key 的独立 Usage 触碰到了自身的 Limit，或者账户总余额归零），都会直接触发拦截并返回 402 Payment Required。</p>
+                        </div>
+                      </li>
+                      <li><span className="font-semibold">重置周期 (Reset):</span> 仅在设置了具体额度限制时可选（如 TOTAL, MONTHLY, WEEKLY, CUSTOM）。</li>
+                      <li><span className="font-semibold">互斥逻辑:</span> 当额度限制为空（无限制）时，重置周期将被强制锁定为 "TOTAL" 且不可更改。</li>
+                    </ul>
+                  </div>
+                }
+              >
+                <div className="space-y-5">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Limit (credits)")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-80 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-4 shadow-lg z-10 pointer-events-none">
+                          <p className="mb-2">API Key 设置的 Limit 是一个<strong>“相对虚拟上限”</strong>，而非从账户中隔离扣除的“真实预留款”。</p>
+                          <p className="mb-2"><strong>设置关系：</strong>用户在创建/编辑 Key 时，允许将单个 Key 的 Limit 设置得比账户当前真实余额大（例如账户只有 100 Credits，但 Key 限制可以设为 10,000 Credits）。所有 API Keys 的 Limit 总和也允许大于账户真实总余额。</p>
+                          <p><strong>扣费关系：</strong>发生实际调用时，费用永远直接从账户总余额中扣除。任何一个前提条件达到底线（即：该 Key 的独立 Usage 触碰到了自身的 Limit，或者账户总余额归零），都会直接触发拦截并返回 402 Payment Required。</p>
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                    </label>
+                    <input 
+                      type="number" 
+                      step="0.01"
+                      className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={editForm.limit}
+                      onChange={(e) => {
+                        const newLimit = e.target.value;
+                        setEditForm({
+                          ...editForm, 
+                          limit: newLimit,
+                          reset: newLimit ? editForm.reset : "TOTAL"
+                        });
+                      }}
+                    />
+                    {editForm.limit && parseFloat(editForm.limit) < editKey.usage && (
+                      <p className="text-red-500 text-xs mt-2">Limit cannot be lower than current usage ({editKey.usage.toFixed(3)} credits).</p>
+                    )}
+                  </div>
 
-              <div>
-                <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
-                  {t("Reset limit every...")} <Info className="w-3.5 h-3.5 text-slate-400" />
-                </label>
-                <div className="relative">
-                  <select 
-                    className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none ${!editForm.limit ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
-                    value={editForm.reset}
-                    onChange={(e) => setEditForm({...editForm, reset: e.target.value})}
-                    disabled={!editForm.limit}
-                  >
-                    <option>N/A</option>
-                    <option>Monthly</option>
-                    <option>Weekly</option>
-                    <option>Daily</option>
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Limit Type")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("TOTAL: Lifetime limit; MONTHLY: Resets on the 1st of each month (UTC); WEEKLY: Resets every Monday (UTC); CUSTOM: Resets based on custom period.")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                    </label>
+                    <div className="relative">
+                      <select 
+                        className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm appearance-none focus:ring-2 focus:ring-blue-500 outline-none ${!editForm.limit ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''}`}
+                        value={editForm.reset}
+                        onChange={(e) => setEditForm({...editForm, reset: e.target.value})}
+                        disabled={!editForm.limit}
+                      >
+                        <option value="TOTAL">TOTAL</option>
+                        <option value="MONTHLY">MONTHLY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="CUSTOM">CUSTOM</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    {editForm.reset === "CUSTOM" && (
+                      <div className="mt-4">
+                        <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                          {t("Custom days")}
+                        </label>
+                        <input 
+                          type="number" 
+                          min="1"
+                          className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={editForm.customDays}
+                          onChange={(e) => setEditForm({...editForm, customDays: e.target.value})}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </DevAnnotation>
 
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">

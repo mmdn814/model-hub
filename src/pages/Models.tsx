@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
 import { cn } from "@/lib/utils";
+import { models } from "@/data/models";
 
 const categories = [
   {
@@ -35,98 +36,32 @@ const categories = [
   }
 ];
 
-const models = [
-  {
-    id: "gpt-4o",
-    name: "GPT-4o",
-    provider: "OpenAI",
-    description: "High-performance multimodal model for text, vision, and audio tasks.",
-    price: "$5.00 / 1M tokens",
-    status: "Active",
-    tags: ["Chat", "Vision"],
-    category: "chat",
-    previewUrl: "https://picsum.photos/seed/gpt4o/400/225",
-    providerLogo: "O"
-  },
-  {
-    id: "sora",
-    name: "Sora",
-    provider: "OpenAI",
-    description: "Creates realistic and imaginative video from text instructions.",
-    price: "$0.05 / second",
-    status: "Active",
-    tags: ["Text to Video"],
-    category: "video",
-    previewUrl: "https://picsum.photos/seed/sora/400/225",
-    providerLogo: "O"
-  },
-  {
-    id: "midjourney-v6",
-    name: "Midjourney v6",
-    provider: "Midjourney",
-    description: "State-of-the-art image generation with photorealistic details.",
-    price: "$0.03 / image",
-    status: "Active",
-    tags: ["Text to Image"],
-    category: "image",
-    previewUrl: "https://picsum.photos/seed/mj/400/225",
-    providerLogo: "M"
-  },
-  {
-    id: "elevenlabs-tts",
-    name: "ElevenLabs TTS",
-    provider: "ElevenLabs",
-    description: "Lifelike speech synthesis in multiple languages and voices.",
-    price: "$0.30 / 1K chars",
-    status: "Active",
-    tags: ["Text to Speech"],
-    category: "audio",
-    previewUrl: "https://picsum.photos/seed/audio/400/225",
-    providerLogo: "E"
-  },
-  {
-    id: "claude-3-5-sonnet",
-    name: "Claude 3.5 Sonnet",
-    provider: "Anthropic",
-    description: "Fast, highly capable model for coding and complex reasoning.",
-    price: "$3.00 / 1M tokens",
-    status: "Active",
-    tags: ["Chat", "Coding"],
-    category: "chat",
-    previewUrl: "https://picsum.photos/seed/claude/400/225",
-    providerLogo: "A"
-  },
-  {
-    id: "runway-gen3",
-    name: "Gen-3 Alpha",
-    provider: "Runway",
-    description: "High-fidelity video generation with precise temporal control.",
-    price: "$0.10 / second",
-    status: "Active",
-    tags: ["Text to Video", "Image to Video"],
-    category: "video",
-    previewUrl: "https://picsum.photos/seed/runway/400/225",
-    providerLogo: "R"
-  }
-];
-
 export default function Models() {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeProvider, setActiveProvider] = useState<string>("");
+  const [activeTask, setActiveTask] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const uniqueProviders = Array.from(new Set(models.filter(m => m.visibility !== "Hidden").map(m => m.provider))).sort();
+  const uniqueTasks = Array.from(new Set(models.filter(m => m.visibility !== "Hidden").flatMap(m => m.tags))).sort();
 
   const filteredModels = models.filter(model => {
     const matchesCategory = activeCategory ? model.category === activeCategory : true;
+    const matchesProvider = activeProvider ? model.provider === activeProvider : true;
+    const matchesTask = activeTask ? model.tags.includes(activeTask) : true;
     const matchesSearch = model.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          model.provider.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+                          model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          model.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const isVisible = model.visibility !== "Hidden";
+    return matchesCategory && matchesProvider && matchesTask && matchesSearch && isVisible;
   });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t("Model Marketplace")}</h1>
+        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t("Powertokens")}</h1>
         <p className="text-zinc-500 mt-1">{t("Explore and integrate top-tier AI models via a single API.")}</p>
       </div>
 
@@ -160,17 +95,25 @@ export default function Models() {
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none">
+            <select 
+              className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+              value={activeProvider}
+              onChange={(e) => setActiveProvider(e.target.value)}
+            >
               <option value="">{t("All Providers")}</option>
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic</option>
-              <option value="google">Google</option>
+              {uniqueProviders.map(provider => (
+                <option key={provider} value={provider}>{provider}</option>
+              ))}
             </select>
-            <select className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none">
+            <select 
+              className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+              value={activeTask}
+              onChange={(e) => setActiveTask(e.target.value)}
+            >
               <option value="">{t("All Tasks")}</option>
-              <option value="text-to-video">Text to Video</option>
-              <option value="text-to-image">Text to Image</option>
-              <option value="chat">Chat</option>
+              {uniqueTasks.map(task => (
+                <option key={task} value={task}>{t(task)}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -255,7 +198,7 @@ export default function Models() {
                       <li><span className="font-semibold">价格 (Price):</span> 来源于后端 Pricing Details (如按 token 或按次计费)。</li>
                       <li><span className="font-semibold">提供商 Logo (Logo):</span> 来源于后端 Display Metadata (品牌资产)。</li>
                       <li><span className="font-semibold">模型名称 (Name):</span> 来源于后端模型基础信息。</li>
-                      <li><span className="font-semibold">提供商 (Provider):</span> 来源于后端模型基础信息。</li>
+                      <li><span className="font-semibold">提供商 (Provider):</span> 来源于后端模型基础信息。<strong>注意：前端卡片上不展示提供商名称，但支持通过顶部搜索栏按提供商搜索。</strong></li>
                       <li><span className="font-semibold">简介 (Description):</span> 来源于后端 CMS 维护的简短描述。</li>
                       <li><span className="font-semibold">功能标签 (Tags):</span> 来源于后端 Taxonomy 维护的二级任务标签。</li>
                     </ul>
@@ -271,11 +214,6 @@ export default function Models() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-zinc-900 border-none shadow-sm font-medium">
-                        {model.price}
-                      </Badge>
-                    </div>
                   </div>
 
                   <div className="p-5 flex-1 flex flex-col">
@@ -287,11 +225,10 @@ export default function Models() {
                       
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg text-zinc-900 truncate">{model.name}</h3>
-                        <p className="text-sm text-zinc-500 truncate">{model.provider}</p>
                       </div>
                     </div>
                     
-                    <p className="text-sm text-zinc-600 mb-4 line-clamp-2 flex-1">
+                    <p className="text-sm text-zinc-600 mb-4 line-clamp-2 min-h-[40px]">
                       {model.description}
                     </p>
                     

@@ -88,7 +88,7 @@ export default function Dashboard() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl text-zinc-600 font-medium">{t("Your usage across models on ModelHub")}</h2>
+        <h2 className="text-xl text-zinc-600 font-medium">{t("Your usage across models on Powertokens")}</h2>
         <div className="flex items-center gap-3">
           <Popover>
             <DevAnnotation
