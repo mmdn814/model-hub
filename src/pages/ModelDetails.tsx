@@ -4,10 +4,26 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Copy, Terminal, Check, ShieldCheck, Play, History, Sparkles, ChevronDown, FileText, Code, Info } from "lucide-react";
+import { ArrowLeft, Copy, Terminal, Check, ShieldCheck, Play, History, Sparkles, ChevronDown, FileText, Code, Info, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
 import { models } from "@/data/models";
+
+const ModelIdCopyButton = ({ id }: { id: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button onClick={handleCopy} className="text-zinc-400 hover:text-zinc-600 transition-colors" title="Copy Model ID">
+      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+};
 
 export default function ModelDetails() {
   const { t } = useTranslation();
@@ -60,10 +76,10 @@ export default function ModelDetails() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           <div className="flex items-start gap-6 w-full">
             <DevAnnotation
-              elementName="模型 Logo"
+              elementName="Model Logo"
               componentType="Image"
-              functionDesc="展示模型提供商的 Logo"
-              devNotes="由后端 Display Metadata 配置。"
+              functionDesc="Displays the model provider's logo"
+              devNotes="Configured by backend Display Metadata."
             >
               <div className="w-24 h-24 rounded-3xl bg-blue-600 flex items-center justify-center shrink-0 shadow-sm overflow-hidden text-white">
                 {model.previewUrl ? (
@@ -84,10 +100,10 @@ export default function ModelDetails() {
               
               <div>
                 <DevAnnotation
-                  elementName="商业授权标识"
+                  elementName="Commercial License Badge"
                   componentType="Badge"
-                  functionDesc="标识该模型是否允许商业用途"
-                  devNotes="后端维护逻辑：Commercial Status (Yes/No)。"
+                  functionDesc="Indicates if the model allows commercial use"
+                  devNotes="Backend logic: Commercial Status (Yes/No)."
                 >
                   <Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-transparent px-3 py-1 font-medium text-sm rounded-full">
                     Commercial use
@@ -96,7 +112,7 @@ export default function ModelDetails() {
               </div>
 
               <p className="text-zinc-600 text-base leading-relaxed max-w-3xl">
-                阿里通义千问图像生成模型 2.0 (Qwen-Image-2.0) 实现了图像生成与编辑的统一。它提供逼真的质感生成、结构化文字渲染、原生 2K 高分辨率输出及灵活的图像编辑能力，全面赋能创意与视觉设计工作流。
+                Alibaba Cloud's Qwen-Image-2.0 unifies image generation and editing. It provides realistic texture generation, structured text rendering, native 2K high-resolution output, and flexible image editing capabilities, fully empowering creative and visual design workflows.
               </p>
 
               <div className="flex flex-col gap-2 mt-1">
@@ -124,7 +140,10 @@ export default function ModelDetails() {
 
               <div className="flex items-center gap-3 pt-2">
                 <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-transparent px-3 py-1.5 font-mono text-sm rounded-lg">
-                  <span className="text-emerald-500 mr-1">$</span> $0.03 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span>
+                  <span className="text-emerald-500 mr-1">$</span> $0.030 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span>
+                </Badge>
+                <Badge variant="outline" className="bg-slate-50 text-slate-800 border-slate-200 px-3 py-1.5 font-mono text-sm rounded-lg font-bold">
+                  30 <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / IMAGE</span>
                 </Badge>
                 <span className="text-sm text-zinc-400">
                   Starts at. <a href="#pricing" className="underline hover:text-zinc-600 transition-colors" onClick={(e) => { e.preventDefault(); setActiveTab("readme"); }}>See full pricing in README</a>
@@ -135,18 +154,18 @@ export default function ModelDetails() {
           
           <div className="flex flex-col gap-3 w-full md:w-auto shrink-0">
             <DevAnnotation
-              elementName="Run with API 按钮"
+              elementName="Run with API Button"
               componentType="Button"
-              functionDesc="快捷跳转或打开 API 调用示例"
+              functionDesc="Quickly jump to or open API call examples"
             >
               <Button className="w-full md:w-48 gap-2 bg-blue-600 hover:bg-blue-700 text-white h-11 rounded-xl font-semibold text-base">
                 <Play className="w-4 h-4 fill-current" /> Run with API
               </Button>
             </DevAnnotation>
             <DevAnnotation
-              elementName="Copy Page 按钮"
+              elementName="Copy Page Button"
               componentType="Button"
-              functionDesc="将当前页面内容以 Markdown 格式复制到剪贴板"
+              functionDesc="Copy the current page content to clipboard in Markdown format"
             >
               <div className="flex">
                 <Button variant="outline" className="w-full md:w-auto gap-2 bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 h-11 rounded-l-xl rounded-r-none border-r-0 font-semibold text-base flex-1">
@@ -169,8 +188,8 @@ export default function ModelDetails() {
           <DevAnnotation
             elementName="Playground Tab"
             componentType="Tab"
-            functionDesc="交互测试区 (二期规划)"
-            devNotes="Phase 2 功能，目前可作为占位或展示简单 UI。"
+            functionDesc="Interactive testing area (Phase 2 planning)"
+            devNotes="Phase 2 feature, currently can be used as a placeholder or to display simple UI."
           >
             <button
               onClick={() => setActiveTab("playground")}
@@ -182,8 +201,8 @@ export default function ModelDetails() {
           <DevAnnotation
             elementName="README Tab"
             componentType="Tab"
-            functionDesc="图文展示最佳实践、参数说明、官方建议"
-            devNotes="Phase 1 功能，后端维护逻辑：Content Management (README editor)。"
+            functionDesc="Graphic display of best practices, parameter descriptions, official suggestions"
+            devNotes="Phase 1 feature, backend logic: Content Management (README editor)."
           >
             <button
               onClick={() => setActiveTab("readme")}
@@ -195,8 +214,8 @@ export default function ModelDetails() {
           <DevAnnotation
             elementName="API Tab"
             componentType="Tab"
-            functionDesc="展示该模型的具体调用示例"
-            devNotes="Phase 1 功能，后端维护逻辑：API mapping。"
+            functionDesc="Display specific call examples for this model"
+            devNotes="Phase 1 feature, backend logic: API mapping."
           >
             <button
               onClick={() => setActiveTab("api")}
@@ -221,134 +240,117 @@ export default function ModelDetails() {
           )}
 
           {activeTab === "readme" && (
-            <div className="space-y-12 py-4">
-              {/* 1. 简介与核心亮点 */}
+            <DevAnnotation
+              elementName="README 模块动态组件"
+              componentType="Markdown/UI"
+              functionDesc="渲染模型详情与动态计费信息"
+              customContent={
+                <div className="space-y-4 text-sm">
+                  <div className="border-[#fbc02d] pb-2 mb-2">
+                    <h4 className="font-bold text-base text-zinc-900">(README) 模块 2: 可用模型版本表</h4>
+                    <p className="text-zinc-600 mt-1">模型id、类别、API链接、价格</p>
+                    <div className="mt-2 bg-zinc-50 p-2 rounded border border-zinc-100">
+                      <span className="font-mono text-xs text-blue-600">sub_models(数组)</span>
+                      <p className="text-zinc-600 mt-1">动态 UI 组件插入：提取 <code className="bg-zinc-100 px-1 rounded">id</code>, <code className="bg-zinc-100 px-1 rounded">alias_type</code> (渲染 Latest/Fixed 标签), <code className="bg-zinc-100 px-1 rounded">version_description</code>渲染包含一键复制按钮的数据表。</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-base text-zinc-900">(README) 模块 6: 计费细则与加权表</h4>
+                    <div className="mt-2 bg-zinc-50 p-2 rounded border border-zinc-100">
+                      <span className="font-mono text-xs text-blue-600">pricing (JSON 对象)</span>
+                      <p className="text-zinc-600 mt-1">动态 UI 组件插入：遍历 <code className="bg-zinc-100 px-1 rounded">pricing.multipliers</code> 渲染参数倍率表；针对 Chat 模型提取 <code className="bg-zinc-100 px-1 rounded">input_fee_config</code> / <code className="bg-zinc-100 px-1 rounded">output_fee_config</code> 计算展示文本梯度价。所有的加权价格都需要+对应的平台加价（都需要显示美金和credit两种）。</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <div className="space-y-12 py-4">
+              {/* 2. Available Model Versions */}
               <section>
                 <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-blue-600">1.</span> 简介与核心亮点
-                </h2>
-                <p className="text-zinc-600 leading-relaxed">
-                  阿里通义千问图像生成模型 2.0 (Qwen-Image-2.0) 实现了图像生成与编辑的统一。其独特优势在于逼真的质感生成、结构化文字渲染（如招牌、海报文字）以及原生 2K 高分辨率输出。最佳适用场景包括：高质量商业摄影生成、创意海报设计、以及精准的局部图像编辑。
-                </p>
-              </section>
-
-              {/* 2. 可用模型版本 */}
-              <section>
-                <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-red-500">📌</span> 2. 可用模型版本 (Available Model IDs)
+                  <span className="text-red-500">📌</span> Available Model Versions
                 </h2>
                 <p className="text-zinc-600 mb-4">
-                  为了保证生产环境的稳定性，我们提供始终指向最新的主干模型，以及锁定特定日期的快照模型：
+                  To ensure stability in production environments, we provide both trunk models that always point to the latest version, and snapshot models locked to specific dates:
                 </p>
                 <div className="border border-zinc-200 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-zinc-50 border-b border-zinc-200">
                       <tr>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">Model ID (API 调用)</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">类别</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">版本说明</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">Model ID (API Call)</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">Type</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">API Docs</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">Credits <Info className="w-3 h-3 inline-block text-zinc-400" /></th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">Price (USD)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100">
                       <tr className="bg-white">
-                        <td className="px-6 py-4 font-mono text-blue-600 font-medium">qwen-image-2.0-pro</td>
-                        <td className="px-6 py-4"><Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50">主干</Badge></td>
-                        <td className="px-6 py-4 text-zinc-600">推荐。始终指向最新的 2.0 Pro 稳定版。</td>
+                        <td className="px-6 py-4 font-mono text-blue-600 font-medium">
+                          <div className="flex items-center gap-2">
+                            qwen-image-2.0-pro
+                            <ModelIdCopyButton id="qwen-image-2.0-pro" />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4"><Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50 border-transparent font-bold">LATEST</Badge></td>
+                        <td className="px-6 py-4 text-blue-600 hover:underline cursor-pointer flex items-center gap-1">Official Docs <ExternalLink className="w-3 h-3" /></td>
+                        <td className="px-6 py-4 font-bold text-zinc-800">30</td>
+                        <td className="px-6 py-4 font-bold text-blue-600">$0.030</td>
                       </tr>
                       <tr className="bg-white">
-                        <td className="px-6 py-4 font-mono text-zinc-600">qwen-image-max</td>
-                        <td className="px-6 py-4"><Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50">主干</Badge></td>
-                        <td className="px-6 py-4 text-zinc-600">指向最新一代 Max 旗舰版模型。</td>
+                        <td className="px-6 py-4 font-mono text-zinc-600">
+                          <div className="flex items-center gap-2">
+                            qwen-image-2.0-pro-2026-03-03
+                            <ModelIdCopyButton id="qwen-image-2.0-pro-2026-03-03" />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4"><Badge variant="secondary" className="bg-zinc-100 text-zinc-500 hover:bg-zinc-100 border-transparent font-bold">FIXED</Badge></td>
+                        <td className="px-6 py-4 text-blue-600 hover:underline cursor-pointer flex items-center gap-1">Official Docs <ExternalLink className="w-3 h-3" /></td>
+                        <td className="px-6 py-4 font-bold text-zinc-800">30</td>
+                        <td className="px-6 py-4 font-bold text-blue-600">$0.030</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </section>
 
-              {/* 3. 精彩案例 */}
-              <section>
-                <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-yellow-400">✨</span> 3. 精彩案例 (Showcase)
-                </h2>
-                <div className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
-                  <h3 className="text-sm font-bold text-zinc-500 mb-4">中文文字海报渲染</h3>
-                  <div className="rounded-xl overflow-hidden mb-4 bg-gradient-to-br from-indigo-900 to-purple-900 aspect-[2/1] flex items-center justify-center relative">
-                    <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500 drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]">
-                      未来已来
-                    </div>
-                  </div>
-                  <div className="bg-white p-4 rounded-xl border border-zinc-200 text-sm text-zinc-700">
-                    <span className="font-bold text-blue-600">Prompt:</span> 赛博朋克风格的下雨街头，画面中心有一个巨大的霓虹灯招牌，上面用发光的中文写着“未来已来”，电影级打光，虚幻引擎5渲染。
-                  </div>
-                </div>
-              </section>
-
-              {/* 4. 提示词编写技巧 */}
-              <section>
-                <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-yellow-500">💡</span> 4. 提示词 (Prompt) 编写技巧
-                </h2>
-                <ul className="space-y-3 text-zinc-700 list-disc list-inside marker:text-blue-500">
-                  <li><strong>主体描述 (Subject):</strong> 明确画面中心是谁/什么（如：一只穿着宇航服的金毛犬）。</li>
-                  <li><strong>环境与背景 (Environment):</strong> 定义主体所处的环境（如：站在霓虹灯闪烁的火星基地）。</li>
-                  <li><strong>风格与材质 (Style & Texture):</strong> 增加质感描述（如：赛博朋克，体积光，8k 极致细节）。</li>
-                </ul>
-              </section>
-
-              {/* 5. 最佳实践与安全建议 */}
-              <section>
-                <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-zinc-600">🛠️</span> 5. 最佳实践与安全建议
-                </h2>
-                <div className="bg-[#F8FAFC] rounded-2xl p-6 border border-blue-100 space-y-6">
-                  <div>
-                    <h3 className="font-bold text-[#0B1120] mb-2 text-base">分辨率支持 (Resolution)</h3>
-                    <p className="text-zinc-600 text-sm">Qwen 原生支持多种画幅。电商主图建议使用 1024x1024，手机海报建议使用 768x1152。</p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#0B1120] mb-2 text-base">安全拦截说明 (Safety)</h3>
-                    <p className="text-zinc-600 text-sm">模型内置了严格的敏感词过滤。请避免在 Prompt 中使用敏感词汇，否则可能导致 API 返回 <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-800 font-mono">400 Bad Request</code>。</p>
-                  </div>
-                </div>
-              </section>
-
-              {/* 6. 计费细则与进阶定价 */}
+              {/* 6. Pricing Details */}
               <section id="pricing">
                 <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-yellow-600">💰</span> 6. 计费细则与进阶定价 (Pricing Details)
+                  <span className="text-yellow-600">💰</span> 6. Pricing Details
                 </h2>
                 
                 <DevAnnotation
-                  elementName="计费细则说明"
+                  elementName="Pricing Details Description"
                   componentType="Section"
-                  functionDesc="展示模型的计费规则和参数加权"
-                  devNotes="🚨 内部定价说明：前端所有显示的价格都是在后端已经经过平台加价的价格，不准暴露上游原始价格。"
+                  functionDesc="Displays the model's pricing rules and parameter multipliers"
+                  devNotes="🚨 Internal Pricing Note: All prices displayed on the frontend are already marked up by the platform on the backend. Do not expose the original upstream prices."
                 >
                   <p className="text-zinc-600 mb-6">
-                    该模型的实际计费会根据您在 API 请求中传递的具体参数动态计算。头部卡片展示的 Starts at $0.03 为该系列的基础模型/基准参数的起步价。完整的梯度规则及参数加权表如下：
+                    The actual billing for this model is dynamically calculated based on the specific parameters passed in your API request. The 'Starts at $0.030' shown in the header card is the starting price for the base model/baseline parameters of this series. The complete tiered rules and parameter multiplier table are as follows:
                   </p>
                 </DevAnnotation>
 
                 <div className="space-y-8">
                   <div>
-                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">A. 图像/视频参数加权 (Parameter Multipliers)</h3>
+                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">A. Image/Video Parameter Multipliers</h3>
                     <div className="border border-zinc-200 rounded-xl overflow-hidden">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-zinc-50 border-b border-zinc-200">
                           <tr>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">参数名称 (Parameter)</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">参数值 (Value)</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900 text-right">计费倍率 (Multiplier)</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900">Parameter</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900">Value</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900 text-right">Multiplier</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100">
                           <tr className="bg-white">
                             <td className="px-6 py-4 font-mono text-zinc-600" rowSpan={2}>resolution / size</td>
-                            <td className="px-6 py-4 text-zinc-600">720p / 1024x1024及以下</td>
-                            <td className="px-6 py-4 text-zinc-900 font-bold text-right">1.0x (基准价)</td>
+                            <td className="px-6 py-4 text-zinc-600">720p / 1024x1024 and below</td>
+                            <td className="px-6 py-4 text-zinc-900 font-bold text-right">1.0x (Base Price)</td>
                           </tr>
                           <tr className="bg-white">
-                            <td className="px-6 py-4 text-zinc-600">1080p / 2048x2048及以上</td>
+                            <td className="px-6 py-4 text-zinc-600">1080p / 2048x2048 and above</td>
                             <td className="px-6 py-4 text-blue-600 font-bold text-right flex items-center justify-end gap-1">1.5x <Info className="w-4 h-4 text-zinc-400" /></td>
                           </tr>
                         </tbody>
@@ -357,25 +359,31 @@ export default function ModelDetails() {
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">B. 文本大模型梯度定价 (Context-based Tiered Pricing)</h3>
+                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">B. Context-based Tiered Pricing</h3>
                     <div className="border border-zinc-200 rounded-xl overflow-hidden">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-zinc-50 border-b border-zinc-200">
                           <tr>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">上下文区间 (Context Length)</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900">Context Length</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900">Input Credits / 1M tokens</th>
                             <th className="px-6 py-4 font-semibold text-zinc-900">Input Price / 1M tokens</th>
+                            <th className="px-6 py-4 font-semibold text-zinc-900">Output Credits / 1M tokens</th>
                             <th className="px-6 py-4 font-semibold text-zinc-900">Output Price / 1M tokens</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-100">
                           <tr className="bg-white">
                             <td className="px-6 py-4 font-mono text-zinc-600">&lt;= 32K tokens</td>
+                            <td className="px-6 py-4 text-zinc-600">20</td>
                             <td className="px-6 py-4 text-zinc-600">$0.020</td>
+                            <td className="px-6 py-4 text-zinc-600">60</td>
                             <td className="px-6 py-4 text-zinc-600">$0.060</td>
                           </tr>
                           <tr className="bg-white">
                             <td className="px-6 py-4 font-mono text-blue-600 font-bold">&gt; 32K tokens (Long Context)</td>
+                            <td className="px-6 py-4 text-blue-600 font-bold">45</td>
                             <td className="px-6 py-4 text-blue-600 font-bold">$0.045</td>
+                            <td className="px-6 py-4 text-blue-600 font-bold">135</td>
                             <td className="px-6 py-4 text-blue-600 font-bold">$0.135</td>
                           </tr>
                         </tbody>
@@ -385,6 +393,7 @@ export default function ModelDetails() {
                 </div>
               </section>
             </div>
+            </DevAnnotation>
           )}
 
           {activeTab === "api" && (

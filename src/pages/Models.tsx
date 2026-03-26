@@ -50,7 +50,8 @@ export default function Models() {
     const matchesCategory = activeCategory ? model.category === activeCategory : true;
     const matchesProvider = activeProvider ? model.provider === activeProvider : true;
     const matchesTask = activeTask ? model.tags.includes(activeTask) : true;
-    const matchesSearch = model.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = model.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          model.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           model.description.toLowerCase().includes(searchQuery.toLowerCase());
     const isVisible = model.visibility !== "Hidden";
@@ -74,7 +75,7 @@ export default function Models() {
           <div className="space-y-3 text-sm">
             <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">搜索与过滤逻辑说明</div>
             <ul className="space-y-2">
-              <li><span className="font-semibold">关键字搜索 (Search):</span> 实时匹配模型的<span className="text-blue-600">名称 (Name)</span>或<span className="text-blue-600">提供商 (Provider)</span>。</li>
+              <li><span className="font-semibold">关键字搜索 (Search):</span> 实时匹配模型的<span className="text-blue-600">ID (ID)</span>、<span className="text-blue-600">名称 (Name)</span>或<span className="text-blue-600">提供商 (Provider)</span>。</li>
               <li><span className="font-semibold">提供商过滤 (Provider Filter):</span> 下拉列表数据来源于后端当前已上架模型包含的所有提供商集合。</li>
               <li><span className="font-semibold">任务类型过滤 (Task Filter):</span> 下拉列表数据来源于后端 Taxonomy 维护的二级任务标签 (Task Tags)。</li>
               <li><span className="font-semibold">组合过滤逻辑:</span> 搜索框、提供商下拉框、任务类型下拉框以及下方的分类导航之间为 <span className="font-bold text-emerald-600">AND (交集)</span> 关系，共同决定最终展示的模型列表。</li>
@@ -197,7 +198,7 @@ export default function Models() {
                       <li><span className="font-semibold">封面素材 (Preview):</span> 来源于后端 Display Metadata (图片/视频 URL)。</li>
                       <li><span className="font-semibold">价格 (Price):</span> 来源于后端 Pricing Details (如按 token 或按次计费)。</li>
                       <li><span className="font-semibold">提供商 Logo (Logo):</span> 来源于后端 Display Metadata (品牌资产)。</li>
-                      <li><span className="font-semibold">模型名称 (Name):</span> 来源于后端模型基础信息。</li>
+                      <li><span className="font-semibold">模型ID (ID):</span> 来源于后端模型基础信息。</li>
                       <li><span className="font-semibold">提供商 (Provider):</span> 来源于后端模型基础信息。<strong>注意：前端卡片上不展示提供商名称，但支持通过顶部搜索栏按提供商搜索。</strong></li>
                       <li><span className="font-semibold">简介 (Description):</span> 来源于后端 CMS 维护的简短描述。</li>
                       <li><span className="font-semibold">功能标签 (Tags):</span> 来源于后端 Taxonomy 维护的二级任务标签。</li>
@@ -224,7 +225,7 @@ export default function Models() {
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg text-zinc-900 truncate">{model.name}</h3>
+                        <h3 className="font-bold text-lg text-zinc-900 truncate font-mono">{model.id}</h3>
                       </div>
                     </div>
                     
