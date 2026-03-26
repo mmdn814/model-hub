@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Copy, Terminal, Check, ShieldCheck, Play, History, Sparkles, ChevronDown, FileText, Code, Info, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
@@ -28,7 +29,7 @@ const ModelIdCopyButton = ({ id }: { id: string }) => {
 export default function ModelDetails() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<"playground" | "readme" | "api">("readme");
+  const [activeTab, setActiveTab] = useState<"playground" | "readme">("readme");
   const [copied, setCopied] = useState(false);
 
   const model = models.find(m => m.id === id);
@@ -139,11 +140,28 @@ export default function ModelDetails() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-transparent px-3 py-1.5 font-mono text-sm rounded-lg">
-                  <span className="text-emerald-500 mr-1">$</span> $0.030 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span>
+                <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-transparent px-3 py-1.5 font-mono text-sm rounded-lg flex items-center gap-1.5">
+                  <span><span className="text-emerald-500 mr-1">$</span> $0.030 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span></span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>基础价格+平台加价</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </Badge>
-                <Badge variant="outline" className="bg-slate-50 text-slate-800 border-slate-200 px-3 py-1.5 font-mono text-sm rounded-lg font-bold">
-                  30 <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / IMAGE</span>
+                
+                <Badge variant="outline" className="bg-slate-50 text-slate-800 border-slate-200 px-3 py-1.5 font-mono text-sm rounded-lg font-bold flex items-center gap-1.5">
+                  <span>30 <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / IMAGE</span></span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>(基础价格+平台加价)*平台汇率</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </Badge>
                 <span className="text-sm text-zinc-400">
                   Starts at. <a href="#pricing" className="underline hover:text-zinc-600 transition-colors" onClick={(e) => { e.preventDefault(); setActiveTab("readme"); }}>See full pricing in README</a>
@@ -217,12 +235,14 @@ export default function ModelDetails() {
             functionDesc="Display specific call examples for this model"
             devNotes="Phase 1 feature, backend logic: API mapping."
           >
-            <button
-              onClick={() => setActiveTab("api")}
-              className={cn("pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2", activeTab === "api" ? "border-blue-600 text-blue-600" : "border-transparent text-zinc-500 hover:text-zinc-900")}
+            <a
+              href="https://www.newapi.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2 border-transparent text-zinc-500 hover:text-zinc-900"
             >
               <Code className="w-4 h-4" /> API
-            </button>
+            </a>
           </DevAnnotation>
         </div>
 
@@ -232,9 +252,9 @@ export default function ModelDetails() {
               <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
                 <Play className="w-8 h-8 ml-1" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-900 mb-2">Interactive Playground</h3>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Coming Soon</h3>
               <p className="text-zinc-500 max-w-md">
-                Test and interact with the model directly from your browser. This feature is planned for Phase 2.
+                Stay tuned for the next phase.
               </p>
             </div>
           )}
@@ -394,41 +414,6 @@ export default function ModelDetails() {
               </section>
             </div>
             </DevAnnotation>
-          )}
-
-          {activeTab === "api" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-zinc-900">{t("Endpoint")}</h3>
-                <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2 bg-white hover:bg-zinc-50">
-                  {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  {copied ? t("Copied") : t("Copy URL")}
-                </Button>
-              </div>
-              
-              <div className="bg-zinc-900 text-zinc-50 p-4 rounded-xl font-mono text-sm overflow-x-auto shadow-inner">
-                POST https://api.aiplatform.com/v1/{model.category === "image" ? "images/generations" : model.category === "video" ? "videos/generations" : "chat/completions"}
-              </div>
-
-              <h3 className="text-lg font-semibold text-zinc-900 mt-8">{t("Example Request")}</h3>
-              <div className="bg-zinc-900 text-zinc-50 p-4 rounded-xl font-mono text-sm overflow-x-auto shadow-inner">
-<pre>{`curl https://api.aiplatform.com/v1/${model.category === "image" ? "images/generations" : model.category === "video" ? "videos/generations" : "chat/completions"} \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer $API_KEY" \\
-  -d '{
-    "model": "${model.id}",
-    ${model.category === "image" ? `"prompt": "A beautiful sunset over the mountains",
-    "n": 1,
-    "size": "1024x1024"` : model.category === "video" ? `"prompt": "A cat driving a car",
-    "duration": 5` : `"messages": [
-      {
-        "role": "user",
-        "content": "What is the meaning of life?"
-      }
-    ]`}
-  }'`}</pre>
-              </div>
-            </div>
           )}
         </div>
       </div>
