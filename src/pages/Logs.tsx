@@ -1,275 +1,349 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, Download, ChevronDown, Check, Eye, Key } from 'lucide-react';
+import { DevAnnotation } from "@/components/DevAnnotation";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Eye, 
+  Clock, 
+  Code, 
+  CheckCircle2, 
+  XCircle, 
+  Activity, 
+  Box,
+  AlertTriangle,
+  Calendar
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Card, CardContent } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Mock data for logs
+const CHART_DATA = [
+  { date: 'Mar 21', value: 200 },
+  { date: 'Mar 22', value: 550 },
+  { date: 'Mar 23', value: 100 },
+  { date: 'Mar 24', value: 0 },
+  { date: 'Mar 25', value: 380 },
+  { date: 'Mar 26', value: 720 },
+  { date: 'Mar 27', value: 300 },
+];
+
 const MOCK_LOGS = [
   {
-    id: 'req_1a2b3c',
-    timestamp: '2024-03-13T06:55:00Z',
-    model: 'anthropic/claude-3-opus',
-    vendor: 'Anthropic',
-    status: 'Success',
-    duration: '2.4s',
-    tokens: { input: 1540, output: 420 },
-    cost: '0.0034',
-    apiKeyId: '1',
+    id: 'tsk_ch_9a8b7c6d...',
+    timestamp: 'Mar 27, 05:25 PM',
+    model: 'wan-2.1-video',
+    appType: 'VIDEO',
+    appName: 'prod-backend-key',
+    details: [
+      { label: 'RES', value: '1080p' },
+      { label: 'DUR', value: '5s' }
+    ],
+    costCredits: '150',
+    costUsd: '$0.150',
+    status: 'SUCCESS',
+    action: 'download'
   },
   {
-    id: 'req_4d5e6f',
-    timestamp: '2024-03-13T06:50:12Z',
-    model: 'openai/gpt-4-turbo',
-    vendor: 'OpenAI',
-    status: 'Success',
-    duration: '1.8s',
-    tokens: { input: 850, output: 120 },
-    cost: '0.0012',
-    apiKeyId: '2',
+    id: 'chatcmpl-8f7e6d...',
+    timestamp: 'Mar 27, 05:24 PM',
+    model: 'qwen2.5-72b-instruct',
+    appType: 'CHAT',
+    appName: 'test-demo-key',
+    details: [
+      { label: 'In', value: '688' },
+      { label: 'Out', value: '812', valueColor: 'text-blue-600' }
+    ],
+    costCredits: '45',
+    costUsd: '$0.045',
+    status: 'SUCCESS',
+    action: 'view'
   },
   {
-    id: 'req_7g8h9i',
-    timestamp: '2024-03-13T06:45:33Z',
-    model: 'google/gemini-1.5-pro',
-    vendor: 'Google',
-    status: 'Failed',
-    duration: '0.5s',
-    tokens: { input: 0, output: 0 },
-    cost: '0.0000',
-    error: 'Rate limit exceeded',
-    apiKeyId: '1',
+    id: 'tsk_ch_7e6d5c4b...',
+    timestamp: 'Mar 27, 05:10 PM',
+    model: 'seedream-5-0',
+    appType: 'IMAGE',
+    appName: 'prod-backend-key',
+    details: [
+      { label: 'RES', value: '1024x1024' },
+      { label: 'N', value: '4' }
+    ],
+    costCredits: '120',
+    costUsd: '$0.120',
+    status: 'RUNNING',
+    action: 'clock'
   },
   {
-    id: 'req_0j1k2l',
-    timestamp: '2024-03-13T06:30:00Z',
-    model: 'meta-llama/llama-3-70b-instruct',
-    vendor: 'Meta',
-    status: 'Success',
-    duration: '3.1s',
-    tokens: { input: 2100, output: 850 },
-    cost: '0.0028',
-    apiKeyId: '3',
-  },
-  {
-    id: 'req_3m4n5o',
-    timestamp: '2024-03-13T06:15:22Z',
-    model: 'anthropic/claude-3-sonnet',
-    vendor: 'Anthropic',
-    status: 'Success',
-    duration: '1.2s',
-    tokens: { input: 450, output: 150 },
-    cost: '0.0008',
-    apiKeyId: '2',
-  },
+    id: 'tsk_ch_6d5c4b3a...',
+    timestamp: 'Mar 27, 04:55 PM',
+    model: 'kling-2.5-turbo',
+    appType: 'VIDEO',
+    appName: 'marketing-script',
+    details: [
+      { label: 'RES', value: '720p' },
+      { label: 'DUR', value: '10s' }
+    ],
+    costCredits: '--',
+    costUsd: '',
+    status: 'FAILED',
+    error: 'Safety policy violation: Prom...',
+    action: 'code'
+  }
 ];
 
 export default function Logs() {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [apiKeySearch, setApiKeySearch] = useState(searchParams.get('apiKeyId') || '');
-  const [timeFilter, setTimeFilter] = useState(t('1 Day'));
 
-  useEffect(() => {
-    const keyId = searchParams.get('apiKeyId');
-    if (keyId) {
-      setApiKeySearch(keyId);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return (
+          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100 px-2 py-1 gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            {status}
+          </Badge>
+        );
+      case 'RUNNING':
+        return (
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-100 px-2 py-1 gap-1">
+            <Activity className="w-3 h-3" />
+            {status}
+          </Badge>
+        );
+      case 'FAILED':
+        return (
+          <Badge variant="secondary" className="bg-red-50 text-red-700 hover:bg-red-50 border-red-100 px-2 py-1 gap-1">
+            <XCircle className="w-3 h-3" />
+            {status}
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }, [searchParams]);
-
-  const handleApiKeySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setApiKeySearch(val);
-    
-    // Update URL params
-    const newParams = new URLSearchParams(searchParams);
-    if (val) {
-      newParams.set('apiKeyId', val);
-    } else {
-      newParams.delete('apiKeyId');
-    }
-    setSearchParams(newParams);
   };
 
-  const filteredLogs = MOCK_LOGS.filter(log => {
-    const matchesSearch = searchQuery === '' || 
-      log.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-      
-    const matchesApiKey = apiKeySearch === '' || log.apiKeyId === apiKeySearch;
-    
-    return matchesSearch && matchesApiKey;
-  });
+  const getAppTypeBadge = (type: string) => {
+    switch (type) {
+      case 'VIDEO':
+        return <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-100 rounded-sm px-1.5 py-0 text-[10px] font-bold tracking-wider">{type}</Badge>;
+      case 'CHAT':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 rounded-sm px-1.5 py-0 text-[10px] font-bold tracking-wider">{type}</Badge>;
+      case 'IMAGE':
+        return <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 rounded-sm px-1.5 py-0 text-[10px] font-bold tracking-wider">{type}</Badge>;
+      default:
+        return <Badge variant="secondary" className="rounded-sm px-1.5 py-0 text-[10px] font-bold tracking-wider">{type}</Badge>;
+    }
+  };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(date);
+  const getActionButton = (action: string) => {
+    switch (action) {
+      case 'download':
+        return (
+          <Button variant="outline" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-900 border-zinc-200">
+            <Download className="w-4 h-4" />
+          </Button>
+        );
+      case 'view':
+        return (
+          <Button variant="outline" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-900 border-zinc-200">
+            <Eye className="w-4 h-4" />
+          </Button>
+        );
+      case 'clock':
+        return (
+          <Button variant="outline" size="icon" className="h-8 w-8 text-zinc-500 hover:text-zinc-900 border-zinc-200">
+            <Clock className="w-4 h-4" />
+          </Button>
+        );
+      case 'code':
+        return (
+          <Button variant="destructive" size="icon" className="h-8 w-8 bg-red-500 text-white hover:bg-red-600 border-none">
+            <Code className="w-4 h-4" />
+          </Button>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">{t("API Logs")}</h1>
-          <p className="text-zinc-500 mt-1">{t("View and analyze your API request history.")}</p>
-        </div>
-        <Button variant="outline" className="gap-2">
-          <Download className="w-4 h-4" />
-          {t("Export CSV")}
-        </Button>
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-[#0f172a] tracking-tight">{t("Activity Logs")}</h1>
+        <p className="text-zinc-500 mt-2 text-base">{t("Track your API usage, review generated assets, and debug requests.")}</p>
       </div>
 
-      {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-          <Input
-            placeholder={t("Search by Request ID, Model, or Vendor...")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="relative w-full sm:w-64">
-          <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-          <Input
-            placeholder={t("Filter by API Key ID...")}
-            value={apiKeySearch}
-            onChange={handleApiKeySearchChange}
-            className="pl-9"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 border border-zinc-200 rounded-md text-sm hover:bg-zinc-50 transition-colors justify-between min-w-[120px]">
-              {timeFilter}
-              <ChevronDown className="w-4 h-4 text-zinc-500" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]">
-              {['1 Hour', '1 Day', '1 Week', '1 Month'].map((time) => (
-                <DropdownMenuItem 
-                  key={time} 
-                  onClick={() => setTimeFilter(t(time))}
-                  className="justify-between"
-                >
-                  {t(time)}
-                  {timeFilter === t(time) && <Check className="w-4 h-4" />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="outline" className="gap-2">
-            <Filter className="w-4 h-4" />
-            {t("More Filters")}
-          </Button>
-        </div>
-      </div>
-
-      {/* Logs Table */}
-      <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-zinc-50/50 text-zinc-500 border-b border-zinc-200">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t("Timestamp")}</th>
-                <th className="px-4 py-3 font-medium">{t("Request ID")}</th>
-                <th className="px-4 py-3 font-medium">{t("Model & Vendor")}</th>
-                <th className="px-4 py-3 font-medium">{t("Status")}</th>
-                <th className="px-4 py-3 font-medium">{t("Duration")}</th>
-                <th className="px-4 py-3 font-medium text-right">{t("Tokens (In/Out)")}</th>
-                <th className="px-4 py-3 font-medium text-right">{t("Cost")}</th>
-                <th className="px-4 py-3 font-medium text-center">{t("Actions")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-zinc-50/50 transition-colors">
-                    <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">
-                      {formatDate(log.timestamp)}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-500">
-                      {log.id}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-zinc-900">{log.model}</span>
-                        <span className="text-xs text-zinc-500">{log.vendor}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge 
-                        variant="secondary" 
-                        className={
-                          log.status === 'Success' 
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50' 
-                            : 'bg-red-50 text-red-700 hover:bg-red-50'
-                        }
-                      >
-                        {log.status}
-                      </Badge>
-                      {log.error && (
-                        <div className="text-xs text-red-600 mt-1">{log.error}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">
-                      {log.duration}
-                    </td>
-                    <td className="px-4 py-3 text-right text-zinc-600">
-                      <div className="flex flex-col items-end">
-                        <span>{log.tokens.input.toLocaleString()} / {log.tokens.output.toLocaleString()}</span>
-                        <span className="text-xs text-zinc-400">
-                          {(log.tokens.input + log.tokens.output).toLocaleString()} total
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-zinc-900">
-                      ${log.cost}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-900">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-zinc-500">
-                    {t("No logs found matching your criteria.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination (Mock) */}
-        <div className="px-4 py-3 border-t border-zinc-200 flex items-center justify-between text-sm text-zinc-500">
-          <div>{t("Showing 1 to 5 of 1,240 entries")}</div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>{t("Previous")}</Button>
-            <Button variant="outline" size="sm">{t("Next")}</Button>
+      {/* Alert */}
+      <DevAnnotation customContent={<div className="whitespace-pre-wrap">业务逻辑 (Logic)：为了节省昂贵的 OSS 对象存储空间并合规：媒体文件 (MP4/PNG/WAV) 生成后仅保留 7 天，过期自动清理 CDN 链接和物理文件。纯文本日志记录 (JSON 元数据) 保留 30 天。前端强耦合：前端在渲染表格时，必须校验当前记录的 created_at。如果已过期大于 7 天，必须将该行的 Download 下载按钮置灰禁用，并提示“文件已过期清理”。</div>}>
+        <div className="bg-[#fffbeb] border border-[#fef3c7] rounded-xl p-4 flex gap-3">
+          <div className="bg-[#fef3c7] p-2 rounded-full h-fit">
+            <AlertTriangle className="w-5 h-5 text-[#d97706]" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-[#92400e] text-sm">{t("API Media Retention Policy Alert")}</h3>
+            <p className="text-[#b45309] text-sm leading-relaxed">
+              {t("For data privacy and system performance, media files (images, videos, audio) generated via API are only temporarily hosted for 7 days. Data beyond this period will be permanently deleted. Please ensure your application downloads and hosts the assets locally.")}
+            </p>
           </div>
         </div>
-      </div>
+      </DevAnnotation>
+
+      <Card className="border-zinc-200 shadow-sm rounded-2xl overflow-hidden">
+        <CardContent className="p-0">
+          {/* Controls */}
+          <DevAnnotation customContent={<div className="whitespace-pre-wrap">业务逻辑 (Logic)：支持多条件交叉查询分页。搜索框主要用于精准匹配 Task ID 或 Request ID，是开发者线上 Debug (查错) 的最核心入口。高级筛选 (Filter) 中必须包含状态 (如仅看 Failed)、模型类别和 API Key 的下拉过滤。（注意这里的task id 是用户api请求的task id，request ID同理）</div>}>
+            <div className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-zinc-100">
+              <Button variant="outline" className="w-full sm:w-auto justify-start gap-2 border-zinc-200 text-zinc-700 font-medium rounded-xl h-11 px-4">
+                <Calendar className="w-4 h-4 text-zinc-400" />
+                Mar 01, 2026 - Mar 27, 2026
+              </Button>
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Button variant="outline" className="gap-2 border-zinc-200 text-zinc-700 font-medium rounded-xl h-11 px-4">
+                  <Filter className="w-4 h-4 text-zinc-400" />
+                  {t("Filter")}
+                </Button>
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <Input
+                    placeholder={t("Search Task ID...")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 bg-zinc-50/50 border-zinc-200 rounded-xl h-11"
+                  />
+                </div>
+              </div>
+            </div>
+          </DevAnnotation>
+
+          {/* Chart */}
+          <DevAnnotation customContent={<div className="whitespace-pre-wrap">业务逻辑 (Logic)： 后台执行时间序列聚合查询。前端根据选定的时间跨度动态渲染柱状图，帮助客户直观发现某天额度消耗的异常飙升。</div>}>
+            <div className="h-64 p-6 border-b border-zinc-100">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#a1a1aa', fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#a1a1aa', fontSize: 12, fontWeight: 500 }}
+                    tickFormatter={(value) => value >= 1000 ? `${value / 1000}k` : value}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f4f4f5' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#1d4ed8" 
+                    radius={[4, 4, 0, 0]} 
+                    barSize={32}
+                    className="fill-blue-600 hover:fill-blue-700 transition-colors"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </DevAnnotation>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-zinc-400 font-bold tracking-wider uppercase bg-white border-b border-zinc-100">
+                <tr>
+                  <th className="px-6 py-4">{t("TIMESTAMP / ID")}</th>
+                  <th className="px-6 py-4">{t("MODEL & APP")}</th>
+                  <th className="px-6 py-4">
+                    <DevAnnotation customContent={<div className="whitespace-pre-wrap">业务逻辑 (Logic)：多模态兼容的核心设计。对于文本/Chat 模型，渲染 prompt_tokens 和 completion_tokens。对于图像/视频模型，渲染 resolution (分辨率)、duration (时长) 或 batch_size。前端通过判断该条日志的 modality (模态类型) 字段，动态呈现截然不同的排版结构。</div>}>
+                      {t("DETAILS (TOKENS/PARAM)")}
+                    </DevAnnotation>
+                  </th>
+                  <th className="px-6 py-4 text-center">
+                    <DevAnnotation customContent={<div className="whitespace-pre-wrap">业务逻辑 (Logic)：主视觉(黑色大字) 必须展示底层真实扣除的 Credits（如 150）。下方辅助视觉(灰色小字) 由前端读取全局汇率，动态除法算出预估的 USD 成本（如 $0.150），以满足海外客户基于法币对账的刚性习惯。</div>}>
+                      {t("COST (CREDITS)")}
+                    </DevAnnotation>
+                  </th>
+                  <th className="px-6 py-4 text-center">
+                    <DevAnnotation customContent={<div className="whitespace-pre-wrap">由后端异步网关的状态机直接映射：{"\n"}Processing (处理中)：任务正在队列或渲染中，平台已按最大预估成本【预冻结】了 Credits。{"\n"}Completed (已完成)：成功生成资产或文本。底层已按照真实使用量【完成扣费】并【释放】了多余的冻结额度。{"\n"}Failed (失败)：因参数错误、超时或触发安全敏感词导致失败。底层已【全额解冻】预扣分，实际扣费为 0。</div>}>
+                      {t("STATUS")}
+                    </DevAnnotation>
+                  </th>
+                  <th className="px-6 py-4 text-center">
+                    <DevAnnotation customContent={<div className="whitespace-pre-wrap">前端需动态渲染最右侧的操作按钮：{"\n"}等待 (Pending)：触发：状态为 Processing。表现：灰色时钟图标，按钮禁用。悬停提示：“Still generating...”。{"\n"}下载 (Download)：触发：状态为 Completed + 模态为 Video/Image/Audio。表现：下载图标。点击直接下载生成的媒体文件。如遇 7 天过期，则按钮不可用。{"\n"}查看明细 (View Details)：触发：状态为 Completed + 模态为 Chat/Text。表现：眼睛图标。点击弹出抽屉或 Modal，展示用户完整的输入 Prompt 和模型输出结果 (JSON 格式)，供回溯上下文。{"\n"}错误追溯 (Error Trace)：触发：状态为 Failed (任何模态)。表现：红色代码图标 &lt; &gt;。点击弹出代码层级的报错详情（如 &#123;"error": "Safety policy violation"&#125;），帮助开发者修 Bug。</div>}>
+                      {t("ACTION")}
+                    </DevAnnotation>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {MOCK_LOGS.map((log, index) => (
+                  <tr key={index} className="bg-white hover:bg-zinc-50/50 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="font-bold text-zinc-900">{log.timestamp}</span>
+                        <span className="font-mono text-xs text-zinc-400">{log.id}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col gap-2">
+                        <span className="font-bold text-zinc-900">{log.model}</span>
+                        <div className="flex items-center gap-2">
+                          {getAppTypeBadge(log.appType)}
+                          <div className="flex items-center gap-1 text-xs text-zinc-500">
+                            <Box className="w-3 h-3" />
+                            {log.appName}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col gap-1 text-xs font-mono">
+                        {log.details.map((detail, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <span className="text-zinc-400 w-8">{detail.label}:</span>
+                            <span className={detail.valueColor || "text-zinc-900 font-medium"}>{detail.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-zinc-900 text-base">{log.costCredits}</span>
+                        {log.costUsd && <span className="text-xs text-zinc-400">{log.costUsd}</span>}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col items-center gap-2">
+                        {getStatusBadge(log.status)}
+                        {log.error && (
+                          <span className="text-xs text-red-500 max-w-[150px] truncate" title={log.error}>
+                            {log.error}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <div className="flex justify-center">
+                        {getActionButton(log.action)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

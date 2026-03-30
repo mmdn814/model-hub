@@ -11,7 +11,7 @@ const navItems = [
   { icon: Tag, labelKey: "Pricing", path: "/pricing" },
   { icon: CreditCard, labelKey: "Billing", path: "/billing" },
   { icon: Key, labelKey: "API Keys", path: "/keys" },
-  { icon: FileText, labelKey: "API Logs", path: "/logs" },
+  { icon: FileText, labelKey: "Logs", path: "/logs" },
   { icon: SettingsIcon, labelKey: "Settings", path: "/settings" },
 ];
 
