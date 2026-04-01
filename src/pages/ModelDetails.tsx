@@ -143,7 +143,7 @@ export default function ModelDetails() {
                 <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-transparent px-3 py-1.5 font-mono text-sm rounded-lg flex items-center gap-1.5">
                   <span><span className="text-emerald-500 mr-1">$</span> $0.030 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span></span>
                   <Tooltip>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger>
                       <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -155,7 +155,7 @@ export default function ModelDetails() {
                 <Badge variant="outline" className="bg-slate-50 text-slate-800 border-slate-200 px-3 py-1.5 font-mono text-sm rounded-lg font-bold flex items-center gap-1.5">
                   <span>30 <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / IMAGE</span></span>
                   <Tooltip>
-                    <TooltipTrigger asChild>
+                    <TooltipTrigger>
                       <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
                     </TooltipTrigger>
                     <TooltipContent>

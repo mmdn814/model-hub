@@ -398,7 +398,7 @@ export default function Pricing() {
                         {t("Unit")} 
                       </DevAnnotation>
                       <Tooltip>
-                        <TooltipTrigger asChild>
+                        <TooltipTrigger>
                           <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
@@ -424,7 +424,7 @@ export default function Pricing() {
                         {t("Credits")}
                       </DevAnnotation>
                       <Tooltip>
-                        <TooltipTrigger asChild>
+                        <TooltipTrigger>
                           <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
