@@ -13,7 +13,7 @@ export default function Billing() {
   const { t } = useTranslation();
   const [autoTopUpEnabled, setAutoTopUpEnabled] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<string>("20k");
-  const [selectedPayment, setSelectedPayment] = useState<string>("stripe");
+  const [selectedPayment, setSelectedPayment] = useState<string>("credit_card");
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -22,9 +22,9 @@ export default function Billing() {
         <p className="text-zinc-500">{t("Manage your balance, payment methods, and billing history.")}</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-md">
         {/* Balance Card */}
-        <Card className="md:col-span-1 bg-zinc-900 text-zinc-50 border-zinc-800">
+        <Card className="bg-zinc-900 text-zinc-50 border-zinc-800">
           <CardHeader>
             <CardTitle className="text-zinc-200">{t("Current Balance")}</CardTitle>
             <CardDescription className="text-zinc-400">{t("Available USD credits")}</CardDescription>
@@ -51,82 +51,6 @@ export default function Billing() {
             </DevAnnotation>
           </CardContent>
         </Card>
-
-        {/* Auto-recharge */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-xl">{t("Automatic Payments")}</CardTitle>
-            <CardDescription className="text-base text-zinc-500 mt-2">
-              {t("Set up automatic billing by linking a payment method. When your credit balance drops below your specified threshold, we will automatically recharge your account by charging your saved payment method (maximum once every 10 minutes) for the amount selected below.")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <DevAnnotation customContent={<div className="whitespace-pre-wrap">自动充值状态 (Auto-Recharge Status)：核心交互依赖于用户是否已经在第四方支付网关留存了合法的代扣授权。包含两种状态处理：{"\n"}状态 A（未充值过 / 未留存代扣协议）：允许用户拨动开关并设置金额。但在点击底部的 Save 时，后端不直接生效，而是返回一条第四方授权链接（如 Stripe SetupIntent URL）。前端重定向用户至外部收银台完成绑卡授权，成功后自动开启本功能。{"\n"}状态 B（已绑卡 / 曾充值并授权存卡）：用户拨动开关并点击 Save 时，直接调用后端接口更新配置，立即静默生效。开启瞬间，系统自动将用户的 Tier 等级升级为 Scale (最高并发组)。{"\n"}注意：PayPal支付不支持开启自动扣款。</div>}>
-              <div className="flex items-center space-x-3">
-                <Switch 
-                  id="auto-top-up" 
-                  checked={autoTopUpEnabled}
-                  onCheckedChange={setAutoTopUpEnabled}
-                />
-                <label 
-                  htmlFor="auto-top-up" 
-                  className="text-base font-semibold cursor-pointer"
-                >
-                  {t("Enable auto top-ups")}
-                </label>
-              </div>
-            </DevAnnotation>
-
-            {autoTopUpEnabled && (
-              <div className="space-y-6 pt-4 border-t border-zinc-100">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-zinc-600">{t("Auto-Pay Threshold")}</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <LinkIcon className="h-4 w-4 text-zinc-400" />
-                      </div>
-                      <Input type="number" defaultValue="1000" className="pl-9 font-medium" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-zinc-600">{t("Auto-Pay Amount")}</label>
-                    <Select defaultValue="2000">
-                      <SelectTrigger className="font-medium">
-                        <SelectValue placeholder={t("Select amount")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2000">2,000 {t("credits")} - $10</SelectItem>
-                        <SelectItem value="5000">5,000 {t("credits")} - $25</SelectItem>
-                        <SelectItem value="10000">10,000 {t("credits")} - $50</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-zinc-600">{t("Payment Method for Auto-Pay")}</label>
-                  <Select defaultValue="stripe">
-                    <SelectTrigger className="font-medium">
-                      <SelectValue placeholder={t("Select payment method")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stripe">Stripe</SelectItem>
-                      <SelectItem value="limeng">Limeng</SelectItem>
-                      <SelectItem value="paypal" disabled>PayPal ({t("Not supported for auto-pay")})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <DevAnnotation customContent={<div className="whitespace-pre-wrap">保存自动支付配置 (Save Auto-Pay Config)：{"\n"}A：提交 threshold (触发阈值) 和 amount_package_id (下拉框选中的定额充值套餐)。{"\n"}B：后台守护进程触发：系统监控账单扣费，当用户的 total_credits 跌破阈值时，后台触发 Server-to-Server 接口，向第四方网关发起静默代扣 (Off-session charge)。{"\n"}安全风控逻辑：为防止因底层计费 Bug 或网关异常导致的“无限恶意扣款”，必须在系统层面设置冷却期机制（如 UI 文案所述：max once every 15 minutes，即15分钟内只允许触发一次代扣尝试）。</div>}>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 text-lg rounded-xl">
-                    {t("Save")}
-                  </Button>
-                </DevAnnotation>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Credit Packages */}
@@ -140,15 +64,15 @@ export default function Billing() {
             <DevAnnotation customContent={<div className="whitespace-pre-wrap">1、套餐来源于后台上架的套餐，显示3个套餐{"\n"}2、后台默认的套餐，在前台是默认被选中的状态{"\n"}3、如果套餐设置了折扣，就显示折扣角标{"\n"}第四方聚合支付闭环 (Gateway Flow){"\n"}业务逻辑 (Logic)：前端携带 PackageID 调后端，后端向第四方平台申请支付链接 (Payment URL)———&gt;前端在新窗口或当前页重定向至第四方收银台 (聚合了卡/PayPal等)———&gt;支付成功后，第四方异步回调我们后端的 Webhook———&gt;后端校验签名无误后，为用户加款，并生成账单流水。显示的标签来源于后端,套餐种类都自来后端</div>}>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div 
-                  className={`cursor-pointer transition-all rounded-xl p-5 ${selectedPackage === '5k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900 hover:bg-zinc-200/80'}`}
-                  onClick={() => setSelectedPackage('5k')}
+                  className={`transition-all rounded-xl p-5 ${selectedPackage === '5k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900'} ${autoTopUpEnabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-zinc-200/80'}`}
+                  onClick={() => !autoTopUpEnabled && setSelectedPackage('5k')}
                 >
                   <div className="text-2xl font-bold mb-2">$5</div>
                   <div className={`text-sm ${selectedPackage === '5k' ? 'text-blue-100' : 'text-zinc-600'}`}>1,000 {t("credits")}</div>
                 </div>
                 <div 
-                  className={`cursor-pointer transition-all rounded-xl p-5 relative overflow-hidden ${selectedPackage === '20k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900 hover:bg-zinc-200/80'}`}
-                  onClick={() => setSelectedPackage('20k')}
+                  className={`transition-all rounded-xl p-5 relative overflow-hidden ${selectedPackage === '20k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900'} ${autoTopUpEnabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-zinc-200/80'}`}
+                  onClick={() => !autoTopUpEnabled && setSelectedPackage('20k')}
                 >
                   {/* Save 5% Corner Ribbon */}
                   <div className={`absolute top-0 right-0 w-24 h-24 overflow-hidden`}>
@@ -160,8 +84,8 @@ export default function Billing() {
                   <div className={`text-sm ${selectedPackage === '20k' ? 'text-blue-100' : 'text-zinc-600'}`}>10,000 {t("credits")}</div>
                 </div>
                 <div 
-                  className={`cursor-pointer transition-all rounded-xl p-5 relative overflow-hidden ${selectedPackage === '100k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900 hover:bg-zinc-200/80'}`}
-                  onClick={() => setSelectedPackage('100k')}
+                  className={`transition-all rounded-xl p-5 relative overflow-hidden ${selectedPackage === '100k' ? 'bg-blue-600 text-white shadow-md' : 'bg-zinc-100/80 text-zinc-900'} ${autoTopUpEnabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-zinc-200/80'}`}
+                  onClick={() => !autoTopUpEnabled && setSelectedPackage('100k')}
                 >
                   {/* Save 10% Corner Ribbon */}
                   <div className={`absolute top-0 right-0 w-24 h-24 overflow-hidden`}>
@@ -180,39 +104,72 @@ export default function Billing() {
             <h3 className="text-sm font-medium text-zinc-600">{t("Payment Method")}</h3>
             <div className="bg-zinc-100/80 p-1.5 rounded-xl flex items-center gap-1">
               <button 
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedPayment === 'stripe' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200/50'}`}
-                onClick={() => setSelectedPayment('stripe')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedPayment === 'credit_card' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'} ${autoTopUpEnabled ? 'opacity-60 cursor-not-allowed' : 'hover:text-zinc-700 hover:bg-zinc-200/50'}`}
+                onClick={() => !autoTopUpEnabled && setSelectedPayment('credit_card')}
+                disabled={autoTopUpEnabled}
               >
                 <CreditCard className="w-4 h-4" />
-                <span>Stripe</span>
+                <span>{t("Credit Card")}</span>
               </button>
               <button 
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedPayment === 'paypal' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200/50'}`}
-                onClick={() => setSelectedPayment('paypal')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedPayment === 'paypal' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500'} ${autoTopUpEnabled ? 'opacity-60 cursor-not-allowed' : 'hover:text-zinc-700 hover:bg-zinc-200/50'}`}
+                onClick={() => !autoTopUpEnabled && setSelectedPayment('paypal')}
+                disabled={autoTopUpEnabled}
               >
                 <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a2.093 2.093 0 0 0-2.067 1.776l-.006.038-1.011 6.41.896.002 1.107-7.025c.082-.518.526-.9 1.05-.9h2.19c4.298 0 7.664-1.748 8.647-6.797.03-.15.054-.294.077-.437.112-.716.155-1.37.126-1.954z"/></svg>
                 <span>PayPal</span>
               </button>
-              <button 
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedPayment === 'limeng' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-200/50'}`}
-                onClick={() => setSelectedPayment('limeng')}
-              >
-                <Wallet className="w-4 h-4" />
-                <span>Limeng</span>
-              </button>
             </div>
           </div>
 
+          {selectedPayment === 'credit_card' && (
+            <div className="pt-4 border-t border-zinc-100">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <label htmlFor="auto-top-up" className="text-base font-semibold cursor-pointer">
+                    {t("Enable auto top-ups")}
+                  </label>
+                  <p className="text-sm text-zinc-500">
+                    {t("Automatically recharge when balance is low")}
+                  </p>
+                </div>
+                <Switch 
+                  id="auto-top-up" 
+                  checked={autoTopUpEnabled}
+                  onCheckedChange={setAutoTopUpEnabled}
+                />
+              </div>
+
+              {autoTopUpEnabled && (
+                <div className="mt-4 space-y-2">
+                  <label className="text-sm font-semibold text-zinc-600">{t("Auto-Pay Threshold")}</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                      <LinkIcon className="h-4 w-4 text-zinc-400" />
+                    </div>
+                    <Input type="number" defaultValue="1000" className="pl-9 pr-16 font-medium" />
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                      <span className="text-sm text-zinc-500">{t("credits")}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {t("When your balance falls below this amount, we will automatically charge your credit card for the selected package. You will receive an email notification for each automatic top-up.")}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="pt-2">
             <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-6 text-base rounded-xl">
-              {t("Buy Credits")}
+              {autoTopUpEnabled ? t("Save & Enable Auto-Pay") : t("Buy Credits")}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Billing History */}
-      <DevAnnotation customContent={<div className="whitespace-pre-wrap">字段1: Data显示用户付费的时间,按照前端用户时区显示{"\n"}字段2: Description显示购买的套餐,显示credits{"\n"}字段3: Credits显示购买的套餐所对应的credits{"\n"}字段4: Amount(USD)核心合规字段！即使全站用 Credit 结算，这里也必须如实显示用户充值时实际支付的法币或 Crypto 金额，用于企业财务精准入账和报销。{"\n"}字段5:Invoice PDF：点击下载,下载PDF 由于不在前端收集实体地址，发票中的地址需要第四方回传我放获取，如果不回传第四方可以提供电子凭证就是跳转链接, 直接重定向至第四方支付网关提供的电子凭证页面。</div>}>
+      <DevAnnotation customContent={<div className="whitespace-pre-wrap">字段1: Data显示用户付费的时间,按照前端用户时区显示{"\n"}字段2: Description显示购买的套餐,显示credits{"\n"}字段3: Credits显示购买的套餐所对应的credits{"\n"}字段4: Amount(USD)核心合规字段！即使全站用 Credit 结算，这里也必须如实显示用户充值时实际支付的法币或 Crypto 金额，用于企业财务精准入账和报销。{"\n"}字段5: Payment Source显示支付来源（如Stripe、PayPal等）{"\n"}字段6:Invoice PDF：点击下载,下载PDF 由于不在前端收集实体地址，发票中的地址需要第四方回传我放获取，如果不回传第四方可以提供电子凭证就是跳转链接, 直接重定向至第四方支付网关提供的电子凭证页面。</div>}>
         <Card>
           <CardHeader>
             <CardTitle>{t("Billing History")}</CardTitle>
@@ -227,6 +184,7 @@ export default function Billing() {
                     <th className="px-4 py-3 font-medium">{t("Description")}</th>
                     <th className="px-4 py-3 font-medium">{t("Credits")}</th>
                     <th className="px-4 py-3 font-medium">{t("Amount (USD)")}</th>
+                    <th className="px-4 py-3 font-medium">{t("Payment Source")}</th>
                     <th className="px-4 py-3 font-medium">{t("Status")}</th>
                     <th className="px-4 py-3 font-medium text-right">{t("Invoice")}</th>
                   </tr>
@@ -237,6 +195,7 @@ export default function Billing() {
                     <td className="px-4 py-3">Credit Package - 20,000 {t("credits")}</td>
                     <td className="px-4 py-3 font-bold">20,000 <span className="text-zinc-400 text-xs font-normal">{t("credits")}</span></td>
                     <td className="px-4 py-3 font-bold">$20.00</td>
+                    <td className="px-4 py-3 text-zinc-600">Stripe</td>
                     <td className="px-4 py-3"><Badge variant="success" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-transparent uppercase text-xs font-bold">{t("Paid")}</Badge></td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-zinc-500">
@@ -249,6 +208,7 @@ export default function Billing() {
                     <td className="px-4 py-3">Auto-Recharge - 50,000 {t("credits")}</td>
                     <td className="px-4 py-3 font-bold">50,000 <span className="text-zinc-400 text-xs font-normal">{t("credits")}</span></td>
                     <td className="px-4 py-3 font-bold">$50.00</td>
+                    <td className="px-4 py-3 text-zinc-600">PayPal</td>
                     <td className="px-4 py-3"><Badge variant="success" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-transparent uppercase text-xs font-bold">{t("Paid")}</Badge></td>
                     <td className="px-4 py-3 text-right">
                       <Button variant="ghost" size="sm" className="h-8 px-2 text-zinc-500">
