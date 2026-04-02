@@ -14,6 +14,12 @@ export default function Billing() {
   const [autoTopUpEnabled, setAutoTopUpEnabled] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<string>("20k");
   const [selectedPayment, setSelectedPayment] = useState<string>("credit_card");
+  const [thresholdInput, setThresholdInput] = useState<string>("1000");
+  const [activeAutoPay, setActiveAutoPay] = useState<{
+    threshold: string;
+    packageId: string;
+    paymentMethod: string;
+  } | null>(null);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -124,49 +130,124 @@ export default function Billing() {
 
           {selectedPayment === 'credit_card' && (
             <div className="pt-4 border-t border-zinc-100">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <label htmlFor="auto-top-up" className="text-base font-semibold cursor-pointer">
-                    {t("Enable auto top-ups")}
-                  </label>
-                  <p className="text-sm text-zinc-500">
-                    {t("Automatically recharge when balance is low")}
-                  </p>
+              {activeAutoPay ? (
+                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-sm text-blue-800 flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                  <p>{t("You have an active auto-pay configuration. You can manage or cancel it in the section below. Manual top-ups will not affect your auto-pay settings.")}</p>
                 </div>
-                <Switch 
-                  id="auto-top-up" 
-                  checked={autoTopUpEnabled}
-                  onCheckedChange={setAutoTopUpEnabled}
-                />
-              </div>
-
-              {autoTopUpEnabled && (
-                <div className="mt-4 space-y-2">
-                  <label className="text-sm font-semibold text-zinc-600">{t("Auto-Pay Threshold")}</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                      <LinkIcon className="h-4 w-4 text-zinc-400" />
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <label htmlFor="auto-top-up" className="text-base font-semibold cursor-pointer">
+                        {t("Enable auto top-ups")}
+                      </label>
+                      <p className="text-sm text-zinc-500">
+                        {t("Automatically recharge when balance is low")}
+                      </p>
                     </div>
-                    <Input type="number" defaultValue="1000" className="pl-9 pr-16 font-medium" />
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                      <span className="text-sm text-zinc-500">{t("credits")}</span>
-                    </div>
+                    <Switch 
+                      id="auto-top-up" 
+                      checked={autoTopUpEnabled}
+                      onCheckedChange={setAutoTopUpEnabled}
+                    />
                   </div>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    {t("When your balance falls below this amount, we will automatically charge your credit card for the selected package. You will receive an email notification for each automatic top-up.")}
-                  </p>
-                </div>
+
+                  {autoTopUpEnabled && (
+                    <div className="mt-4 space-y-2">
+                      <label className="text-sm font-semibold text-zinc-600">{t("Auto-Pay Threshold")}</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                          <LinkIcon className="h-4 w-4 text-zinc-400" />
+                        </div>
+                        <Input 
+                          type="number" 
+                          value={thresholdInput}
+                          onChange={(e) => setThresholdInput(e.target.value)}
+                          className="pl-9 pr-16 font-medium" 
+                        />
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                          <span className="text-sm text-zinc-500">{t("credits")}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {t("When your balance falls below this amount, we will automatically charge your credit card for the selected package. You will receive an email notification for each automatic top-up.")}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
 
           <div className="pt-2">
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-6 text-base rounded-xl">
-              {autoTopUpEnabled ? t("Save & Enable Auto-Pay") : t("Buy Credits")}
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-6 text-base rounded-xl"
+              onClick={() => {
+                if (autoTopUpEnabled && !activeAutoPay) {
+                  setActiveAutoPay({
+                    threshold: thresholdInput,
+                    packageId: selectedPackage,
+                    paymentMethod: selectedPayment
+                  });
+                  setAutoTopUpEnabled(false);
+                }
+              }}
+            >
+              {autoTopUpEnabled && !activeAutoPay ? t("Save & Enable Auto-Pay") : t("Buy Credits")}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Active Auto-Pay Configuration */}
+      {activeAutoPay && (
+        <DevAnnotation customContent={<div className="whitespace-pre-wrap">自动扣款记录 (Auto-Pay Record)：{"\n"}展示当前生效的自动扣款配置。由于套餐是后端配置的，如果用户下次手动充值选择了其他套餐，不会影响此处的自动扣款规则。{"\n"}用户只能开启一条自动扣款记录，可以在此处随时关闭。</div>}>
+          <Card className="border-blue-200 bg-blue-50/30">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg text-blue-900">{t("Active Auto-Pay Configuration")}</CardTitle>
+                  <CardDescription className="text-blue-700/70">{t("Your account will be automatically recharged based on these settings.")}</CardDescription>
+                </div>
+                <Badge variant="default" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">{t("Active")}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-xl border border-blue-100 gap-4">
+                <div className="flex flex-wrap gap-x-8 gap-y-4">
+                  <div>
+                    <p className="text-xs text-zinc-500 font-medium mb-1">{t("Threshold")}</p>
+                    <p className="font-semibold text-zinc-900">&lt; {activeAutoPay.threshold} {t("credits")}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500 font-medium mb-1">{t("Recharge Package")}</p>
+                    <p className="font-semibold text-zinc-900">
+                      {activeAutoPay.packageId === '5k' ? '1,000 credits ($5)' : 
+                       activeAutoPay.packageId === '20k' ? '10,000 credits ($50)' : 
+                       '275,000 credits ($1250)'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500 font-medium mb-1">{t("Payment Method")}</p>
+                    <div className="flex items-center gap-1.5 font-semibold text-zinc-900">
+                      {activeAutoPay.paymentMethod === 'credit_card' ? <CreditCard className="w-4 h-4 text-zinc-500" /> : null}
+                      <span className="capitalize">{activeAutoPay.paymentMethod.replace('_', ' ')}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 shrink-0" 
+                  onClick={() => setActiveAutoPay(null)}
+                >
+                  {t("Cancel Auto-Pay")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </DevAnnotation>
+      )}
 
       {/* Billing History */}
       <DevAnnotation customContent={<div className="whitespace-pre-wrap">字段1: Data显示用户付费的时间,按照前端用户时区显示{"\n"}字段2: Description显示购买的套餐,显示credits{"\n"}字段3: Credits显示购买的套餐所对应的credits{"\n"}字段4: Amount(USD)核心合规字段！即使全站用 Credit 结算，这里也必须如实显示用户充值时实际支付的法币或 Crypto 金额，用于企业财务精准入账和报销。{"\n"}字段5: Payment Source显示支付来源（如Stripe、PayPal等）{"\n"}字段6:Invoice PDF：点击下载,下载PDF 由于不在前端收集实体地址，发票中的地址需要第四方回传我放获取，如果不回传第四方可以提供电子凭证就是跳转链接, 直接重定向至第四方支付网关提供的电子凭证页面。</div>}>
