@@ -112,9 +112,11 @@ export function DevAnnotation({
     const childProps = children.props as any;
     const isDOMElement = typeof children.type === 'string';
     const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+    const interactiveElements = new Set(['button', 'a']);
     const isVoidElement = isDOMElement && voidElements.has(children.type as string);
+    const isInteractiveElement = isDOMElement && interactiveElements.has(children.type as string);
     
-    if (isDOMElement && !isVoidElement) {
+    if (isDOMElement && !isVoidElement && !isInteractiveElement) {
       const hasPosition = childProps.className?.match(/\b(relative|absolute|fixed|sticky)\b/);
       const isFixed = childProps.className?.match(/\bfixed\b/);
       

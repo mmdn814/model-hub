@@ -1,9 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart, Bar, Tooltip, ResponsiveContainer } from "recharts";
-import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key } from "lucide-react";
+import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis } from "recharts";
+import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  Tooltip as UITooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,32 +40,32 @@ import { useState } from "react";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
 const data = [
-  { time: "01", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
-  { time: "02", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
-  { time: "03", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
-  { time: "04", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
-  { time: "05", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "2026-04-01", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
+  { time: "2026-04-02", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "2026-04-03", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
+  { time: "2026-04-04", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
+  { time: "2026-04-05", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
 ];
 
 const legendItems = [
-  { name: "GPT-4o-mini", color: "#ef4444", value: "4.93", reqs: "11", tokens: "27K" },
-  { name: "Claude Opus 4.6", color: "#3b82f6", value: "4.07", reqs: "34", tokens: "46K" },
-  { name: "gpt-oss-120b", color: "#f97316", value: "3.40", reqs: "10", tokens: "24K" },
-  { name: "Others", color: "#d4d4d8", value: "0.79", reqs: "15", tokens: "25K" },
+  { name: "GPT-4o-mini", color: "#ef4444", value: "4.93", reqs: "11", successRate: "99.9%" },
+  { name: "Claude Opus 4.6", color: "#3b82f6", value: "4.07", reqs: "34", successRate: "99.5%" },
+  { name: "gpt-oss-120b", color: "#f97316", value: "3.40", reqs: "10", successRate: "98.2%" },
+  { name: "Others", color: "#d4d4d8", value: "0.79", reqs: "15", successRate: "99.1%" },
 ];
 
 const apiKeyData = [
-  { time: "01", "lover-demp": 2.0, "test-bookmarks": 1.6 },
-  { time: "02", "lover-demp": 1.5, "test-bookmarks": 2.7 },
-  { time: "03", "lover-demp": 3.0, "test-bookmarks": 2.4 },
-  { time: "04", "lover-demp": 1.0, "test-bookmarks": 6.3 },
-  { time: "05", "lover-demp": 0.76, "test-bookmarks": 2.2 },
+  { time: "2026-04-01", "lover-demp": 2.0, "test-bookmarks": 1.6 },
+  { time: "2026-04-02", "lover-demp": 1.5, "test-bookmarks": 2.7 },
+  { time: "2026-04-03", "lover-demp": 3.0, "test-bookmarks": 2.4 },
+  { time: "2026-04-04", "lover-demp": 1.0, "test-bookmarks": 6.3 },
+  { time: "2026-04-05", "lover-demp": 0.76, "test-bookmarks": 2.2 },
 ];
 
 const apiKeyLegendItems = [
-  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", reqs: "41", tokens: "50K", keyString: "sk-or-v1-146...fdc" },
-  { name: "test-bookmarks", color: "#10b981", value: "0.00493", reqs: "29", tokens: "72K", keyString: "sk-or-v1-0d4...8bb" },
-  { name: "openclaw", color: "#f59e0b", value: "0.00000", reqs: "0", tokens: "0", keyString: "sk-or-v1-6db...b0d" },
+  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", reqs: "41", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
+  { name: "test-bookmarks", color: "#10b981", value: "0.00493", reqs: "29", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
+  { name: "openclaw", color: "#f59e0b", value: "0.00000", reqs: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
 ];
 
 export default function Dashboard() {
@@ -331,16 +337,33 @@ export default function Dashboard() {
               </DevAnnotation>
             </div>
             
-            <div className="h-[120px] mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentData} barSize={12}>
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                  {currentLegendItems.map((item, index) => (
-                    <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <DevAnnotation
+              customContent={
+                <div className="text-xs whitespace-pre-wrap leading-relaxed">
+                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
+                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
+                    <li>固定 6 根柱子</li>
+                    <li>24h：每根 4h</li>
+                    <li>7d：每根 1d</li>
+                    <li>30d：每根 5d</li>
+                    <li>1y：每根 2 months</li>
+                    <li>堆叠只展示 Top 3 + Others</li>
+                  </ul>
+                </div>
+              }
+            >
+              <div className="h-[120px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </DevAnnotation>
 
             <div className="space-y-3">
               {currentLegendItems.map((item) => (
@@ -379,16 +402,33 @@ export default function Dashboard() {
               </button>
             </div>
             
-            <div className="h-[120px] mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentData} barSize={12}>
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                  {currentLegendItems.map((item, index) => (
-                    <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <DevAnnotation
+              customContent={
+                <div className="text-xs whitespace-pre-wrap leading-relaxed">
+                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
+                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
+                    <li>固定 6 根柱子</li>
+                    <li>24h：每根 4h</li>
+                    <li>7d：每根 1d</li>
+                    <li>30d：每根 5d</li>
+                    <li>1y：每根 2 months</li>
+                    <li>堆叠只展示 Top 3 + Others</li>
+                  </ul>
+                </div>
+              }
+            >
+              <div className="h-[120px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </DevAnnotation>
 
             <div className="space-y-3">
               {currentLegendItems.map((item) => (
@@ -405,38 +445,116 @@ export default function Dashboard() {
         </Card>
         </DevAnnotation>
 
-        {/* Tokens Card */}
+        {/* Success Rate Card */}
         <DevAnnotation
-          elementName="Token消耗统计模块"
-          componentType="Card / Chart"
-          functionDesc="展示用户在选定时间范围内的Token消耗量"
-          interactionRule="鼠标悬浮在柱状图上显示具体数值"
-          dataSource="后端聚合API / 缓存"
-          autoLogic="根据顶部过滤器（时间、分组）自动更新数据"
-          devNotes="需处理数据加载中和无数据状态的骨架屏显示"
+          customContent={
+            <div className="text-xs whitespace-pre-wrap leading-relaxed">
+              <div className="font-semibold mb-2 text-base">Success Rate = 成功请求数 / 总请求数</div>
+              
+              <div className="mb-2">
+                <span className="font-semibold text-sm">成功请求</span><br/>
+                指最终状态是：<br/>
+                • succeeded<br/>
+                • 或者同步请求返回 2xx 且拿到了有效结果
+              </div>
+
+              <div className="mb-2">
+                <span className="font-semibold text-sm">总请求</span><br/>
+                指所有真正发起执行的请求：<br/>
+                • succeeded<br/>
+                • failed<br/>
+                <span className="text-zinc-500">先不把用户主动取消的 cancel 算进去，也不把明显非法请求算进来。</span>
+              </div>
+
+              <div className="mb-2">
+                <span className="font-semibold text-sm">1）对话</span><br/>
+                成功 = 返回了有效回答<br/>
+                例如：<br/>
+                • 接口成功返回<br/>
+                • 有 message/content<br/>
+                • 没有上游错误<br/>
+                • 没超时<br/>
+                <span className="text-zinc-500">Chat Success Rate = 成功返回回答的请求数 / 总对话请求数</span>
+              </div>
+
+              <div className="mb-2">
+                <span className="font-semibold text-sm">2）图片</span><br/>
+                成功 = 图片任务最终完成，并且有可用图片 URL 或结果对象<br/>
+                <span className="text-zinc-500">Image Success Rate = 成功生成图片的请求数 / 总图片请求数</span>
+              </div>
+
+              <div className="mb-2">
+                <span className="font-semibold text-sm">3）视频</span><br/>
+                成功 = 视频任务最终完成，并拿到有效视频结果<br/>
+                因为视频大概率是异步任务，所以不能看“创建任务成功”，而要看：<br/>
+                最终任务是不是 completed / succeeded<br/>
+                <span className="text-zinc-500">Video Success Rate = 成功完成的视频任务数 / 总视频任务数</span>
+              </div>
+
+              <div className="mb-2">
+                <span className="font-semibold text-sm">4）音频</span><br/>
+                成功 = 音频任务最终完成，并返回有效音频或文本结果<br/>
+                比如：<br/>
+                • TTS 返回音频 URL<br/>
+                • STT 返回转写文本<br/>
+                • 音频生成返回结果文件
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-zinc-300">
+                <span className="font-semibold text-red-600 text-sm">最重要的一点：不要把“任务创建成功”当成成功率</span><br/>
+                比如视频请求：<br/>
+                1. 用户提交任务<br/>
+                2. 你们返回了 task_id<br/>
+                3. 但 30 秒后任务失败了<br/>
+                成功率看最终结果，不看任务是否创建成功。<br/>
+                <br/>
+                最终成功完成并返回有效结果的请求 / 总有效请求<br/>
+                <span className="text-zinc-500">总有效请求不包含：用户取消的、参数错误的、拒绝的都排除</span>
+              </div>
+            </div>
+          }
         >
         <Card className="shadow-sm border-zinc-200">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <div className="text-sm font-medium text-zinc-600 mb-1">{t("Tokens")}</div>
-                <div className="text-3xl font-bold">122K</div>
+                <div className="text-sm font-medium text-zinc-600 mb-1 flex items-center gap-1.5">
+                  {t("Success Rate")}
+                </div>
+                <div className="text-3xl font-bold">99.8%</div>
               </div>
               <button className="text-zinc-400 hover:text-zinc-600">
                 <Maximize2 className="w-4 h-4" />
               </button>
             </div>
             
-            <div className="h-[120px] mb-6">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={currentData} barSize={12}>
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                  {currentLegendItems.map((item, index) => (
-                    <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <DevAnnotation
+              customContent={
+                <div className="text-xs whitespace-pre-wrap leading-relaxed">
+                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
+                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
+                    <li>固定 6 根柱子</li>
+                    <li>24h：每根 4h</li>
+                    <li>7d：每根 1d</li>
+                    <li>30d：每根 5d</li>
+                    <li>1y：每根 2 months</li>
+                    <li>堆叠只展示 Top 3 + Others</li>
+                  </ul>
+                </div>
+              }
+            >
+              <div className="h-[120px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </DevAnnotation>
 
             <div className="space-y-3">
               {currentLegendItems.map((item) => (
@@ -445,7 +563,7 @@ export default function Dashboard() {
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
                     <span className="text-zinc-700">{item.name}</span>
                   </div>
-                  <span className="text-zinc-500 font-mono">{item.tokens}</span>
+                  <span className="text-zinc-500 font-mono">{item.successRate}</span>
                 </div>
               ))}
             </div>

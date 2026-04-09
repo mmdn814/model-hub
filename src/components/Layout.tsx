@@ -140,7 +140,7 @@ export default function Layout() {
             </DevAnnotation>
           </div>
         </header>
-        <div className="flex-1 overflow-auto p-8">
+        <div className={cn("flex-1 overflow-auto", !location.pathname.includes('/playground') && "p-8")}>
           <Outlet />
         </div>
       </main>

@@ -209,12 +209,12 @@ export default function ModelDetails() {
             functionDesc="Interactive testing area (Phase 2 planning)"
             devNotes="Phase 2 feature, currently can be used as a placeholder or to display simple UI."
           >
-            <button
-              onClick={() => setActiveTab("playground")}
+            <Link
+              to={`/models/${id}/playground`}
               className={cn("pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2", activeTab === "playground" ? "border-blue-600 text-blue-600" : "border-transparent text-zinc-500 hover:text-zinc-900")}
             >
               <Play className="w-4 h-4" /> Playground
-            </button>
+            </Link>
           </DevAnnotation>
           <DevAnnotation
             elementName="README Tab"
@@ -247,18 +247,6 @@ export default function ModelDetails() {
         </div>
 
         <div className="p-8">
-          {activeTab === "playground" && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
-                <Play className="w-8 h-8 ml-1" />
-              </div>
-              <h3 className="text-xl font-bold text-zinc-900 mb-2">Coming Soon</h3>
-              <p className="text-zinc-500 max-w-md">
-                Stay tuned for the next phase.
-              </p>
-            </div>
-          )}
-
           {activeTab === "readme" && (
             <DevAnnotation
               elementName="README 模块动态组件"
