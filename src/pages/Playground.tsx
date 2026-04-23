@@ -1,27 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   MessageSquare, Image as ImageIcon, Video, Music, 
   Wand2, Play, Code, Eye, History, Upload, Settings2,
   ChevronLeft, Coins, AlertCircle, Download, Maximize2,
-  Loader2
+  Loader2, Star, Info, HelpCircle, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
+import { cn } from '@/lib/utils';
 
 import { PlaygroundHistory } from '@/components/PlaygroundHistory';
+import { ChatTemplate } from '@/components/playground-templates/ChatTemplate';
+import { TextToImageTemplate } from '@/components/playground-templates/TextToImageTemplate';
+import { ImageToImageTemplate } from '@/components/playground-templates/ImageToImageTemplate';
+import { TextToVideoTemplate } from '@/components/playground-templates/TextToVideoTemplate';
+import { ImageToVideoTemplate } from '@/components/playground-templates/ImageToVideoTemplate';
+import { TextToSpeechTemplate } from '@/components/playground-templates/TextToSpeechTemplate';
+import { models } from '@/data/models';
 
 export type Modality = 'text' | 'image' | 'video' | 'audio';
 
 export interface HistoryItem {
   id: string;
+  modelId: string;
   modality: Modality;
   prompt: string;
   result: string;
@@ -48,10 +60,85 @@ const examples = {
   }
 };
 
+const ParamTooltip = ({ name, type, required = false, desc, options, defaultValue }: any) => (
+  <TooltipProvider delay={200}>
+    <Tooltip>
+      <TooltipTrigger className="ml-1.5 cursor-help inline-flex align-middle rounded-full bg-orange-500 text-white w-3.5 h-3.5 items-center justify-center font-bold text-[9px] hover:bg-orange-600 transition-colors shadow-sm focus:outline-none">
+        ?
+      </TooltipTrigger>
+      <TooltipContent side="right" align="start" className="max-w-[280px] p-0 overflow-hidden border border-zinc-200 bg-white shadow-md">
+        <div className="bg-zinc-50 border-b border-zinc-100 px-3 py-2 font-semibold text-zinc-800 text-xs text-left">
+          {name}
+        </div>
+        <div className="p-3 space-y-2 text-xs leading-relaxed text-zinc-600 font-medium text-left">
+          <p><span className="text-zinc-400 mr-1">说明：</span>{desc}</p>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <p><span className="text-zinc-400 block text-[10px] mb-0.5">组件类型</span>{type}</p>
+            <p><span className="text-zinc-400 block text-[10px] mb-0.5">是否必填</span><span className={required ? "text-amber-600" : "text-emerald-600"}>{required ? '是 (Yes)' : '否 (No)'}</span></p>
+          </div>
+          {options && <p className="pt-1"><span className="text-zinc-400 block text-[10px] mb-0.5">可选值</span>{options}</p>}
+          {defaultValue !== undefined && <p className="pt-1"><span className="text-zinc-400 block text-[10px] mb-0.5">默认值</span>{defaultValue}</p>}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
+const TemplatesTooltip = () => (
+  <TooltipProvider delay={200}>
+    <Tooltip>
+      <TooltipTrigger className="cursor-help inline-flex align-middle items-center gap-1.5 text-zinc-600 hover:text-orange-600 transition-colors text-xs font-medium bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-full border border-orange-200">
+        <span className="w-4 h-4 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-[10px] leading-none shrink-0 shadow-sm">?</span>
+        <span>了解 6 套模板机制</span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start" className="max-w-[420px] p-0 overflow-hidden border border-zinc-200 shadow-xl z-50 bg-white">
+        <div className="bg-zinc-50 border-b border-zinc-100 px-4 py-3 font-semibold text-zinc-800 text-sm">
+          灵活的 6 套 UI 动态渲染模板
+        </div>
+        <div className="p-4 space-y-3 text-xs leading-relaxed text-zinc-600">
+          <p>为了覆盖目前平台所有的模型能力和参数接口规范，Playground 在底层被设计为 6 套动态渲染机制。左侧面板会根据模型的具体生成范式自动切换字段：</p>
+          <ul className="space-y-2 list-none p-0 m-0">
+            <li><strong className="text-zinc-800">1. 对话补全 (Chat Completion)</strong><br/><span className="text-zinc-500">用于普通对话、代码、多模态图文对话及Tools调用。</span></li>
+            <li><strong className="text-zinc-800">2. 文生图 (Text-to-Image)</strong><br/><span className="text-zinc-500">纯文本生成视觉内容，需配置画面比例与分辨率。</span></li>
+            <li><strong className="text-zinc-800">3. 图生图/编辑 (Image-to-Image)</strong><br/><span className="text-zinc-500">引入 Input Assets 提供垫图、遮罩上传，用于局部重绘等限制生成。</span></li>
+            <li><strong className="text-zinc-800">4. 文生视频 (Text-to-Video)</strong><br/><span className="text-zinc-500">文本驱动视频，参数包含时间长度、画面清晰度及生成音频选项。</span></li>
+            <li><strong className="text-zinc-800">5. 图生视频 (Image-to-Video)</strong><br/><span className="text-zinc-500">交互复杂度极高，支持单图或多图参考帧控制，及运镜强度调节。</span></li>
+            <li><strong className="text-zinc-800">6. 语音合成 (Text-to-Speech)</strong><br/><span className="text-zinc-500">文本长转语音，支持精准控制音色、情感指令甚至语种识别。</span></li>
+          </ul>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
+const GenerateFlowTooltip = () => (
+  <TooltipProvider delay={200}>
+    <Tooltip>
+      <TooltipTrigger className="ml-1.5 cursor-help inline-flex align-middle items-center justify-center p-0 w-3.5 h-3.5 focus:outline-none">
+        <Info className="w-3.5 h-3.5 text-zinc-400 hover:text-orange-500 transition-colors" />
+      </TooltipTrigger>
+      <TooltipContent side="top" align="center" className="max-w-[380px] p-0 overflow-hidden border border-zinc-200 shadow-xl z-50 bg-white">
+        <div className="bg-zinc-50 border-b border-zinc-100 px-3 py-2.5 font-semibold text-zinc-800 text-xs">
+          Generate 执行与计费流程
+        </div>
+        <div className="p-3.5 space-y-2.5 text-xs leading-relaxed text-zinc-600 text-left">
+          <p><strong className="text-zinc-800">步骤一 (校验登录):</strong> 若监测到未登录，会阻断并弹出登录提示框，要求前往 Auth 页面。(在此Demo场景下，“前往登录”按钮被接上了一个模拟成功的恢复操作，点击验证后会自动触发下一步。)</p>
+          <p><strong className="text-zinc-800">步骤二 (校验余额):</strong> 用户检查登录后，系统调用预估接口获取当前请求预估的credits并显示，当余额不足时，会拦截掉并弹出充值提示弹窗。</p>
+          <p><strong className="text-zinc-800">步骤三 (快捷 API Key 拦截):</strong> 非常核心的一点。文本输入框自带了一个默认的极简取名比如 playground-test，用户只要点“确认创建自动选中”，生成的新 Key 会推送到选择器上下文，创建的key也同时写入api keys页面，创建的key就是默认选项</p>
+          <p><strong className="text-zinc-800">步骤四 (最终二次确认生成):</strong> 当 API Key 准备妥当时，最后弹出本次扣费请求确认的 API Key 切换层，选中指定 Key 后点击“确认并生成”，随后关闭弹窗无缝开启 Generate 状态以及返回结果。</p>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
 export default function Playground() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const currentModel = models.find(m => m.id === id);
+  const playgroundType = (currentModel as any)?.playgroundType || 'chat_completion';
 
   // Mock model data based on ID or default
   const [modality, setModality] = useState<Modality>('text');
@@ -59,23 +146,69 @@ export default function Playground() {
   
   // Inputs
   const [prompt, setPrompt] = useState(examples.text.prompt);
+  const [chatImages, setChatImages] = useState<string[]>([]);
+  
+  // Chat params
   const [temperature, setTemperature] = useState([0.7]);
   const [maxTokens, setMaxTokens] = useState(2048);
+  const [topP, setTopP] = useState([1.0]);
+  const [stream, setStream] = useState(false);
+  const [thinkingEnable, setThinkingEnable] = useState(false);
+  const [enableSearch, setEnableSearch] = useState(false);
+  const [stopWords, setStopWords] = useState('');
+  const [toolChoice, setToolChoice] = useState('none');
+  const [toolsJson, setToolsJson] = useState('[]');
+
+  // Image params
   const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [n, setN] = useState(1);
   const [negativePrompt, setNegativePrompt] = useState('');
   const [seed, setSeed] = useState('');
-  const [motionStrength, setMotionStrength] = useState([50]);
+  const [responseFormat, setResponseFormat] = useState('url');
+  const [watermark, setWatermark] = useState(false);
+  const [promptExtend, setPromptExtend] = useState(false);
+  const [thinkingMode, setThinkingMode] = useState(false);
+  const [sequentialGeneration, setSequentialGeneration] = useState(false);
+  
+  // Video params
   const [duration, setDuration] = useState('5s');
+  const [resolution, setResolution] = useState('1080p');
+  const [generateAudio, setGenerateAudio] = useState(false);
+  const [draftMode, setDraftMode] = useState(false);
+  const [cameraFixed, setCameraFixed] = useState(false);
+  const [returnLastFrame, setReturnLastFrame] = useState(false);
+  const [motionStrength, setMotionStrength] = useState([50]);
+
+  // Audio / TTS params
   const [voiceId, setVoiceId] = useState('alloy');
   const [speed, setSpeed] = useState([1.0]);
   const [pitch, setPitch] = useState([0]);
+  const [instructions, setInstructions] = useState('');
+  const [optimizeInstructions, setOptimizeInstructions] = useState(false);
+  const [language, setLanguage] = useState('auto');
+  const [audioFormat, setAudioFormat] = useState('mp3');
+  const [streamAudio, setStreamAudio] = useState(false);
   
+  // Flow states
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [apiKeys, setApiKeys] = useState<{name: string, value: string}[]>([]);
+  const [selectedKey, setSelectedKey] = useState<string>('');
+  
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
+  const [showSelectKeyModal, setShowSelectKeyModal] = useState(false);
+  
+  const [newKeyName, setNewKeyName] = useState('playground-test');
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
   // State
   const [isGenerating, setIsGenerating] = useState(false);
   const [output, setOutput] = useState<string | null>(examples.text.output);
   const [history, setHistory] = useState<HistoryItem[]>([
     {
       id: '1',
+      modelId: 'qwen3-max',
       modality: 'text',
       prompt: examples.text.prompt,
       result: examples.text.output,
@@ -84,6 +217,7 @@ export default function Playground() {
     },
     {
       id: '2',
+      modelId: 'wan2.7-image-pro',
       modality: 'image',
       prompt: examples.image.prompt,
       result: examples.image.output,
@@ -92,6 +226,7 @@ export default function Playground() {
     },
     {
       id: '3',
+      modelId: 'wan2.7-t2v',
       modality: 'video',
       prompt: examples.video.prompt,
       result: examples.video.output,
@@ -100,6 +235,7 @@ export default function Playground() {
     },
     {
       id: '4',
+      modelId: 'qwen3-tts-instruct-flash',
       modality: 'audio',
       prompt: examples.audio.prompt,
       result: examples.audio.output,
@@ -116,6 +252,15 @@ export default function Playground() {
     setActiveTab('preview');
   };
 
+  useEffect(() => {
+    if (currentModel) {
+      if (currentModel.category === 'image') handleModalityChange('image');
+      else if (currentModel.category === 'video') handleModalityChange('video');
+      else if (currentModel.category === 'audio') handleModalityChange('audio');
+      else handleModalityChange('text');
+    }
+  }, [currentModel]);
+
   // Calculate cost based on modality and params
   const calculateCost = () => {
     switch (modality) {
@@ -129,13 +274,7 @@ export default function Playground() {
 
   const currentCost = calculateCost();
 
-  const handleGenerate = () => {
-    if (balance < currentCost) {
-      alert(t("Insufficient balance. Please top up."));
-      navigate('/billing');
-      return;
-    }
-
+  const executeGenerate = () => {
     setIsGenerating(true);
     setOutput(null);
     setActiveTab('preview');
@@ -173,21 +312,153 @@ export default function Playground() {
     }, 2000);
   };
 
+  const handleValidateAndGenerate = (actionCb: () => void) => {
+    // Check mock states based on playground type
+    if (playgroundType === 'chat_completion') {
+      setShowLoginModal(true);
+      return;
+    }
+    
+    if (playgroundType === 'text_to_image') {
+      setShowBillingModal(true);
+      return;
+    }
+    
+    if (playgroundType === 'image_to_image') {
+      setShowCreateKeyModal(true);
+      return;
+    }
+    
+    // For others
+    if (apiKeys.length === 0) {
+      setApiKeys([{name: 'local-test', value: 'sk-123'}]);
+      setSelectedKey('sk-123');
+    }
+    setPendingAction(() => actionCb);
+    setShowSelectKeyModal(true);
+  };
+
+  const handleCreateKey = () => {
+    if (!newKeyName.trim()) return;
+    
+    const newKey = {
+      name: newKeyName,
+      value: `sk-${Math.random().toString(36).substr(2, 12)}`
+    };
+    
+    const updatedKeys = [...apiKeys, newKey];
+    setApiKeys(updatedKeys);
+    setSelectedKey(newKey.value);
+    setNewKeyName('');
+    setShowCreateKeyModal(false);
+    
+    setTimeout(() => {
+      setShowSelectKeyModal(true);
+    }, 150);
+  };
+
+  const handleConfirmKeySelection = () => {
+    if (!selectedKey) return;
+    setShowSelectKeyModal(false);
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleLoginConfirm = () => {
+    setIsLoggedIn(true);
+    setShowLoginModal(false);
+  };
+
   const getPayloadJson = () => {
     const base = {
       model: id || 'default-model',
-      messages: [{ role: 'user', content: prompt }]
     };
 
-    switch (modality) {
-      case 'text':
-        return JSON.stringify({ ...base, temperature: temperature[0], max_tokens: maxTokens }, null, 2);
-      case 'image':
-        return JSON.stringify({ prompt, negative_prompt: negativePrompt, aspect_ratio: aspectRatio, seed: seed || undefined, model: id }, null, 2);
-      case 'video':
-        return JSON.stringify({ prompt, aspect_ratio: aspectRatio, motion_strength: motionStrength[0], duration, model: id }, null, 2);
-      case 'audio':
-        return JSON.stringify({ input: prompt, voice: voiceId, speed: speed[0], pitch: pitch[0], model: id }, null, 2);
+    switch (playgroundType) {
+      case 'chat_completion':
+        return JSON.stringify({ 
+          ...base, 
+          messages: [{ role: 'user', content: prompt }],
+          temperature: temperature[0], 
+          max_tokens: maxTokens,
+          top_p: topP[0],
+          stream,
+          thinking: { enable: thinkingEnable },
+          enable_search: enableSearch,
+          stop: stopWords ? stopWords.split(',').map(s => s.trim()) : undefined
+        }, null, 2);
+      case 'text_to_image':
+        return JSON.stringify({ 
+          ...base,
+          prompt, 
+          aspect_ratio: aspectRatio,
+          n,
+          negative_prompt: negativePrompt || undefined,
+          seed: seed ? Number(seed) : undefined, 
+          response_format: responseFormat,
+          watermark,
+          prompt_extend: promptExtend,
+          thinking_mode: thinkingMode,
+          sequential_generation: sequentialGeneration
+        }, null, 2);
+      case 'image_to_image':
+        return JSON.stringify({
+          ...base,
+          input_assets: [], // Mocked
+          prompt,
+          aspect_ratio: aspectRatio,
+          n,
+          negative_prompt: negativePrompt || undefined,
+          seed: seed ? Number(seed) : undefined,
+          response_format: responseFormat,
+          watermark
+        }, null, 2)
+      case 'text_to_video':
+        return JSON.stringify({ 
+          ...base,
+          prompt, 
+          duration,
+          resolution,
+          aspect_ratio: aspectRatio, 
+          negative_prompt: negativePrompt || undefined,
+          seed: seed ? Number(seed) : undefined, 
+          watermark,
+          prompt_extend: promptExtend,
+          generate_audio: generateAudio,
+          draft: draftMode,
+          camera_fixed: cameraFixed,
+          return_last_frame: returnLastFrame
+        }, null, 2);
+      case 'image_to_video':
+        return JSON.stringify({ 
+          ...base,
+          input_assets: [], // Mocked
+          prompt, 
+          duration,
+          resolution,
+          aspect_ratio: aspectRatio, 
+          motion_strength: motionStrength[0],
+          negative_prompt: negativePrompt || undefined,
+          seed: seed ? Number(seed) : undefined, 
+          watermark
+        }, null, 2);
+      case 'text_to_speech':
+        return JSON.stringify({ 
+          ...base,
+          input: prompt, 
+          voice: voiceId, 
+          speed: speed[0], 
+          pitch: pitch[0], 
+          instructions: instructions || undefined,
+          optimize_instructions: optimizeInstructions,
+          language_type: language,
+          response_format: audioFormat,
+          stream: streamAudio
+        }, null, 2);
+      default:
+        return JSON.stringify(base, null, 2);
     }
   };
 
@@ -201,34 +472,22 @@ export default function Playground() {
           </Button>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-              AI
+              {currentModel?.providerLogo || 'AI'}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-sm">{id || 'seedance-1-0-pro-fast'}</h1>
-                <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Pro</Badge>
+                <h1 className="font-semibold text-sm">{currentModel?.name || id || 'seedance-1-0-pro-fast'}</h1>
+                <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{currentModel?.provider || 'Provider'}</Badge>
               </div>
-              <p className="text-xs text-zinc-500">High-performance multimodal generation model</p>
+              <p className="text-xs text-zinc-500">{currentModel?.description || 'High-performance multimodal generation model'}</p>
             </div>
+          </div>
+          <div className="pl-2 border-l border-zinc-200 h-8 flex items-center ml-2">
+            <TemplatesTooltip />
           </div>
         </div>
 
         <div className="flex items-center gap-6">
-          {/* Modality Switcher for Demo Purposes */}
-          <div className="flex items-center bg-zinc-100 p-1 rounded-lg">
-            {(['text', 'image', 'video', 'audio'] as Modality[]).map(m => (
-              <button
-                key={m}
-                onClick={() => handleModalityChange(m)}
-                className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
-                  modality === m ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-zinc-600">
               <Coins className="h-4 w-4 text-amber-500" />
@@ -245,309 +504,120 @@ export default function Playground() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel: Input & Config */}
-        <div className="w-[400px] flex flex-col bg-white border-r border-zinc-200 shrink-0 overflow-y-auto">
-          <div className="p-4 flex-1 space-y-6">
-            
-            {/* Input Assets (Conditional) */}
-            {modality !== 'text' && (
-              <div className="space-y-2">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Input Assets
-                </label>
-                <div className="border-2 border-dashed border-zinc-200 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-zinc-50 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center mb-2">
-                    <Upload className="h-5 w-5 text-zinc-500" />
-                  </div>
-                  <p className="text-sm font-medium text-zinc-700">Drag & drop files here</p>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    {modality === 'image' ? 'Upload base image or mask (PNG, JPG)' : 
-                     modality === 'video' ? 'Upload start/end frames (PNG, JPG)' : 
-                     'Upload 10s voice sample (WAV, MP3)'}
-                  </p>
-                </div>
-              </div>
-            )}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex overflow-hidden">
+          {playgroundType === 'chat_completion' && <ChatTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_image' && <TextToImageTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'image_to_image' && <ImageToImageTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_video' && <TextToVideoTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'image_to_video' && <ImageToVideoTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_speech' && <TextToSpeechTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+        </div>
+        <PlaygroundHistory 
+          history={history.filter(h => h.modelId === currentModel?.id)} 
+          onSelect={(item) => {
+            setModality(item.modality);
+            setPrompt(item.prompt);
+            setOutput(item.result);
+          }} 
+        />
+      </div>
 
-            {/* Prompt */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Prompt
-                </label>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                  onClick={() => setPrompt(prev => prev ? prev + " (enhanced with more details, high quality, masterpiece)" : "A highly detailed, beautiful masterpiece...")}
-                >
-                  <Wand2 className="h-3 w-3 mr-1" />
-                  Auto-Enhance
-                </Button>
-              </div>
-              <Textarea 
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder={
-                  modality === 'text' ? "Enter your prompt here..." :
-                  modality === 'image' ? "Describe the image you want to generate..." :
-                  modality === 'video' ? "Describe the video motion and scene..." :
-                  "Enter the text to be spoken..."
-                }
-                className="min-h-[120px] resize-none"
-              />
-            </div>
-
-            {/* Advanced Settings */}
-            <div className="space-y-4 pt-4 border-t border-zinc-100">
-              <label className="text-sm font-semibold flex items-center gap-2">
-                <Settings2 className="h-4 w-4" />
-                Advanced Settings
-              </label>
-
-              {modality === 'text' && (
-                <>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-600">Temperature</span>
-                      <span className="font-medium">{temperature[0]}</span>
-                    </div>
-                    <Slider value={temperature} onValueChange={(v) => setTemperature(v as number[])} max={2} step={0.1} />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-600">Max Tokens</span>
-                      <span className="font-medium">{maxTokens}</span>
-                    </div>
-                    <Input type="number" value={maxTokens} onChange={(e) => setMaxTokens(Number(e.target.value))} />
-                  </div>
-                </>
-              )}
-
-              {(modality === 'image' || modality === 'video') && (
-                <div className="space-y-3">
-                  <label className="text-sm text-zinc-600">Aspect Ratio</label>
-                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1:1">1:1 (Square)</SelectItem>
-                      <SelectItem value="16:9">16:9 (Landscape)</SelectItem>
-                      <SelectItem value="9:16">9:16 (Portrait)</SelectItem>
-                      <SelectItem value="4:3">4:3 (Standard)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {modality === 'image' && (
-                <>
-                  <div className="space-y-3">
-                    <label className="text-sm text-zinc-600">Negative Prompt</label>
-                    <Input value={negativePrompt} onChange={(e) => setNegativePrompt(e.target.value)} placeholder="e.g., blurry, low quality" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm text-zinc-600">Seed</label>
-                    <Input value={seed} onChange={(e) => setSeed(e.target.value)} placeholder="Random" type="number" />
-                  </div>
-                </>
-              )}
-
-              {modality === 'video' && (
-                <>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-600">Motion Strength</span>
-                      <span className="font-medium">{motionStrength[0]}</span>
-                    </div>
-                    <Slider value={motionStrength} onValueChange={(v) => setMotionStrength(v as number[])} max={100} step={1} />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm text-zinc-600">Duration</label>
-                    <Select value={duration} onValueChange={setDuration}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5s">5 Seconds</SelectItem>
-                        <SelectItem value="10s">10 Seconds</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              )}
-
-              {modality === 'audio' && (
-                <>
-                  <div className="space-y-3">
-                    <label className="text-sm text-zinc-600">Voice ID</label>
-                    <Select value={voiceId} onValueChange={setVoiceId}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="alloy">Alloy (Neutral)</SelectItem>
-                        <SelectItem value="echo">Echo (Male)</SelectItem>
-                        <SelectItem value="nova">Nova (Female)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-600">Speed</span>
-                      <span className="font-medium">{speed[0]}x</span>
-                    </div>
-                    <Slider value={speed} onValueChange={(v) => setSpeed(v as number[])} min={0.5} max={2.0} step={0.1} />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-600">Pitch</span>
-                      <span className="font-medium">{pitch[0]}</span>
-                    </div>
-                    <Slider value={pitch} onValueChange={(v) => setPitch(v as number[])} min={-20} max={20} step={1} />
-                  </div>
-                </>
-              )}
-            </div>
+      {/* Modals for Flow */}
+      <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('Login Required')}</DialogTitle>
+            <DialogDescription>{t('You appear to be logged out. Please log in to use model generation features.')}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowLoginModal(false)}>{t('Cancel')}</Button>
+            <Button onClick={handleLoginConfirm}>{t('Go to Login')}</Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Generate Button */}
-          <div className="p-4 border-t border-zinc-200 bg-zinc-50 shrink-0">
-            <Button 
-              className="w-full h-12 text-base font-medium bg-zinc-900 hover:bg-zinc-800 text-white"
-              onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Play className="mr-2 h-5 w-5 fill-current" />
-                  Generate ({currentCost} credits)
-                </>
-              )}
-            </Button>
-            <p className="text-[10px] text-center text-zinc-500 mt-2 flex items-center justify-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              Credits will be deducted upon generation
+      <Dialog open={showBillingModal} onOpenChange={setShowBillingModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('Insufficient Balance')}</DialogTitle>
+            <DialogDescription>{t('Your account balance is insufficient to pay for this generation')} ({currentCost} Credits). {t('Please recharge your account.')}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowBillingModal(false)}>{t('Cancel')}</Button>
+            <Button onClick={() => { setShowBillingModal(false); navigate('/billing'); }}>{t('Go to Billing')}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateKeyModal} onOpenChange={setShowCreateKeyModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('Quick Create API Key')}</DialogTitle>
+            <DialogDescription>
+              {t('Estimated Credits Needed', { credits: currentCost })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('Key Name Identifier')}</label>
+              <Input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} placeholder={t('Key Name Placeholder')} />
+            </div>
+            <p className="text-xs text-zinc-500">
+              <Trans i18nKey="Create Key Instruction">
+                该请求需要您先创建 API Key，稍后您可以在 <Link to="/api-keys" className="text-indigo-600 hover:underline">API Keys</Link> 页面中管理。
+              </Trans>
             </p>
           </div>
-        </div>
-
-        {/* Right Panel: Output & History */}
-        <div className="flex-1 flex flex-col bg-[#0f111a] text-zinc-300 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <div className="h-12 border-b border-zinc-800 flex items-center px-4 shrink-0 bg-[#1a1d27]">
-              <TabsList className="bg-transparent border-none p-0 h-auto gap-4">
-                <TabsTrigger 
-                  value="preview" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none data-[state=active]:border-b-2 border-indigo-500 rounded-none px-0 py-3 text-zinc-400"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Preview
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="code"
-                  className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none data-[state=active]:border-b-2 border-indigo-500 rounded-none px-0 py-3 text-zinc-400"
-                >
-                  <Code className="h-4 w-4 mr-2" />
-                  API Request
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex flex-col gap-3 mt-4">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateKeyModal(false)}>{t('Cancel')}</Button>
+              <Button onClick={handleCreateKey} disabled={!newKeyName.trim()}>
+                {t('Confirm Create & Generate')}
+              </Button>
             </div>
+            <p className="text-[10px] text-zinc-500 text-center">
+              {t('Estimated Value Note')}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-            <div className="flex-1 overflow-hidden relative">
-              <TabsContent value="preview" className="h-full m-0 border-none p-0 data-[state=active]:flex flex-col">
-                {isGenerating ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-500">
-                    <Loader2 className="h-8 w-8 animate-spin mb-4 text-indigo-500" />
-                    <p>Processing your request...</p>
-                  </div>
-                ) : output ? (
-                  <div className="flex-1 p-6 overflow-y-auto flex items-center justify-center">
-                    {modality === 'text' && (
-                      <div className="w-full max-w-3xl bg-[#1a1d27] p-6 rounded-xl border border-zinc-800 text-zinc-200 leading-relaxed">
-                        {output}
-                      </div>
-                    )}
-                    {modality === 'image' && (
-                      <div className="relative group">
-                        <img src={output} alt="Generated" className="max-w-full max-h-[60vh] rounded-xl shadow-2xl" />
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                          <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-none">
-                            <Maximize2 className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" variant="secondary" className="bg-black/50 hover:bg-black/70 text-white border-none">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    {modality === 'video' && (
-                      <div className="w-full max-w-3xl bg-black rounded-xl overflow-hidden shadow-2xl">
-                        <video src={output} controls autoPlay loop muted className="w-full h-auto" />
-                      </div>
-                    )}
-                    {modality === 'audio' && (
-                      <div className="w-full max-w-xl bg-[#1a1d27] p-8 rounded-xl border border-zinc-800 flex flex-col items-center gap-6">
-                        <div className="w-full h-24 bg-zinc-800 rounded-lg flex items-center justify-center overflow-hidden relative">
-                          {/* Mock Waveform */}
-                          <div className="flex items-center gap-1 h-12 px-4 w-full justify-center">
-                            {Array.from({ length: 40 }).map((_, i) => (
-                              <div key={i} className="w-1.5 bg-indigo-500 rounded-full" style={{ height: `${Math.max(10, Math.random() * 100)}%` }}></div>
-                            ))}
-                          </div>
-                        </div>
-                        <audio src={output} controls className="w-full" />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-600">
-                    {modality === 'text' ? <MessageSquare className="h-12 w-12 mb-4 opacity-20" /> :
-                     modality === 'image' ? <ImageIcon className="h-12 w-12 mb-4 opacity-20" /> :
-                     modality === 'video' ? <Video className="h-12 w-12 mb-4 opacity-20" /> :
-                     <Music className="h-12 w-12 mb-4 opacity-20" />}
-                    <p>Enter a prompt and click Generate to see the result</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="code" className="h-full m-0 border-none p-0 data-[state=active]:flex flex-col">
-                <div className="flex-1 p-6 overflow-y-auto">
-                  <div className="bg-[#1a1d27] rounded-xl border border-zinc-800 overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-[#1e212b]">
-                      <span className="text-xs font-mono text-zinc-400">POST /v1/models/{id || 'model'}/generate</span>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs text-zinc-400 hover:text-white">Copy</Button>
+      <Dialog open={showSelectKeyModal} onOpenChange={setShowSelectKeyModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t('Select API Key Title')}</DialogTitle>
+            <DialogDescription>{t('Select API Key Description', { credits: currentCost })}</DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+            <Select value={selectedKey} onValueChange={setSelectedKey}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('Select API Key Placeholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {apiKeys.map(k => (
+                  <SelectItem key={k.value} value={k.value}>
+                    <div className="flex items-center justify-between w-[250px]">
+                      <span className="font-medium text-sm">{k.name}</span>
+                      <span className="text-xs text-zinc-500 font-mono ml-2">...{k.value.slice(-4)}</span>
                     </div>
-                    <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
-                      <code>{getPayloadJson()}</code>
-                    </pre>
-                  </div>
-                </div>
-              </TabsContent>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-3 mt-4">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSelectKeyModal(false)}>{t('Cancel Generation')}</Button>
+              <Button onClick={handleConfirmKeySelection} disabled={!selectedKey}>{t('Confirm & Generate')}</Button>
             </div>
+            <p className="text-[10px] text-zinc-500 text-center">
+              {t('Estimated Value Note')}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-            {/* History Module */}
-            <PlaygroundHistory 
-              history={history} 
-              onSelect={(item) => {
-                setModality(item.modality);
-                setPrompt(item.prompt);
-                setOutput(item.result);
-                setActiveTab('preview');
-              }} 
-            />
-          </Tabs>
-        </div>
-      </div>
     </div>
   );
 }

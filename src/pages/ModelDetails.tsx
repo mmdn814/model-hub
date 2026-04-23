@@ -9,6 +9,7 @@ import { ArrowLeft, Copy, Terminal, Check, ShieldCheck, Play, History, Sparkles,
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
 import { models } from "@/data/models";
+import { pricingData } from "@/data/pricing";
 
 const ModelIdCopyButton = ({ id }: { id: string }) => {
   const [copied, setCopied] = useState(false);
@@ -113,7 +114,7 @@ export default function ModelDetails() {
               </div>
 
               <p className="text-zinc-600 text-base leading-relaxed max-w-3xl">
-                Alibaba Cloud's Qwen-Image-2.0 unifies image generation and editing. It provides realistic texture generation, structured text rendering, native 2K high-resolution output, and flexible image editing capabilities, fully empowering creative and visual design workflows.
+                {model.description}
               </p>
 
               <div className="flex flex-col gap-2 mt-1">
@@ -141,7 +142,12 @@ export default function ModelDetails() {
 
               <div className="flex items-center gap-3 pt-2">
                 <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-transparent px-3 py-1.5 font-mono text-sm rounded-lg flex items-center gap-1.5">
-                  <span><span className="text-emerald-500 mr-1">$</span> $0.030 <span className="text-emerald-500/70 text-xs ml-1">/ IMAGE</span></span>
+                  <span>{(() => {
+        const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+        const priceStr = pData && pData.versions.length > 0 ? pData.versions[0].price.toFixed(3) : "0.000";
+        const unitStr = pData && pData.versions.length > 0 ? pData.versions[0].unit.replace("per ", "").toUpperCase() : "REQ";
+        return <><span className="text-emerald-500 mr-1">$</span> ${priceStr} <span className="text-emerald-500/70 text-xs ml-1">/ {unitStr}</span></>;
+      })()}</span>
                   <Tooltip>
                     <TooltipTrigger>
                       <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
@@ -153,7 +159,12 @@ export default function ModelDetails() {
                 </Badge>
                 
                 <Badge variant="outline" className="bg-slate-50 text-slate-800 border-slate-200 px-3 py-1.5 font-mono text-sm rounded-lg font-bold flex items-center gap-1.5">
-                  <span>30 <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / IMAGE</span></span>
+                  <span>{(() => {
+        const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+        const creditsStr = pData && pData.versions.length > 0 ? pData.versions[0].credits : "0";
+        const unitStr = pData && pData.versions.length > 0 ? pData.versions[0].unit.replace("per ", "").toUpperCase() : "REQ";
+        return <>{creditsStr} <span className="text-slate-500 text-xs ml-1 font-semibold">CREDITS / {unitStr}</span></>;
+      })()}</span>
                   <Tooltip>
                     <TooltipTrigger>
                       <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#FF7A00] text-white text-[10px] font-bold cursor-help leading-none pt-[1px]">?</span>
@@ -285,38 +296,60 @@ export default function ModelDetails() {
                   <table className="w-full text-left text-sm">
                     <thead className="bg-zinc-50 border-b border-zinc-200">
                       <tr>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">Model ID (API Call)</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">Type</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">API Docs</th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">Credits <Info className="w-3 h-3 inline-block text-zinc-400" /></th>
-                        <th className="px-6 py-4 font-semibold text-zinc-900">Price (USD)</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">{t("Model ID (API Call)")}</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">{t("Type")}</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">{t("API Docs")}</th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">{t("Credits")} <Info className="w-3 h-3 inline-block text-zinc-400" /></th>
+                        <th className="px-6 py-4 font-semibold text-zinc-900">{t("Price (USD)")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-100">
                       <tr className="bg-white">
                         <td className="px-6 py-4 font-mono text-blue-600 font-medium">
                           <div className="flex items-center gap-2">
-                            qwen-image-2.0-pro
-                            <ModelIdCopyButton id="qwen-image-2.0-pro" />
+                            {model.id}
+                            <ModelIdCopyButton id={model.id} />
                           </div>
                         </td>
                         <td className="px-6 py-4"><Badge variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-50 border-transparent font-bold">LATEST</Badge></td>
                         <td className="px-6 py-4 text-blue-600 hover:underline cursor-pointer flex items-center gap-1">Official Docs <ExternalLink className="w-3 h-3" /></td>
-                        <td className="px-6 py-4 font-bold text-zinc-800">30</td>
-                        <td className="px-6 py-4 font-bold text-blue-600">$0.030</td>
+                        <td className="px-6 py-4 font-bold text-zinc-800">
+                          {(() => {
+                            const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                            return pData && pData.versions.length > 0 ? pData.versions[0].credits : "-";
+                          })()}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-blue-600">
+                          {(() => {
+                            const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                            return pData && pData.versions.length > 0 ? "$" + pData.versions[0].price.toFixed(3) : "-";
+                          })()}
+                        </td>
                       </tr>
-                      <tr className="bg-white">
+                      {snapshotModels.map(sm => (
+                      <tr key={sm.id} className="bg-white">
                         <td className="px-6 py-4 font-mono text-zinc-600">
                           <div className="flex items-center gap-2">
-                            qwen-image-2.0-pro-2026-03-03
-                            <ModelIdCopyButton id="qwen-image-2.0-pro-2026-03-03" />
+                            {sm.id}
+                            <ModelIdCopyButton id={sm.id} />
                           </div>
                         </td>
                         <td className="px-6 py-4"><Badge variant="secondary" className="bg-zinc-100 text-zinc-500 hover:bg-zinc-100 border-transparent font-bold">FIXED</Badge></td>
                         <td className="px-6 py-4 text-blue-600 hover:underline cursor-pointer flex items-center gap-1">Official Docs <ExternalLink className="w-3 h-3" /></td>
-                        <td className="px-6 py-4 font-bold text-zinc-800">30</td>
-                        <td className="px-6 py-4 font-bold text-blue-600">$0.030</td>
+                        <td className="px-6 py-4 font-bold text-zinc-800">
+                          {(() => {
+                            const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                            return pData && pData.versions.length > 0 ? pData.versions[0].credits : "-";
+                          })()}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-blue-600">
+                          {(() => {
+                            const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                            return pData && pData.versions.length > 0 ? "$" + pData.versions[0].price.toFixed(3) : "-";
+                          })()}
+                        </td>
                       </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -326,79 +359,133 @@ export default function ModelDetails() {
               <section id="pricing">
                 <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
                   <span className="text-yellow-600">💰</span> 6. Pricing Details
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-5 h-5 text-zinc-400 cursor-help ml-1 mt-1 hover:text-zinc-600 transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-sm text-sm p-3 bg-white text-zinc-800 border-zinc-200 shadow-lg">
+                      <p>{t("定价来自后端的定价，非chat模型的下显示的名称，来自后端【适用场景组合】字段，单位来自【计价单位字段】")}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </h2>
                 
                 <DevAnnotation
                   elementName="Pricing Details Description"
                   componentType="Section"
-                  functionDesc="Displays the model's pricing rules and parameter multipliers"
-                  devNotes="🚨 Internal Pricing Note: All prices displayed on the frontend are already marked up by the platform on the backend. Do not expose the original upstream prices."
+                  functionDesc="Displays the model's pricing rules and combinations"
+                  devNotes="🚨 Internal Pricing Note: All prices displayed on the frontend are already marked up by the platform on the backend."
                 >
                   <p className="text-zinc-600 mb-6">
-                    The actual billing for this model is dynamically calculated based on the specific parameters passed in your API request. The 'Starts at $0.030' shown in the header card is the starting price for the base model/baseline parameters of this series. The complete tiered rules and parameter multiplier table are as follows:
+                    The actual billing for this model is dynamically calculated based on the specific parameters passed in your API request. Below are the specific combinations and their corresponding pricing:
                   </p>
+
+                  <div className="border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="w-full overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[700px]">
+                        <thead>
+                          <tr className="border-b border-zinc-100 bg-zinc-50/50">
+                            <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%]">
+                              {t("Model & Modality")}
+                            </th>
+                            <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%]">
+                              <div className="flex items-center gap-1">
+                                {t("Credits / Gen")}
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{t("1 USD = 1000 Credits")}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </th>
+                            {(() => {
+                              const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                              return pData && pData.versions.some(v => v.cachePrice !== undefined) ? (
+                                <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%] text-right">
+                                  {t("Cache Hit (Credits / USD)")}
+                                </th>
+                              ) : null;
+                            })()}
+                            <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%] text-right">
+                              {t("Our Price (USD)")}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            const pData = pricingData.find(pd => pd.modelIds?.includes(mainModelId || model.id) || pd.id === (mainModelId || model.id));
+                            if (!pData) {
+                              return (
+                                <tr>
+                                  <td colSpan={4} className="py-4 px-6 text-center text-zinc-500">
+                                    {t("Pricing information not available.")}
+                                  </td>
+                                </tr>
+                              );
+                            }
+                            const hasCache = pData.versions.some(v => v.cachePrice !== undefined);
+                            return pData.versions.map((version, idx) => (
+                              <tr key={idx} className="border-b border-zinc-100 last:border-none hover:bg-zinc-50/50 transition-colors">
+                                <td className="py-4 px-6">
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="font-medium text-[15px] text-zinc-800">
+                                      {version.id}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className={cn(
+                                        "text-[10px] uppercase tracking-wider border-transparent px-2 py-0.5 font-semibold",
+                                        pData.category === "video" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                        pData.category === "chat" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                        pData.category === "image" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100"
+                                      )}>
+                                        {t(pData.category.toLowerCase())}
+                                      </Badge>
+                                      <span className="text-sm text-zinc-500 font-medium">
+                                        {pData.provider}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6 align-top">
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-[17px] text-zinc-900">
+                                      {version.credits}
+                                    </span>
+                                    <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                      {t(version.unit)}
+                                    </span>
+                                  </div>
+                                </td>
+                                {hasCache && (
+                                  <td className="py-4 px-6 align-top text-right">
+                                    {version.cachePrice !== undefined ? (
+                                      <div className="flex flex-col items-end">
+                                        <span className="font-bold text-[17px] text-emerald-600">
+                                          ${version.cachePrice.toFixed(3)}
+                                        </span>
+                                        <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                          {version.cacheCredits} {t("credits")}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-zinc-300">-</span>
+                                    )}
+                                  </td>
+                                )}
+                                <td className="py-4 px-6 align-top text-right">
+                                  <span className="font-bold text-[17px] text-[#0055FF]">
+                                    ${version.price.toFixed(3)}
+                                  </span>
+                                </td>
+                              </tr>
+                            ));
+                          })()}
+                        </tbody></table>
+                    </div>
+                  </div>
                 </DevAnnotation>
-
-                <div className="space-y-8">
-                  <div>
-                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">A. Image/Video Parameter Multipliers</h3>
-                    <div className="border border-zinc-200 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-zinc-50 border-b border-zinc-200">
-                          <tr>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Parameter</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Value</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900 text-right">Multiplier</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-100">
-                          <tr className="bg-white">
-                            <td className="px-6 py-4 font-mono text-zinc-600" rowSpan={2}>resolution / size</td>
-                            <td className="px-6 py-4 text-zinc-600">720p / 1024x1024 and below</td>
-                            <td className="px-6 py-4 text-zinc-900 font-bold text-right">1.0x (Base Price)</td>
-                          </tr>
-                          <tr className="bg-white">
-                            <td className="px-6 py-4 text-zinc-600">1080p / 2048x2048 and above</td>
-                            <td className="px-6 py-4 text-blue-600 font-bold text-right flex items-center justify-end gap-1">1.5x <Info className="w-4 h-4 text-zinc-400" /></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold text-[#0B1120] mb-4 text-base">B. Context-based Tiered Pricing</h3>
-                    <div className="border border-zinc-200 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-zinc-50 border-b border-zinc-200">
-                          <tr>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Context Length</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Input Credits / 1M tokens</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Input Price / 1M tokens</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Output Credits / 1M tokens</th>
-                            <th className="px-6 py-4 font-semibold text-zinc-900">Output Price / 1M tokens</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-100">
-                          <tr className="bg-white">
-                            <td className="px-6 py-4 font-mono text-zinc-600">&lt;= 32K tokens</td>
-                            <td className="px-6 py-4 text-zinc-600">20</td>
-                            <td className="px-6 py-4 text-zinc-600">$0.020</td>
-                            <td className="px-6 py-4 text-zinc-600">60</td>
-                            <td className="px-6 py-4 text-zinc-600">$0.060</td>
-                          </tr>
-                          <tr className="bg-white">
-                            <td className="px-6 py-4 font-mono text-blue-600 font-bold">&gt; 32K tokens (Long Context)</td>
-                            <td className="px-6 py-4 text-blue-600 font-bold">45</td>
-                            <td className="px-6 py-4 text-blue-600 font-bold">$0.045</td>
-                            <td className="px-6 py-4 text-blue-600 font-bold">135</td>
-                            <td className="px-6 py-4 text-blue-600 font-bold">$0.135</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
               </section>
             </div>
             </DevAnnotation>

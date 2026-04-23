@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, ChevronDown, ChevronUp, Info, Filter, PlayCircle, Image as ImageIcon, Music, MessageSquare } from "lucide-react";
+import { Search, Info, PlayCircle, Image as ImageIcon, Music, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { models } from "@/data/models";
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
@@ -35,66 +35,8 @@ const categories = [
   }
 ];
 
-const pricingData = [
-  {
-    id: "wan2.5-video",
-    category: "video",
-    provider: "Alibaba",
-    unit: "second",
-    price: 0.050,
-    credits: 50,
-  },
-  {
-    id: "kling-2.5-turbo-pro",
-    category: "video",
-    provider: "Kuaishou",
-    unit: "second",
-    price: 0.100,
-    credits: 100,
-  },
-  {
-    id: "qwen2.5-72b-instruct",
-    category: "chat",
-    provider: "Alibaba",
-    unit: "1M tokens",
-    inputPrice: 0.200,
-    outputPrice: 0.600,
-    inputCredits: 200,
-    outputCredits: 600,
-    versions: [
-      {
-        id: "qwen2.5-72b-instruct-0301 (Fixed)",
-        unit: "per million tokens",
-        inputPrice: 0.200,
-        outputPrice: 0.600,
-        inputCredits: 200,
-        outputCredits: 600,
-      }
-    ]
-  },
-  {
-    id: "seedream-5-0",
-    category: "image",
-    provider: "ByteDance",
-    unit: "image",
-    price: 0.030,
-    credits: 30,
-    versions: [
-      {
-        id: "seedream-5-0-0301 (Fixed)",
-        unit: "image",
-        price: 0.030,
-        credits: 30,
-      },
-      {
-        id: "seedream-5-0-0201 (Fixed)",
-        unit: "image",
-        price: 0.030,
-        credits: 30,
-      }
-    ]
-  }
-];
+import { pricingData } from "@/data/pricing";
+
 
 export default function Pricing() {
   const { t } = useTranslation();
@@ -102,17 +44,6 @@ export default function Pricing() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeProvider, setActiveProvider] = useState<string>("");
   const [activeTask, setActiveTask] = useState<string>("");
-  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set(["qwen2.5-72b-instruct"]));
-
-  const toggleExpand = (id: string) => {
-    const newExpanded = new Set(expandedModels);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedModels(newExpanded);
-  };
 
   const groupedModels = pricingData;
 
@@ -160,6 +91,14 @@ export default function Pricing() {
         >
           <h1 className="text-4xl font-extrabold text-[#0B1120] mb-3 tracking-tight flex items-center gap-2 w-fit">
             {t("Pricing")}
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="w-5 h-5 text-zinc-400 cursor-help ml-1 mt-1 hover:text-zinc-600 transition-colors" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm text-sm p-3 bg-white text-zinc-800 border-zinc-200 shadow-lg">
+                <p>{t("定价来自后端的定价，非chat模型的下显示的名称，来自后端【适用场景组合】字段，单位来自【计价单位字段】")}</p>
+              </TooltipContent>
+            </Tooltip>
           </h1>
         </DevAnnotation>
         <p className="text-lg text-zinc-500 font-medium">
@@ -198,477 +137,197 @@ export default function Pricing() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <select 
-              className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+              className="h-10 px-3 py-2 text-sm bg-zinc-50 border border-transparent rounded-md focus:bg-white focus:border-zinc-300 transition-colors w-full sm:w-[160px] cursor-pointer"
               value={activeProvider}
               onChange={(e) => setActiveProvider(e.target.value)}
             >
               <option value="">{t("All Providers")}</option>
-              {uniqueProviders.map(provider => (
-                <option key={provider} value={provider}>{provider}</option>
+              {uniqueProviders.map(p => (
+                <option key={p} value={p}>{p}</option>
               ))}
             </select>
             <select 
-              className="bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+              className="h-10 px-3 py-2 text-sm bg-zinc-50 border border-transparent rounded-md focus:bg-white focus:border-zinc-300 transition-colors w-full sm:w-[160px] cursor-pointer"
               value={activeTask}
               onChange={(e) => setActiveTask(e.target.value)}
             >
               <option value="">{t("All Tasks")}</option>
-              {uniqueTasks.map(task => (
-                <option key={task} value={task}>{t(task)}</option>
+              {uniqueTasks.map(tOption => (
+                <option key={tOption} value={tOption}>{tOption}</option>
               ))}
             </select>
           </div>
         </div>
       </DevAnnotation>
 
-      {/* Category Navigation */}
+      {/* Category Tabs */}
       <DevAnnotation
-        elementName="分类导航 (Taxonomy)"
-        componentType="Tabs"
-        functionDesc="按一级分类 (Modality) 和二级任务标签 (Task Tags) 筛选模型"
-        autoLogic="点击分类可过滤下方模型列表。标签数据由后端维护。"
-        devNotes="后端维护逻辑：一级分类如 Video, Image, Audio, Chat；二级标签如 Text to Video, Lip Sync 等。"
+        elementName="Category Tabs"
+        componentType="Navigation"
+        functionDesc="Filters models by primary visual category (Video, Image, Audio, Chat)"
+        interactionRule="Clicking a tab filters the list below. Clicking the active tab clears the filter."
+        defaultValue="None (All models shown)"
+        dataSource="Static text (i18n)"
+        autoLogic="Categories with 0 models should be disabled or hidden (currently all shown for UI demo)"
+        validationRule="None"
+        errorHandler="None"
+        devNotes="Supports multi-language"
       >
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => setActiveCategory(null)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
-                activeCategory === null 
-                  ? "bg-zinc-900 text-white shadow-sm" 
-                  : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900"
-              )}
-            >
-              <Filter className="w-4 h-4" />
-              {t("All Models")}
-            </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const isActive = activeCategory === category.id;
             
-            {categories.map(category => (
+            return (
               <button
                 key={category.id}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => setActiveCategory(isActive ? null : category.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
-                  activeCategory === category.id 
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                  isActive 
                     ? "bg-zinc-900 text-white shadow-sm" 
-                    : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900"
+                    : "bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-200"
                 )}
               >
-                <category.icon className="w-4 h-4" />
+                <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-zinc-500")} />
                 {t(category.name)}
               </button>
-            ))}
-          </div>
-
-          {/* Secondary Task Tags */}
-          {activeCategory && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {categories.find(c => c.id === activeCategory)?.tags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setActiveTask(activeTask === tag ? "" : tag)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
-                    activeTask === tag
-                      ? "bg-zinc-900 text-white"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
-                  )}
-                >
-                  {t(tag)}
-                </button>
-              ))}
-            </div>
-          )}
+            );
+          })}
         </div>
       </DevAnnotation>
 
+      {/* Models List as Cards */}
       <DevAnnotation
-        elementName="Model Pricing Data Table"
-        componentType="Data Table"
-        functionDesc="Displays model list, modality, provider, billing unit, and price"
-        interactionRule="Supports expanding rows to view sub-billing items (if any)"
-        defaultValue="Displays all filtered models"
-        dataSource="Local models data source"
-        autoLogic="Dynamically renders based on search term and category filter"
+        elementName="Model Pricing Cards"
+        componentType="List"
+        functionDesc="Display model pricing data in separate cards with flattened versions"
+        interactionRule="None"
+        defaultValue="List of models"
+        dataSource="API Data / Pricing Config"
+        autoLogic="None"
         validationRule="None"
-        errorHandler="Displays empty state prompt when data is empty"
-        devNotes="Sub-billing items use nested table rendering, pay attention to responsive layout"
-        customContent={
-          <div className="space-y-3 text-sm">
-            <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">全局定价页展示逻辑</div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-zinc-200 text-zinc-500">
-                    <th className="py-2 pr-4 font-medium whitespace-nowrap">前端 UI 字段</th>
-                    <th className="py-2 pr-4 font-medium whitespace-nowrap">后端 JSON 字段来源</th>
-                    <th className="py-2 font-medium">计算公式与展示逻辑</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Model ID</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">id</td>
-                    <td className="py-2 text-zinc-600">等宽字体高亮展示（如 qwen2.5-72b-instruct）。</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Modality 标签</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">modality</td>
-                    <td className="py-2 text-zinc-600">渲染带颜色背景的分类胶囊。</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Provider 文本</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">provider</td>
-                    <td className="py-2 text-zinc-600">直接显示（如 Alibaba），同时作为隐式搜索条件。</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Unit (计费单位)</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">pricing.unit_name</td>
-                    <td className="py-2 text-zinc-600">前端做文本清洗，如将 1M_tokens 渲染为 1M tokens。</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">折叠多版本按钮</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">sub_models (数组)</td>
-                    <td className="py-2 text-zinc-600">if (sub_models.length &gt; 0) 渲染按钮：&#123;length&#125; versions</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">单价/现价（美金）</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">pricing.***_fee_config.active_price</td>
-                    <td className="py-2 text-zinc-600">公式： 基础价格+平台加价 (直接渲染计算后的美金绝对值)（显示平台加价后的价格，严禁暴露原始价格）</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">单价/现价（credit）</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">pricing.***_fee_config.active_price</td>
-                    <td className="py-2 text-zinc-600">同上取基础价格+平台加价*平台汇率</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Chat 模型 Input 价</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">pricing.input_fee_config.active_price</td>
-                    <td className="py-2 text-zinc-600">逻辑同上，渲染时前置添加灰色 INPUT 徽章。（显示平台加价后的价格，严禁暴露原始价格）</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 font-semibold whitespace-nowrap">Chat 模型 Output 价</td>
-                    <td className="py-2 pr-4 font-mono text-xs text-blue-600 whitespace-nowrap">pricing.output_fee_config.active_price</td>
-                    <td className="py-2 text-zinc-600">逻辑同上，渲染时前置添加灰色 OUTPUT 徽章。（显示平台加价后的价格，严禁暴露原始价格）</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        }
+        errorHandler="None"
+        devNotes="Refactored to match provided screenshot layout"
       >
-        <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-zinc-200 text-zinc-400 text-xs font-bold tracking-wider uppercase">
-                  <th className="py-5 px-6 w-[40%]">
-                    <div className="flex items-center gap-1">
-                      <DevAnnotation
-                        elementName="Header: Model & Modality"
-                        componentType="Table Header"
-                        functionDesc="Identifies model name and modality column"
-                        interactionRule="None"
-                        defaultValue="Model & Modality"
-                        dataSource="Static text (i18n)"
-                        autoLogic="None"
-                        validationRule="None"
-                        errorHandler="None"
-                        devNotes="Supports multi-language"
-                      >
-                        {t("Model & Modality")}
-                      </DevAnnotation>
+        <div className="space-y-6">
+          {filteredModels.length > 0 ? (
+            filteredModels.map((model) => {
+              const fullModel = models.find(m => m.id === model.id || m.id.startsWith(model.id));
+              const providerLogo = fullModel?.providerLogo || model.provider[0];
+              
+              return (
+                <div key={model.id} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-4 p-5 bg-zinc-50/80 border-b border-zinc-100">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                      {providerLogo}
                     </div>
-                  </th>
-                  <th className="py-5 px-6 w-[20%]">
-                    <div className="flex items-center gap-1">
-                      <DevAnnotation
-                        elementName="Header: Unit"
-                        componentType="Table Header"
-                        functionDesc="Identifies billing unit column"
-                        interactionRule="None"
-                        defaultValue="Unit"
-                        dataSource="Static text (i18n)"
-                        autoLogic="None"
-                        validationRule="None"
-                        errorHandler="None"
-                        devNotes="Supports multi-language"
-                      >
-                        {t("Unit")} 
-                      </DevAnnotation>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t("Billing unit for the model (e.g., per 1M tokens, per image, per second).")}</p>
-                        </TooltipContent>
-                      </Tooltip>
+                    <div>
+                      <h3 className="text-xl font-bold text-zinc-900 leading-tight">
+                        {fullModel?.name || model.id}
+                      </h3>
+                      <p className="text-sm text-zinc-500 mt-0.5 font-medium">{fullModel?.description || "High-performance AI model"}</p>
                     </div>
-                  </th>
-                  <th className="py-5 px-6 w-[20%] text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <DevAnnotation
-                        elementName="Header: Credits"
-                        componentType="Table Header"
-                        functionDesc="Identifies Credits column"
-                        interactionRule="None"
-                        defaultValue="Credits"
-                        dataSource="Static text (i18n)"
-                        autoLogic="None"
-                        validationRule="None"
-                        errorHandler="None"
-                        devNotes="Supports multi-language"
-                      >
-                        {t("Credits")}
-                      </DevAnnotation>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{t("1 USD = 1000 Credits")}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </th>
-                  <th className="py-5 px-6 w-[20%] text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <DevAnnotation
-                        elementName="Header: Price"
-                        componentType="Table Header"
-                        functionDesc="Identifies price column"
-                        interactionRule="None"
-                        defaultValue="Price (USD)"
-                        dataSource="Static text (i18n)"
-                        autoLogic="None"
-                        validationRule="None"
-                        errorHandler="None"
-                        devNotes="Supports multi-language"
-                      >
-                        {t("Price (USD)")}
-                      </DevAnnotation>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {filteredModels.length > 0 ? (
-                  filteredModels.map((model) => {
-                    const hasVersions = model.versions && model.versions.length > 0;
-                    const isExpanded = expandedModels.has(model.id);
+                  </div>
 
-                    return (
-                      <React.Fragment key={model.id}>
-                        <tr className="hover:bg-zinc-50/50 transition-colors group">
-                          <td className="py-5 px-6">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-1">
-                                <div className="font-bold text-lg text-zinc-900 font-mono">{model.id}</div>
-                              </div>
-                              {hasVersions && (
-                                <div className="flex items-center gap-1">
-                                  <button 
-                                    onClick={() => toggleExpand(model.id)}
-                                    className="flex items-center gap-1 text-sm font-semibold text-[#0055FF] bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md transition-colors"
-                                  >
-                                    {model.versions.length} {t("versions")} {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <div className="flex items-center gap-1">
-                                <Badge variant="secondary" className={cn(
-                                  "text-[10px] uppercase font-bold tracking-wider border-transparent px-1.5 py-0",
-                                  model.category === "video" && "bg-purple-100 text-purple-700 hover:bg-purple-100",
-                                  model.category === "chat" && "bg-blue-100 text-blue-700 hover:bg-blue-100",
-                                  model.category === "image" && "bg-green-100 text-green-700 hover:bg-green-100"
-                                )}>
-                                  {t(model.category.toUpperCase())}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-sm text-zinc-400 font-medium">{model.provider}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-5 px-6">
+                  <div className="w-full overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
+                      <thead>
+                        <tr className="border-b border-zinc-100 bg-zinc-50/50">
+                          <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%]">
+                            {t("Model & Modality")}
+                          </th>
+                          <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%]">
                             <div className="flex items-center gap-1">
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-medium bg-[#F1F5F9] text-[#475569]">
-                                {t(model.unit)}
+                              {t("Credits / Gen")}
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{t("1 USD = 1000 Credits")}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </th>
+                          {model.versions.some(v => v.cachePrice !== undefined) && (
+                            <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%] text-right">
+                              {t("Cache Hit (Credits / USD)")}
+                            </th>
+                          )}
+                          <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%] text-right">
+                            {t("Our Price (USD)")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {model.versions.map((version, idx) => (
+                          <tr key={idx} className="border-b border-zinc-100 last:border-none hover:bg-zinc-50/50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="flex flex-col gap-1.5">
+                                <span className="font-medium text-[15px] text-zinc-800">
+                                  {version.id}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className={cn(
+                                    "text-[10px] uppercase tracking-wider border-transparent px-2 py-0.5 font-semibold",
+                                    model.category === "video" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                    model.category === "chat" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                    model.category === "image" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100"
+                                  )}>
+                                    {t(model.category.toLowerCase())}
+                                  </Badge>
+                                  <span className="text-sm text-zinc-500 font-medium">
+                                    {model.provider}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 align-top">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-[17px] text-zinc-900">
+                                  {version.credits}
+                                </span>
+                                <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                  {t(version.unit)}
+                                </span>
+                              </div>
+                            </td>
+                            {model.versions.some(v => v.cachePrice !== undefined) && (
+                              <td className="py-4 px-6 align-top text-right">
+                                {version.cachePrice !== undefined ? (
+                                  <div className="flex flex-col items-end">
+                                    <span className="font-bold text-[17px] text-emerald-600">
+                                      ${version.cachePrice.toFixed(3)}
+                                    </span>
+                                    <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                      {version.cacheCredits} {t("credits")}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-zinc-300">-</span>
+                                )}
+                              </td>
+                            )}
+                            <td className="py-4 px-6 align-top text-right">
+                              <span className="font-bold text-[17px] text-[#0055FF]">
+                                ${version.price.toFixed(3)}
                               </span>
-                            </div>
-                          </td>
-                          <td className="py-5 px-6 text-right">
-                            <div className="flex flex-col items-end gap-1">
-                              {model.inputCredits !== undefined && model.outputCredits !== undefined ? (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                      INPUT
-                                    </span>
-                                    <span className="font-bold text-lg text-zinc-800">
-                                      {model.inputCredits}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                      OUTPUT
-                                    </span>
-                                    <span className="font-bold text-lg text-zinc-800">
-                                      {model.outputCredits}
-                                    </span>
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-lg text-zinc-800">
-                                    {model.credits}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-5 px-6 text-right">
-                            <div className="flex flex-col items-end gap-1">
-                              {model.inputPrice !== undefined && model.outputPrice !== undefined ? (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                      INPUT
-                                    </span>
-                                    <span className="font-bold text-lg text-[#0055FF]">
-                                      ${model.inputPrice.toFixed(3)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                      OUTPUT
-                                    </span>
-                                    <span className="font-bold text-lg text-[#0055FF]">
-                                      ${model.outputPrice.toFixed(3)}
-                                    </span>
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-lg text-[#0055FF]">
-                                    ${model.price?.toFixed(3)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      
-                      {/* Expanded Versions */}
-                      {isExpanded && hasVersions && (
-                        <tr>
-                          <td colSpan={4} className="p-0 bg-zinc-50/50 border-t border-zinc-100">
-                            <div className="w-full">
-                              <table className="w-full text-left">
-                                <tbody>
-                                  {model.versions.map((version: any, idx: number) => (
-                                    <tr key={idx} className="hover:bg-zinc-100/50 transition-colors border-b border-zinc-100 last:border-0">
-                                      <td className="py-4 px-6 w-[40%] pl-12">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-1.5 h-1.5 rounded-full bg-zinc-300"></div>
-                                          <div className="flex items-center gap-1">
-                                            <span className="font-medium text-sm text-zinc-700 font-mono">{version.id}</span>
-                                          </div>
-                                        </div>
-                                      </td>
-                                      <td className="py-4 px-6 w-[20%]">
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-sm font-medium text-zinc-500">
-                                            {t(version.unit)}
-                                          </span>
-                                        </div>
-                                      </td>
-                                      <td className="py-4 px-6 w-[20%] text-right">
-                                        <div className="flex flex-col items-end gap-1">
-                                          {version.inputCredits !== undefined && version.outputCredits !== undefined ? (
-                                            <>
-                                              <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                                  INPUT
-                                                </span>
-                                                <span className="font-bold text-base text-zinc-800">
-                                                  {version.inputCredits}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                                  OUTPUT
-                                                </span>
-                                                <span className="font-bold text-base text-zinc-800">
-                                                  {version.outputCredits}
-                                                </span>
-                                              </div>
-                                            </>
-                                          ) : (
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-bold text-base text-zinc-800">
-                                                {version.credits}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </td>
-                                      <td className="py-4 px-6 w-[20%] text-right">
-                                        <div className="flex flex-col items-end gap-1">
-                                          {version.inputPrice !== undefined && version.outputPrice !== undefined ? (
-                                            <>
-                                              <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                                  INPUT
-                                                </span>
-                                                <span className="font-bold text-base text-[#0055FF]">
-                                                  ${version.inputPrice.toFixed(3)}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#F1F5F9] text-[#475569]">
-                                                  OUTPUT
-                                                </span>
-                                                <span className="font-bold text-base text-[#0055FF]">
-                                                  ${version.outputPrice.toFixed(3)}
-                                                </span>
-                                              </div>
-                                            </>
-                                          ) : (
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-bold text-base text-[#0055FF]">
-                                                ${version.price?.toFixed(3)}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-zinc-500">
-                    {t("No models found matching your search.")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+              {t("No models found matching your search.")}
+            </div>
+          )}
         </div>
-      </div>
       </DevAnnotation>
 
       <DevAnnotation

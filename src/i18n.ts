@@ -185,7 +185,20 @@ const resources = {
       "1 Day": "1 Day",
       "1 Week": "1 Week",
       "1 Year": "1 Year",
-      "By API Key": "By API Key"
+      "By API Key": "By API Key",
+      "Quick Create API Key": "Quick Create API Key",
+      "Estimated Credits Needed": "Estimated cost: {{credits}} Credits",
+      "Key Name Identifier": "Key Name Identifier",
+      "Key Name Placeholder": "e.g., playground-test",
+      "Create Key Instruction": "The request requires you to create an API Key first. You can manage it later in the <1>API Keys</1> page.",
+      "Cancel": "Cancel",
+      "Confirm Create & Generate": "Confirm creation and generate",
+      "Estimated Value Note": "The current display is an estimated value, the actual deduction is based on the real request return.",
+      "Select API Key Title": "Select API Key",
+      "Select API Key Description": "Please select the API Key to consume for this call. This operation will freeze {{credits}} Credits.",
+      "Select API Key Placeholder": "Click to select your API Key",
+      "Cancel Generation": "Cancel Generation",
+      "Confirm & Generate": "Confirm & Generate"
     }
   },
   zh: {
@@ -371,7 +384,20 @@ const resources = {
       "1 Day": "1天",
       "1 Week": "1周",
       "1 Year": "1年",
-      "By API Key": "按 API 密钥"
+      "By API Key": "按 API 密钥",
+      "Quick Create API Key": "快速创建 API Key",
+      "Estimated Credits Needed": "当前预估需要 {{credits}} Credits",
+      "Key Name Identifier": "Key 名称标识",
+      "Key Name Placeholder": "例如: playground-test",
+      "Create Key Instruction": "该请求需要您先创建 API Key，稍后您可以在 <1>API Keys</1> 页面中管理。",
+      "Cancel": "取消",
+      "Confirm Create & Generate": "确认创建并生成",
+      "Estimated Value Note": "当前显示的是预估值，实际扣减按照真实请求返回的金额为准。",
+      "Select API Key Title": "选择 API Key",
+      "Select API Key Description": "请选择本次调用需要消费的 API Key。本次操作将会冻结 {{credits}} Credits。",
+      "Select API Key Placeholder": "点击选择你的 API Key",
+      "Cancel Generation": "取消生成",
+      "Confirm & Generate": "确认并生成"
     }
   }
 };
