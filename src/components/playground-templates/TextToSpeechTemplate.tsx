@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Play, Download, Mic2, Pause, Volume2 } from 'lucide-react';
+import React, {  useState , useEffect } from 'react';
+import { Settings2, Play, Download, Mic2, Pause, Volume2 , Copy} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 
 const QWEN_VOICES = ['Cherry', 'Serena', 'Ethan', 'Chelsie', 'Momo', 'Vivian', 'Moon', 'Maia', 'Kai', 'Nofish', 'Bella'];
 
-export function TextToSpeechTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function TextToSpeechTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [text, setText] = useState('Quantum computing is a rapidly-emerging technology...');
   const [voice, setVoice] = useState('Cherry');
   const [speed, setSpeed] = useState([1.0]);
@@ -20,6 +20,29 @@ export function TextToSpeechTemplate({ model, onValidate, onAddHistory }: { mode
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.input) setText(restoredParams.input);
+      if (restoredParams.voice) setVoice(restoredParams.voice);
+      if (restoredParams.speed) setSpeed([restoredParams.speed]);
+      if (restoredParams.language) setLanguage(restoredParams.language);
+      if (restoredParams.instructions) setInstructions(restoredParams.instructions);
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    input: text,
+    voice,
+    speed: speed[0],
+    language,
+    instructions: instructions || undefined
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const isQwen = model?.id?.includes('qwen');
 
@@ -47,7 +70,8 @@ export function TextToSpeechTemplate({ model, onValidate, onAddHistory }: { mode
           prompt: text,
           result: 'https://www.w3schools.com/html/horse.mp3',
           cost: 2,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 1500);
@@ -69,7 +93,15 @@ export function TextToSpeechTemplate({ model, onValidate, onAddHistory }: { mode
           </div>
         </div>
         
-        <div className="p-4 border-t border-zinc-100 flex justify-end">
+        <div className="p-4 border-t border-zinc-100 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
           <Button 
             className="h-12 w-48 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg font-bold"
             onClick={handleGenerate}

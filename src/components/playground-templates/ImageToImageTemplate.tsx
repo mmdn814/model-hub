@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Image as ImageIcon, Sparkles, Wand2, Upload, GripVertical } from 'lucide-react';
+import React, {  useState , useEffect } from 'react';
+import { Settings2, Image as ImageIcon, Sparkles, Wand2, Upload, GripVertical , Copy} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-export function ImageToImageTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function ImageToImageTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [seed, setSeed] = useState('');
@@ -17,6 +17,27 @@ export function ImageToImageTemplate({ model, onValidate, onAddHistory }: { mode
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasResult, setHasResult] = useState(false);
+
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.prompt) setPrompt(restoredParams.prompt);
+      if (restoredParams.negative_prompt) setNegativePrompt(restoredParams.negative_prompt);
+      if (restoredParams.seed) setSeed(String(restoredParams.seed));
+      if (restoredParams.watermark !== undefined) setWatermark(restoredParams.watermark);
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    prompt,
+    negative_prompt: negativePrompt || undefined,
+    seed: seed ? Number(seed) : undefined,
+    watermark
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const isWan = model?.id?.includes('wan');
   const isImage01 = model?.id?.includes('image-01');
@@ -43,7 +64,8 @@ export function ImageToImageTemplate({ model, onValidate, onAddHistory }: { mode
           prompt: prompt || 'Applied Edit',
           result: 'https://picsum.photos/seed/after/1024/768',
           cost: 15,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 2000);
@@ -123,9 +145,17 @@ export function ImageToImageTemplate({ model, onValidate, onAddHistory }: { mode
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-100 bg-white">
+        <div className="p-4 border-t border-zinc-100 bg-white flex gap-2">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
           <Button 
-            className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
+            className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
             onClick={handleGenerate}
             disabled={isGenerating}
           >

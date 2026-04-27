@@ -1,11 +1,13 @@
 import React from 'react';
-import { History, AlertCircle, Music, RotateCcw, Image as ImageIcon, Video, Mic, MessageSquare } from 'lucide-react';
+import { History, AlertCircle, Music, RotateCcw, Image as ImageIcon, Video, Mic, MessageSquare, Download, ScrollText, CopyPlus } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
 import { HistoryItem } from '@/pages/Playground';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface PlaygroundHistoryProps {
   history: HistoryItem[];
@@ -14,9 +16,20 @@ interface PlaygroundHistoryProps {
 
 export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleDownload = (result: string) => {
+    const link = document.createElement('a');
+    link.href = result;
+    link.download = 'generated_media';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
-    <div className="h-[220px] bg-white shrink-0 flex flex-col shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-20">
+    <div className="h-[260px] bg-white shrink-0 flex flex-col shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-20">
       <div className="flex items-center justify-between px-6 py-2.5 bg-zinc-50/80 border-b border-zinc-100 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-zinc-500" />
@@ -42,12 +55,12 @@ export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps)
             history.map(item => (
               <div 
                 key={item.id} 
-                className="w-[200px] h-full flex flex-col gap-2 p-2 rounded-xl border border-zinc-200 hover:border-blue-400 hover:shadow-md bg-white transition-all group shrink-0 relative"
+                className="w-[240px] h-full flex flex-col gap-2 p-2 rounded-xl border border-zinc-200 hover:border-blue-400 hover:shadow-md bg-white transition-all group shrink-0 relative"
               >
                 {/* Preview Thumbnail */}
-                <div className="h-[90px] w-full rounded-lg bg-zinc-100 overflow-hidden relative flex items-center justify-center border border-zinc-100 group-hover:border-blue-200 transition-colors">
+                <div className="h-[100px] w-full rounded-lg bg-zinc-100 overflow-hidden relative flex items-center justify-center border border-zinc-100 group-hover:border-blue-200 transition-colors">
                   {item.modality === 'image' && <img src={item.result} alt="preview" className="w-full h-full object-cover" />}
-                  {item.modality === 'video' && (
+                  {(item.modality === 'video' || item.result.endsWith('.mp4')) && (
                     <>
                       <video src={item.result} className="w-full h-full object-cover opacity-80" />
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -74,9 +87,14 @@ export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps)
 
                   {/* Play/Replay Button Overlay */}
                   <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button size="sm" className="h-7 text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={() => onSelect(item)}>
-                      <RotateCcw className="w-3 h-3 mr-1" /> Replay
+                    <Button size="sm" className="h-7 text-[10px] bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={() => window.open(item.result, '_blank')}>
+                      <RotateCcw className="w-3 h-3 mr-1" /> View Full
                     </Button>
+                  </div>
+                  
+                  {/* Modality Badge */}
+                  <div className="absolute top-1 right-1 bg-black/50 backdrop-blur-md text-white text-[9px] px-1.5 py-0.5 rounded font-medium tracking-wider uppercase">
+                    {item.modality}
                   </div>
                 </div>
 
@@ -87,11 +105,35 @@ export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps)
                     <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-mono">{item.cost} credits</span>
                   </div>
                   
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] font-semibold text-zinc-700 truncate">
-                      {item.id}
-                    </span>
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[10px] font-semibold text-zinc-700 truncate w-full" title={item.modelId || item.id}>
+                        {item.modelId || item.id}
+                      </span>
+                    </div>
+                    
+                    {/* Action Toolbar */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center justify-between pt-1 border-t border-zinc-100 px-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => onSelect(item)}>
+                            <CopyPlus className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => handleDownload(item.result)}>
+                            <Download className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => navigate('/logs')}>
+                            <ScrollText className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[240px] text-xs space-y-1.5 p-3">
+                        <p><strong>{t("Restore:")}</strong> {t("恢复当前生成的参数配置")}</p>
+                        <p><strong>{t("Download:")}</strong> {t("下载生成的内容(7天内可下载)")}</p>
+                        <p><strong>{t("Logs:")}</strong> {t("跳转到这条请求对应的API日志页面")}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </div>

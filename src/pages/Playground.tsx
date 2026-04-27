@@ -39,6 +39,7 @@ export interface HistoryItem {
   result: string;
   cost: number;
   timestamp: number;
+  params?: any;
 }
 
 const examples = {
@@ -205,6 +206,7 @@ export default function Playground() {
   // State
   const [isGenerating, setIsGenerating] = useState(false);
   const [output, setOutput] = useState<string | null>(examples.text.output);
+  const [restoredParams, setRestoredParams] = useState<any>(null);
   const [history, setHistory] = useState<HistoryItem[]>([
     {
       id: '1',
@@ -301,11 +303,13 @@ export default function Playground() {
       setBalance(prev => prev - currentCost);
       setHistory(prev => [{
         id: Date.now().toString(),
+        modelId: currentModel?.id || 'default',
         modality,
         prompt,
         result: mockResult,
         cost: currentCost,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        params: JSON.parse(getPayloadJson())
       }, ...prev].slice(0, 20)); // Keep last 20
       
       setIsGenerating(false);
@@ -506,19 +510,22 @@ export default function Playground() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex overflow-hidden">
-          {playgroundType === 'chat_completion' && <ChatTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
-          {playgroundType === 'text_to_image' && <TextToImageTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
-          {playgroundType === 'image_to_image' && <ImageToImageTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
-          {playgroundType === 'text_to_video' && <TextToVideoTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
-          {playgroundType === 'image_to_video' && <ImageToVideoTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
-          {playgroundType === 'text_to_speech' && <TextToSpeechTemplate model={currentModel} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'chat_completion' && <ChatTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_image' && <TextToImageTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'image_to_image' && <ImageToImageTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_video' && <TextToVideoTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'image_to_video' && <ImageToVideoTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'text_to_speech' && <TextToSpeechTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
         </div>
         <PlaygroundHistory 
           history={history.filter(h => h.modelId === currentModel?.id)} 
           onSelect={(item) => {
-            setModality(item.modality);
-            setPrompt(item.prompt);
-            setOutput(item.result);
+            if (item.params) {
+              setRestoredParams(item.params);
+            } else {
+              setPrompt(item.prompt);
+              // Old way fallback
+            }
           }} 
         />
       </div>

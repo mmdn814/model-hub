@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Image as ImageIcon, Sparkles, Download, Maximize2, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings2, Image as ImageIcon, Sparkles, Download, Maximize2, Zap, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -16,7 +16,7 @@ const RATIOS = [
   { id: '3:4', w: 21, h: 28 },
 ];
 
-export function TextToImageTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function TextToImageTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [prompt, setPrompt] = useState('A futuristic cyberpunk city at night, neon lights...');
   const [ratio, setRatio] = useState('16:9');
   const [negativePrompt, setNegativePrompt] = useState('');
@@ -28,6 +28,33 @@ export function TextToImageTemplate({ model, onValidate, onAddHistory }: { model
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.prompt) setPrompt(restoredParams.prompt);
+      if (restoredParams.aspect_ratio) setRatio(restoredParams.aspect_ratio);
+      if (restoredParams.negative_prompt) setNegativePrompt(restoredParams.negative_prompt);
+      if (restoredParams.n) setN(restoredParams.n);
+      if (restoredParams.seed) setSeed(String(restoredParams.seed));
+      if (restoredParams.watermark !== undefined) setWatermark(restoredParams.watermark);
+      if (restoredParams.prompt_extend !== undefined) setPromptExtend(restoredParams.prompt_extend);
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    prompt,
+    aspect_ratio: ratio,
+    negative_prompt: negativePrompt || undefined,
+    n,
+    seed: seed ? Number(seed) : undefined,
+    watermark,
+    prompt_extend: promptExtend
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
@@ -53,7 +80,8 @@ export function TextToImageTemplate({ model, onValidate, onAddHistory }: { model
           prompt: prompt,
           result: respUrl,
           cost: 10 * n,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 2000);
@@ -149,9 +177,17 @@ export function TextToImageTemplate({ model, onValidate, onAddHistory }: { model
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-100 bg-white">
+        <div className="p-4 border-t border-zinc-100 bg-white flex gap-2">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
           <Button 
-            className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
+            className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
             onClick={handleGenerate}
             disabled={isGenerating}
           >

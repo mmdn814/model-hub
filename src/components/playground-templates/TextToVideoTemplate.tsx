@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Video, Wand2, Play, Download, Zap } from 'lucide-react';
+import React, {  useState , useEffect } from 'react';
+import { Settings2, Video, Wand2, Play, Download, Zap , Copy} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-export function TextToVideoTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function TextToVideoTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [prompt, setPrompt] = useState('A cinematic sweeping shot of a cyberpunk city at night...');
   const [duration, setDuration] = useState([5]);
   const [resolution, setResolution] = useState('1080p');
@@ -21,6 +21,35 @@ export function TextToVideoTemplate({ model, onValidate, onAddHistory }: { model
   const [seed, setSeed] = useState('');
 
   const [status, setStatus] = useState<'idle' | 'in_queue' | 'in_progress' | 'completed'>('idle');
+
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.prompt) setPrompt(restoredParams.prompt);
+      if (restoredParams.duration) setDuration([restoredParams.duration]);
+      if (restoredParams.resolution) setResolution(restoredParams.resolution);
+      if (restoredParams.camera_fixed !== undefined) setCameraFixed(restoredParams.camera_fixed);
+      if (restoredParams.generate_audio !== undefined) setGenerateAudio(restoredParams.generate_audio);
+      if (restoredParams.draft !== undefined) setDraft(restoredParams.draft);
+      if (restoredParams.watermark !== undefined) setWatermark(restoredParams.watermark);
+      if (restoredParams.seed) setSeed(String(restoredParams.seed));
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    prompt,
+    duration: duration[0],
+    resolution,
+    camera_fixed: cameraFixed,
+    generate_audio: generateAudio,
+    draft,
+    watermark,
+    seed: seed ? Number(seed) : undefined
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const isSeedance = model?.id?.includes('seedance');
   const isSeedance15 = model?.id?.includes('1-5');
@@ -47,7 +76,8 @@ export function TextToVideoTemplate({ model, onValidate, onAddHistory }: { model
           prompt: prompt,
           result: 'https://www.w3schools.com/html/mov_bbb.mp4',
           cost: duration[0] * 10,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 4500);
@@ -141,14 +171,22 @@ export function TextToVideoTemplate({ model, onValidate, onAddHistory }: { model
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-100 bg-white">
+        <div className="p-4 border-t border-zinc-100 bg-white flex gap-2">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
           <Button 
-            className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
+            className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
             onClick={handleGenerate}
             disabled={status !== 'idle' && status !== 'completed'}
           >
             <Video className="w-5 h-5 mr-2" />
-            Generate Video
+            Generating Video
           </Button>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Video, Wand2, Upload, Play, Download, Plus, X } from 'lucide-react';
+import React, {  useState , useEffect } from 'react';
+import { Settings2, Video, Wand2, Upload, Play, Download, Plus, X , Copy} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export function ImageToVideoTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function ImageToVideoTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState([5]);
   const [status, setStatus] = useState<'idle' | 'in_queue' | 'in_progress' | 'completed'>('idle');
@@ -20,6 +20,25 @@ export function ImageToVideoTemplate({ model, onValidate, onAddHistory }: { mode
   const isHailuo02FirstLast = model?.id === 'MiniMax-Hailuo-02' && model?.playgroundType === 'image_to_video';
 
   const [references, setReferences] = useState<{type: string, file: string}[]>([]);
+
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.prompt) setPrompt(restoredParams.prompt);
+      if (restoredParams.duration) setDuration([restoredParams.duration]);
+      if (restoredParams.references) setReferences(restoredParams.references);
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    prompt,
+    duration: duration[0],
+    references
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const handleGenerate = () => {
     if (onValidate) {
@@ -42,7 +61,8 @@ export function ImageToVideoTemplate({ model, onValidate, onAddHistory }: { mode
           prompt: prompt || 'Animated with image references',
           result: 'https://www.w3schools.com/html/mov_bbb.mp4',
           cost: duration[0] * 12,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 4500);
@@ -143,9 +163,17 @@ export function ImageToVideoTemplate({ model, onValidate, onAddHistory }: { mode
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-zinc-100 bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10">
+        <div className="p-4 border-t border-zinc-100 bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] z-10 flex gap-2">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
           <Button 
-            className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
+            className="flex-1 h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg shadow-zinc-900/10 font-bold text-base"
             onClick={handleGenerate}
             disabled={status !== 'idle' && status !== 'completed'}
           >

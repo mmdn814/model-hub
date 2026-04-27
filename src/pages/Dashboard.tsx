@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis } from "recharts";
-import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info } from "lucide-react";
+import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -92,6 +92,71 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Quick Start Guide */}
+      <DevAnnotation
+        elementName="Quick Start Guide"
+        componentType="Card"
+        functionDesc="Guides new users through the initial setup process"
+      >
+        <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-blue-100 shadow-sm relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-blue-100/50 blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-indigo-100/50 blur-2xl"></div>
+          
+          <CardContent className="p-6 relative z-10">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              <div className="text-center lg:text-left">
+                <h3 className="text-xl font-bold text-zinc-800 mb-2">{t("Welcome! Let's get started")}</h3>
+                <p className="text-zinc-600 text-sm max-w-md">
+                  {t("Follow these three simple steps to start building with our models.")}
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto relative">
+                {/* Step 1 */}
+                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
+                  <Link to="/billing" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-blue-200 group-hover:text-blue-700 transition-all">
+                    <Wallet className="w-6 h-6" />
+                  </Link>
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">{t("Step 1")}</div>
+                    <span className="text-sm font-medium text-zinc-700">{t("Recharge")}</span>
+                  </div>
+                </div>
+
+                {/* Connecting Line 1 */}
+                <div className="hidden sm:block h-px w-12 border-t-2 border-dashed border-zinc-200 mb-10"></div>
+
+                {/* Step 2 */}
+                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
+                  <Link to="/keys" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-emerald-200 group-hover:text-emerald-700 transition-all">
+                    <Key className="w-6 h-6" />
+                  </Link>
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{t("Step 2")}</div>
+                    <span className="text-sm font-medium text-zinc-700">{t("Create Key")}</span>
+                  </div>
+                </div>
+
+                {/* Connecting Line 2 */}
+                <div className="hidden sm:block h-px w-12 border-t-2 border-dashed border-zinc-200 mb-10"></div>
+
+                {/* Step 3 */}
+                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
+                  <Link to="/models" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-purple-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-purple-200 group-hover:text-purple-700 transition-all">
+                    <Terminal className="w-6 h-6" />
+                  </Link>
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-0.5">{t("Step 3")}</div>
+                    <span className="text-sm font-medium text-zinc-700">{t("Start Building")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </DevAnnotation>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl text-zinc-600 font-medium">{t("Your usage across models on Powertokens")}</h2>

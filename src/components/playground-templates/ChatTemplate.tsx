@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings2, Image as ImageIcon, Send, X, Bot, User, Wand2, Plus, GripVertical } from 'lucide-react';
+import React, {  useState , useEffect } from 'react';
+import { Settings2, Image as ImageIcon, Send, X, Bot, User, Wand2, Plus, GripVertical , Copy} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
@@ -27,8 +27,36 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
   const [enableSearch, setEnableSearch] = useState(false);
   const [thinking, setThinking] = useState(false);
 
-  const isAlibaba = model?.provider === 'Alibaba Cloud';
-  const isZhipu = model?.provider === 'Zhipu AI';
+  useEffect(() => {
+    if (restoredParams) {
+      if (restoredParams.messages && restoredParams.messages.length > 0) {
+          // get the last user message
+          const lastUser = restoredParams.messages[restoredParams.messages.length - 1];
+          if (lastUser && lastUser.content) setInput(lastUser.content);
+      }
+      if (restoredParams.temperature !== undefined) setTemperature([restoredParams.temperature]);
+      if (restoredParams.top_p !== undefined) setTopP([restoredParams.top_p]);
+      if (restoredParams.max_tokens !== undefined) setMaxTokens(restoredParams.max_tokens);
+      if (restoredParams.stream !== undefined) setStream(restoredParams.stream);
+      if (restoredParams.enable_search !== undefined) setEnableSearch(restoredParams.enable_search);
+      if (restoredParams.thinking && restoredParams.thinking.enable !== undefined) setThinking(restoredParams.thinking.enable);
+    }
+  }, [restoredParams]);
+
+  const getPayload = () => ({
+    model: model?.id,
+    messages: [{ role: 'user', content: input }],
+    temperature: temperature[0],
+    top_p: topP[0],
+    max_tokens: maxTokens,
+    stream,
+    enable_search: enableSearch,
+    thinking: { enable: thinking }
+  });
+
+  const handleCopyJSON = () => {
+    navigator.clipboard.writeText(JSON.stringify(getPayload(), null, 2));
+  };
 
   const handleSend = () => {
     if (onValidate) {
@@ -61,7 +89,8 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
           prompt: userContent,
           result: resp,
           cost: 15,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          params: getPayload()
         });
       }
     }, 1000);
@@ -153,13 +182,24 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
               >
                 <ImageIcon className="w-4 h-4 mr-2" /> <span className="text-xs">Add Image</span>
               </Button>
-              <Button 
-                size="sm" 
-                className="h-8 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg"
-                onClick={handleSend}
-              >
-                <Send className="w-3.5 h-3.5 mr-2" /> Send
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
+                  onClick={handleCopyJSON}
+                  title="Copy JSON"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="h-8 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg"
+                  onClick={handleSend}
+                >
+                  <Send className="w-3.5 h-3.5 mr-2" /> Send
+                </Button>
+              </div>
             </div>
           </div>
         </div>
