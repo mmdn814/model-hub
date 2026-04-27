@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
+export function ChatTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hello! I am ready to help. What would you like to discuss today?' }
   ]);
@@ -26,6 +26,9 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [enableSearch, setEnableSearch] = useState(false);
   const [thinking, setThinking] = useState(false);
+
+  const isAlibaba = model?.provider === 'Alibaba Cloud';
+  const isZhipu = model?.provider === 'Zhipu AI';
 
   useEffect(() => {
     if (restoredParams) {
@@ -98,6 +101,87 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
 
   return (
     <div className="flex-1 flex overflow-hidden bg-zinc-50 relative">
+      {/* Left Sidebar: Params */}
+      <div className="w-[320px] bg-white border-r border-zinc-200 flex flex-col shrink-0 overflow-y-auto">
+        <div className="p-4 border-b border-zinc-100 flex items-center gap-2">
+          <Settings2 className="w-4 h-4 text-zinc-400" />
+          <h3 className="font-semibold text-zinc-800 text-sm">Parameters</h3>
+        </div>
+        
+        <div className="p-5 space-y-6">
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <label className="text-xs font-medium text-zinc-700">Temperature</label>
+              <span className="text-xs text-zinc-500 font-mono">{temperature[0]}</span>
+            </div>
+            <Slider value={temperature} onValueChange={(v) => setTemperature(v as number[])} max={2} step={0.1} className="py-2" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <label className="text-xs font-medium text-zinc-700">Top P</label>
+              <span className="text-xs text-zinc-500 font-mono">{topP[0]}</span>
+            </div>
+            <Slider value={topP} onValueChange={(v) => setTopP(v as number[])} max={1} step={0.05} className="py-2" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <label className="text-xs font-medium text-zinc-700">Max Tokens</label>
+              <span className="text-xs text-zinc-500 font-mono">{maxTokens}</span>
+            </div>
+            <Input type="number" value={maxTokens} onChange={e => setMaxTokens(Number(e.target.value))} className="h-8 text-sm" />
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <label className="text-xs font-medium text-zinc-700">Stream Output</label>
+            <Switch checked={stream} onCheckedChange={setStream} />
+          </div>
+
+          <div className="border-t border-zinc-100 pt-4 mt-4">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-between h-8 text-xs font-medium text-zinc-500 hover:text-zinc-900 px-0"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              Advanced Settings
+              <Plus className={cn("w-3 h-3 transition-transform", showAdvanced && "rotate-45")} />
+            </Button>
+            
+            {showAdvanced && (
+              <div className="space-y-4 pt-4 animate-in fade-in slide-in-from-top-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-zinc-700">Stop Sequence</label>
+                  <Input placeholder="e.g. \n, User:" className="h-8 text-xs" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-zinc-700">Seed</label>
+                  <Input type="number" placeholder="Random" className="h-8 text-xs" />
+                </div>
+                
+                {isAlibaba && (
+                  <div className="flex items-center justify-between pt-2">
+                    <label className="text-xs font-medium text-zinc-700 flex items-center gap-1">
+                      Web Search <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-blue-50 text-blue-600 border-none">ALI</Badge>
+                    </label>
+                    <Switch checked={enableSearch} onCheckedChange={setEnableSearch} />
+                  </div>
+                )}
+                
+                {isZhipu && (
+                  <div className="flex items-center justify-between pt-2">
+                    <label className="text-xs font-medium text-zinc-700 flex items-center gap-1">
+                      Thinking<Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-purple-50 text-purple-600 border-none">ZHIPU</Badge>
+                    </label>
+                    <Switch checked={thinking} onCheckedChange={setThinking} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
         {/* System Prompt Toggle */}
@@ -201,87 +285,6 @@ export function ChatTemplate({ model, onValidate, onAddHistory }: { model: any, 
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Sidebar: Params */}
-      <div className="w-[320px] bg-white border-l border-zinc-200 flex flex-col shrink-0 overflow-y-auto">
-        <div className="p-4 border-b border-zinc-100 flex items-center gap-2">
-          <Settings2 className="w-4 h-4 text-zinc-400" />
-          <h3 className="font-semibold text-zinc-800 text-sm">Parameters</h3>
-        </div>
-        
-        <div className="p-5 space-y-6">
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <label className="text-xs font-medium text-zinc-700">Temperature</label>
-              <span className="text-xs text-zinc-500 font-mono">{temperature[0]}</span>
-            </div>
-            <Slider value={temperature} onValueChange={(v) => setTemperature(v as number[])} max={2} step={0.1} className="py-2" />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <label className="text-xs font-medium text-zinc-700">Top P</label>
-              <span className="text-xs text-zinc-500 font-mono">{topP[0]}</span>
-            </div>
-            <Slider value={topP} onValueChange={(v) => setTopP(v as number[])} max={1} step={0.05} className="py-2" />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <label className="text-xs font-medium text-zinc-700">Max Tokens</label>
-              <span className="text-xs text-zinc-500 font-mono">{maxTokens}</span>
-            </div>
-            <Input type="number" value={maxTokens} onChange={e => setMaxTokens(Number(e.target.value))} className="h-8 text-sm" />
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <label className="text-xs font-medium text-zinc-700">Stream Output</label>
-            <Switch checked={stream} onCheckedChange={setStream} />
-          </div>
-
-          <div className="border-t border-zinc-100 pt-4 mt-4">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-between h-8 text-xs font-medium text-zinc-500 hover:text-zinc-900 px-0"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              Advanced Settings
-              <Plus className={cn("w-3 h-3 transition-transform", showAdvanced && "rotate-45")} />
-            </Button>
-            
-            {showAdvanced && (
-              <div className="space-y-4 pt-4 animate-in fade-in slide-in-from-top-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-zinc-700">Stop Sequence</label>
-                  <Input placeholder="e.g. \n, User:" className="h-8 text-xs" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-zinc-700">Seed</label>
-                  <Input type="number" placeholder="Random" className="h-8 text-xs" />
-                </div>
-                
-                {isAlibaba && (
-                  <div className="flex items-center justify-between pt-2">
-                    <label className="text-xs font-medium text-zinc-700 flex items-center gap-1">
-                      Web Search <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-blue-50 text-blue-600 border-none">ALI</Badge>
-                    </label>
-                    <Switch checked={enableSearch} onCheckedChange={setEnableSearch} />
-                  </div>
-                )}
-                
-                {isZhipu && (
-                  <div className="flex items-center justify-between pt-2">
-                    <label className="text-xs font-medium text-zinc-700 flex items-center gap-1">
-                      Thinking<Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-purple-50 text-purple-600 border-none">ZHIPU</Badge>
-                    </label>
-                    <Switch checked={thinking} onCheckedChange={setThinking} />
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

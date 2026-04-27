@@ -1,5 +1,5 @@
 import React from 'react';
-import { History, AlertCircle, Music, RotateCcw, Image as ImageIcon, Video, Mic, MessageSquare, Download, ScrollText, CopyPlus } from 'lucide-react';
+import { History, AlertCircle, Music, RotateCcw, Image as ImageIcon, Video, Mic, MessageSquare, Download, ScrollText, CopyPlus, Info } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
 import { HistoryItem } from '@/pages/Playground';
@@ -34,6 +34,16 @@ export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps)
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-zinc-500" />
           <span className="text-sm font-bold text-zinc-800 tracking-tight">Generation History</span>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-3.5 w-3.5 text-zinc-400 cursor-help hover:text-zinc-600 transition-colors" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[240px] text-xs space-y-1.5 p-3">
+              <p><strong>{t("Restore:")}</strong> {t("恢复当前生成的参数配置")}</p>
+              <p><strong>{t("Download:")}</strong> {t("下载生成的内容(7天内可下载)")}</p>
+              <p><strong>{t("Logs:")}</strong> {t("跳转到这条请求对应的API日志页面")}</p>
+            </TooltipContent>
+          </Tooltip>
           <Badge variant="secondary" className="bg-zinc-200 text-zinc-600 px-1.5 py-0 h-5 text-[10px] ml-1">{history.length}</Badge>
         </div>
         <div className="flex items-center gap-4">
@@ -114,26 +124,17 @@ export function PlaygroundHistory({ history, onSelect }: PlaygroundHistoryProps)
                     </div>
                     
                     {/* Action Toolbar */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center justify-between pt-1 border-t border-zinc-100 px-1">
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => onSelect(item)}>
-                            <CopyPlus className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => handleDownload(item.result)}>
-                            <Download className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => navigate('/logs')}>
-                            <ScrollText className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[240px] text-xs space-y-1.5 p-3">
-                        <p><strong>{t("Restore:")}</strong> {t("恢复当前生成的参数配置")}</p>
-                        <p><strong>{t("Download:")}</strong> {t("下载生成的内容(7天内可下载)")}</p>
-                        <p><strong>{t("Logs:")}</strong> {t("跳转到这条请求对应的API日志页面")}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="flex items-center justify-between pt-1 border-t border-zinc-100 px-1">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-blue-600 hover:bg-blue-50" onClick={() => onSelect(item)}>
+                        <CopyPlus className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => handleDownload(item.result)}>
+                        <Download className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => navigate('/logs')}>
+                        <ScrollText className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
