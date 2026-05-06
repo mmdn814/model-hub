@@ -402,6 +402,32 @@ export const models = [
     providerLogo: "A"
   },
   {
+    id: "seedance-2-0-pro",
+    name: "Seedance 2.0 Pro",
+    provider: "ByteDance",
+    description: "Requires virtual routing in the system. Built-in with new capabilities.",
+    status: "Active",
+    visibility: "Visible",
+    tags: ["Text to Video"],
+    category: "video",
+    playgroundType: "seedance_2_0",
+    previewUrl: "https://picsum.photos/seed/seedance-2-0-pro/400/225",
+    providerLogo: "B"
+  },
+  {
+    id: "seedance-2-0-fast",
+    name: "Seedance 2.0 Fast",
+    provider: "ByteDance",
+    description: "Fast iteration version of Seedance 2.0",
+    status: "Active",
+    visibility: "Visible",
+    tags: ["Text to Video"],
+    category: "video",
+    playgroundType: "seedance_2_0",
+    previewUrl: "https://picsum.photos/seed/seedance-2-0-fast/400/225",
+    providerLogo: "B"
+  },
+  {
     id: "seedance-1-5-pro",
     name: "Seedance 1.5 Pro",
     provider: "ByteDance",

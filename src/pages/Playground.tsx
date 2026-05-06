@@ -27,6 +27,7 @@ import { ImageToImageTemplate } from '@/components/playground-templates/ImageToI
 import { TextToVideoTemplate } from '@/components/playground-templates/TextToVideoTemplate';
 import { ImageToVideoTemplate } from '@/components/playground-templates/ImageToVideoTemplate';
 import { TextToSpeechTemplate } from '@/components/playground-templates/TextToSpeechTemplate';
+import { Seedance20Template } from '@/components/playground-templates/Seedance20Template';
 import { models } from '@/data/models';
 
 export type Modality = 'text' | 'image' | 'video' | 'audio';
@@ -516,18 +517,20 @@ export default function Playground() {
           {playgroundType === 'text_to_video' && <TextToVideoTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
           {playgroundType === 'image_to_video' && <ImageToVideoTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
           {playgroundType === 'text_to_speech' && <TextToSpeechTemplate model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
+          {playgroundType === 'seedance_2_0' && <Seedance20Template model={currentModel} restoredParams={restoredParams} onValidate={handleValidateAndGenerate} onAddHistory={(item) => setHistory(prev => [item, ...prev].slice(0, 20))} />}
         </div>
-        <PlaygroundHistory 
-          history={history.filter(h => h.modelId === currentModel?.id)} 
-          onSelect={(item) => {
-            if (item.params) {
-              setRestoredParams(item.params);
-            } else {
-              setPrompt(item.prompt);
-              // Old way fallback
-            }
-          }} 
-        />
+        {playgroundType !== 'chat_completion' && (
+          <PlaygroundHistory 
+            history={history.filter(h => h.modelId === currentModel?.id)} 
+            onSelect={(item) => {
+              if (item.params) {
+                setRestoredParams(item.params);
+              } else {
+                setPrompt(item.prompt);
+              }
+            }} 
+          />
+        )}
       </div>
 
       {/* Modals for Flow */}

@@ -79,42 +79,14 @@ export function TextToSpeechTemplate({ model, restoredParams, onValidate, onAddH
 
   return (
     <div className="flex-1 flex overflow-hidden bg-zinc-50 relative">
-      {/* Left Input Area */}
-      <div className="flex-1 bg-white border-r border-zinc-200 flex flex-col min-w-0">
-        <div className="flex-1 p-6 flex flex-col relative">
-          <Textarea
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder="Enter the text to be spoken..."
-            className="flex-1 resize-none text-lg leading-relaxed focus-visible:ring-0 border-0 p-0 shadow-none"
-          />
-          <div className="absolute bottom-4 right-6 text-xs text-zinc-400 font-medium">
-            已输入 {text.length} / 5000字
-          </div>
+      {/* Left Sidebar: Params */}
+      <div className="w-[320px] bg-white border-r border-zinc-200 flex flex-col shrink-0 overflow-y-auto">
+        <div className="p-4 border-b border-zinc-100 flex items-center gap-2">
+          <Settings2 className="w-4 h-4 text-zinc-400" />
+          <h3 className="font-semibold text-zinc-800 text-sm">Parameters</h3>
         </div>
-        
-        <div className="p-4 border-t border-zinc-100 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            className="h-12 w-12 shrink-0 rounded-xl"
-            title="Copy API Parameters as JSON"
-            onClick={handleCopyJSON}
-          >
-            <Copy className="w-5 h-5 text-zinc-600" />
-          </Button>
-          <Button 
-            className="h-12 w-48 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg font-bold"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Synthesizing...' : 'Synthesize Audio'}
-          </Button>
-        </div>
-      </div>
 
-      {/* Right Settings & Results Area */}
-      <div className="w-[480px] bg-white flex flex-col shrink-0 overflow-y-auto">
-        <div className="p-6 space-y-8 flex-1">
+        <div className="p-5 space-y-8 flex-1">
           {/* Voice Selection */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-zinc-800 flex items-center gap-2">
@@ -179,9 +151,44 @@ export function TextToSpeechTemplate({ model, restoredParams, onValidate, onAddH
             )}
           </div>
         </div>
+      </div>
 
-        {/* Audio Player Result */}
-        <div className="p-6 bg-zinc-50 border-t border-zinc-200 min-h-[140px]">
+      {/* Main Area: Inputs and Results */}
+      <div className="flex-1 bg-white flex flex-col min-w-0">
+        {/* Top: Text Input */}
+        <div className="flex-1 p-6 flex flex-col relative">
+          <Textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Enter the text to be spoken..."
+            className="flex-1 resize-none text-lg leading-relaxed focus-visible:ring-0 border-0 p-0 shadow-none bg-transparent"
+          />
+          <div className="absolute bottom-6 right-6 text-xs text-zinc-400 font-medium">
+            已输入 {text.length} / 5000字
+          </div>
+        </div>
+        
+        {/* Action Bar */}
+        <div className="p-4 border-t border-zinc-100 flex justify-end gap-2 bg-white">
+          <Button
+            variant="outline"
+            className="h-12 w-12 shrink-0 rounded-xl"
+            title="Copy API Parameters as JSON"
+            onClick={handleCopyJSON}
+          >
+            <Copy className="w-5 h-5 text-zinc-600" />
+          </Button>
+          <Button 
+            className="h-12 w-48 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg font-bold"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+          >
+            {isGenerating ? 'Synthesizing...' : 'Synthesize Audio'}
+          </Button>
+        </div>
+
+        {/* Bottom: Audio Player Result */}
+        <div className="p-6 bg-zinc-50 border-t border-zinc-200 min-h-[140px] shrink-0">
           {audioReady ? (
             <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-sm flex flex-col gap-4">
               <div className="flex flex-1 items-center gap-3">
@@ -211,7 +218,7 @@ export function TextToSpeechTemplate({ model, restoredParams, onValidate, onAddH
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-400">
+            <div className="h-full flex flex-col items-center justify-center text-zinc-400 pb-2">
               <Volume2 className="w-8 h-8 mb-2 opacity-20" />
               <p className="text-sm font-medium">Audio synthesis will appear here</p>
             </div>
