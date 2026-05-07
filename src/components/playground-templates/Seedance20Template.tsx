@@ -25,7 +25,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { AssetAgreementDialog } from "@/components/AssetAgreementDialog";
 import { useAssets, AssetType } from "@/contexts/AssetContext";
+
+import { useNavigate } from "react-router-dom";
 
 export function Seedance20Template({
   model,
@@ -41,14 +44,12 @@ export function Seedance20Template({
   const isFast = model?.id?.includes('fast');
   const DEFAULT_MIN_IMAGES = isFast ? 1 : 5;
 
-  const { hasSignedAgreement, signAgreement, assets, addAsset } = useAssets();
+  const { hasSignedAgreement, assets, addAsset } = useAssets();
   const alreadySigned = isFast || hasSignedAgreement;
+  const navigate = useNavigate();
 
-  const [legalDialogOpen, setLegalDialogOpen] = useState(false);
+  const [goToLibraryDialogOpen, setGoToLibraryDialogOpen] = useState(false);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
-  const [pickerTab, setPickerTab] = useState("library");
-  const [agreementScrolled, setAgreementScrolled] = useState(false);
-  const [canConfirm, setCanConfirm] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     onSuccess: (url: string) => void;
     type: AssetType;
@@ -57,56 +58,15 @@ export function Seedance20Template({
   const handleSlotClick = (type: AssetType, onSuccess: (url: string) => void) => {
     setPendingAction({ type, onSuccess });
     if (!alreadySigned) {
-      setAgreementScrolled(false);
-      setCanConfirm(false);
-      setLegalDialogOpen(true);
+      setGoToLibraryDialogOpen(true);
     } else {
-      setPickerTab("library");
       setAssetPickerOpen(true);
     }
   };
 
-  useEffect(() => {
-    if (legalDialogOpen && !canConfirm) {
-      const timer = setTimeout(() => {
-        setCanConfirm(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [legalDialogOpen, canConfirm]);
-
-  const handleAgreementScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // We also auto-enable after 5 seconds via useEffect to prevent getting stuck
-    // but scrolling can trigger it immediately if they scroll fast? No, let's keep it simple.
-    if (!agreementScrolled) {
-      setAgreementScrolled(true);
-    }
-  };
-
-  const handleLegalAccept = () => {
-    signAgreement();
-    setLegalDialogOpen(false);
-    setPickerTab("local");
-    setAssetPickerOpen(true);
-  };
-
-  const handleLocalUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && pendingAction) {
-      try {
-        const asset = await addAsset({
-          type: pendingAction.type,
-          name: file.name,
-          url: URL.createObjectURL(file)
-        });
-        pendingAction.onSuccess(asset.url);
-        setAssetPickerOpen(false);
-        setPendingAction(null);
-      } catch (err) {
-        console.error("Upload failed", err);
-      }
-    }
-    e.target.value = '';
+  const handleGoToLibrary = () => {
+    setGoToLibraryDialogOpen(false);
+    navigate("/assets");
   };
 
   const handleSelectAsset = (assetUrl: string) => {
@@ -718,55 +678,20 @@ export function Seedance20Template({
         )}
       </div>
 
-      {/* Legal Agreement Modal */}
-      <Dialog open={legalDialogOpen} onOpenChange={setLegalDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
+      {/* Go To Library Modal */}
+      <Dialog open={goToLibraryDialogOpen} onOpenChange={setGoToLibraryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Asset Liability Agreement</DialogTitle>
+            <DialogTitle>Asset Library Required</DialogTitle>
             <DialogDescription className="pt-2 text-zinc-600">
-              Please carefully read the following agreement regarding your rights and legal obligations for the materials you upload.
-              You must scroll through the agreement before you can confirm.
+              To use Seedance 2.0, you need to upload and manage your assets in the Asset Library first. 
+              Please go to the Asset Library to upload files before generating.
             </DialogDescription>
           </DialogHeader>
-          
-          <div 
-            className="h-[40vh] overflow-y-auto p-4 border border-zinc-200 rounded-xl bg-zinc-50 text-sm text-zinc-700 space-y-4"
-            onScroll={handleAgreementScroll}
-          >
-            <h4 className="font-semibold text-zinc-900">1. Acceptance of Terms</h4>
-            <p>By uploading any digital assets (including but not limited to images, videos, and audio files, collectively referred to as "Materials") into the Seedance 2.0 platform, you agree to be bound by the terms of this Asset Liability Agreement. If you do not agree to these terms, do not use the upload feature.</p>
-            
-            <h4 className="font-semibold text-zinc-900">2. Asset Library Creation</h4>
-            <p>Upon clicking "Confirm", an <b>Asset Library</b> will be created for your account. All future Materials uploaded or generated within Seedance 2.0 will be securely saved to your personal library, allowing you to easily manage and reuse these assets for subsequent creations. You understand that these assets are temporarily stored to facilitate your workflow.</p>
-            
-            <h4 className="font-semibold text-zinc-900">3. User Warranties and Representations</h4>
-            <p>You represent and warrant that:</p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>You own all necessary rights, title, and interest in and to the Materials, or you have obtained all necessary licenses, permissions, and consents to use and upload the Materials.</li>
-              <li>The Materials do not infringe, misappropriate, or violate a third party's patent, copyright, trademark, trade secret, moral rights, or other intellectual property rights, or rights of publicity or privacy.</li>
-              <li>The Materials do not violate any applicable law or regulation, and are not defamatory, obscene, pornographic, vulgar, or offensive.</li>
-            </ul>
-
-            <h4 className="font-semibold text-zinc-900">4. Assumption of Liability</h4>
-            <p>You assume full legal responsibility and liability for all Materials you upload, store, or process using Seedance 2.0. The platform providers assume no responsibility for the content you upload, generate, or share. You agree to indemnify and hold harmless the platform and its affiliates from any claims, damages, liabilities, costs, and expenses arising from your uploaded Materials.</p>
-
-            <h4 className="font-semibold text-zinc-900">5. Right to Remove Content</h4>
-            <p>We reserve the right, but are not obligated, to review, monitor, and remove any Materials at our sole discretion, at any time, for any reason, particularly if they violate this agreement or applicable laws.</p>
-
-            <p className="pt-4 text-xs italic text-zinc-500">Document generated for Seedance 2.0 Asset Management System. End of agreement.</p>
-          </div>
-
-          <DialogFooter className="mt-4 flex sm:justify-end gap-2">
-            <Button variant="ghost" onClick={() => {
-              setLegalDialogOpen(false);
-              setPendingAction(null);
-            }}>Cancel</Button>
-            <Button 
-              className="bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50" 
-              onClick={handleLegalAccept}
-              disabled={!canConfirm}
-            >
-              {canConfirm ? "I Agree and Confirm" : "Please scroll to read (5s)"}
+          <DialogFooter className="mt-2 flex sm:justify-end gap-2">
+            <Button variant="ghost" onClick={() => setGoToLibraryDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={handleGoToLibrary}>
+              Go to Asset Library
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -775,72 +700,52 @@ export function Seedance20Template({
       {/* Asset Picker Modal */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Select or Upload Asset</DialogTitle>
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <DialogTitle>Select Asset</DialogTitle>
+              <DialogDescription>Select an asset from your library</DialogDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { setAssetPickerOpen(false); navigate("/assets"); }}>
+              <Upload className="w-4 h-4 mr-2" />
+              Upload New
+            </Button>
           </DialogHeader>
           
-          <Tabs value={pickerTab} onValueChange={setPickerTab} className="w-full mt-2">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="library">Asset Library</TabsTrigger>
-              <TabsTrigger value="local">Local Upload</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="library" className="mt-4">
-              <div className="h-[300px] overflow-y-auto pr-2">
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                  {assets.filter(a => a.type === pendingAction?.type).map(asset => (
-                    <div 
-                      key={asset.id} 
-                      className="relative group aspect-square rounded-xl border border-zinc-200 overflow-hidden cursor-pointer hover:border-purple-500 hover:ring-2 hover:ring-purple-200"
-                      onClick={() => handleSelectAsset(asset.url)}
-                    >
-                      {asset.type === 'image' ? (
-                        <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
-                      ) : asset.type === 'video' ? (
-                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-white">
-                          <Video className="w-8 h-8 opacity-50" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-full bg-purple-50 flex items-center justify-center text-purple-500">
-                          <Wand2 className="w-8 h-8 opacity-50" />
-                        </div>
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 backdrop-blur-md text-[10px] text-white truncate text-center">
-                        {asset.name}
-                      </div>
+          <div className="h-[300px] overflow-y-auto pr-2 mt-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {assets.filter(a => a.type === pendingAction?.type).map(asset => (
+                <div 
+                  key={asset.id} 
+                  className="relative group aspect-square rounded-xl border border-zinc-200 overflow-hidden cursor-pointer hover:border-purple-500 hover:ring-2 hover:ring-purple-200"
+                  onClick={() => handleSelectAsset(asset.url)}
+                >
+                  {asset.type === 'image' ? (
+                    <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
+                  ) : asset.type === 'video' ? (
+                    <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-white">
+                      <Video className="w-8 h-8 opacity-50" />
                     </div>
-                  ))}
-                  {assets.filter(a => a.type === pendingAction?.type).length === 0 && (
-                    <div className="col-span-full py-12 text-center text-zinc-500 text-sm">
-                      No assets found in your library for this type.
+                  ) : (
+                    <div className="w-full h-full bg-purple-50 flex items-center justify-center text-purple-500">
+                      <Wand2 className="w-8 h-8 opacity-50" />
                     </div>
                   )}
+                  <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 backdrop-blur-md text-[10px] text-white truncate text-center">
+                    {asset.name}
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="local" className="mt-4">
-              <div className="h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl bg-zinc-50 hover:bg-zinc-100 hover:border-purple-300 transition-colors relative">
-                <input 
-                  type="file" 
-                  accept={pendingAction?.type === 'image' ? 'image/*' : pendingAction?.type === 'video' ? 'video/*' : 'audio/*'} 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  onChange={handleLocalUpload}
-                />
-                <Upload className="w-10 h-10 text-zinc-400 mb-3" />
-                <p className="text-sm font-medium text-zinc-700 text-center mb-1">Click or drag file to upload</p>
-                {pendingAction?.type === 'image' && (
-                  <p className="text-xs text-zinc-500 text-center">Supported formats: JPEG, PNG, WEBP, JPG<br/>Maximum file size: 30MB</p>
-                )}
-                {pendingAction?.type === 'video' && (
-                  <p className="text-xs text-zinc-500 text-center">Supported formats: MP4, QUICKTIME, X-MATROSKA<br/>Maximum file size: 50MB</p>
-                )}
-                {pendingAction?.type === 'audio' && (
-                  <p className="text-xs text-zinc-500 text-center">Supported formats: MPEG, WAV, X-WAV, AAC, MP4, OGG<br/>Maximum file size: 15MB</p>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+              ))}
+              {assets.filter(a => a.type === pendingAction?.type).length === 0 && (
+                <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                  <p className="text-zinc-500 text-sm mb-4">No assets found in your library for this type.</p>
+                  <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setAssetPickerOpen(false); navigate("/assets"); }}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Go to Asset Library to Upload
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
