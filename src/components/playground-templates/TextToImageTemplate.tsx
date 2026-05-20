@@ -68,8 +68,8 @@ export function TextToImageTemplate({ model, restoredParams, onValidate, onAddHi
   const doGenerate = () => {
     setIsGenerating(true);
     setTimeout(() => {
-      const respUrl = 'https://picsum.photos/seed/' + Math.random() + '/800/450';
-      setResults(Array(n).fill(respUrl));
+      const respUrls = Array.from({ length: n }).map((_, i) => 'https://picsum.photos/seed/' + Math.random() + '/800/450?i=' + i);
+      setResults(respUrls);
       setIsGenerating(false);
       
       if (onAddHistory) {
@@ -78,7 +78,7 @@ export function TextToImageTemplate({ model, restoredParams, onValidate, onAddHi
           modelId: model?.id,
           modality: 'image',
           prompt: prompt,
-          result: respUrl,
+          result: respUrls,
           cost: 10 * n,
           timestamp: Date.now(),
           params: getPayload()

@@ -4,7 +4,7 @@ import {
   MessageSquare, Image as ImageIcon, Video, Music, 
   Wand2, Play, Code, Eye, History, Upload, Settings2,
   ChevronLeft, Coins, AlertCircle, Download, Maximize2,
-  Loader2, Star, Info, HelpCircle, X
+  Loader2, Star, Info, HelpCircle, X, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,7 @@ export interface HistoryItem {
   modelId: string;
   modality: Modality;
   prompt: string;
-  result: string;
+  result: string | string[];
   cost: number;
   timestamp: number;
   params?: any;
@@ -50,7 +50,11 @@ const examples = {
   },
   image: {
     prompt: "A futuristic cyberpunk city at night, neon lights, flying cars, highly detailed, 8k resolution.",
-    output: "https://picsum.photos/seed/cyberpunk/800/600"
+    output: [
+      "https://picsum.photos/seed/cyberpunk1/800/600",
+      "https://picsum.photos/seed/cyberpunk2/800/600",
+      "https://picsum.photos/seed/cyberpunk3/800/600"
+    ]
   },
   video: {
     prompt: "A cinematic sweeping shot of a cyberpunk city at night, neon lights reflecting on wet streets.",
@@ -134,8 +138,9 @@ const GenerateFlowTooltip = () => (
   </TooltipProvider>
 );
 
-export default function Playground() {
-  const { id } = useParams();
+export default function Playground({ inline = false, modelId }: { inline?: boolean, modelId?: string }) {
+  const params = useParams();
+  const id = modelId || params.id;
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -206,7 +211,7 @@ export default function Playground() {
 
   // State
   const [isGenerating, setIsGenerating] = useState(false);
-  const [output, setOutput] = useState<string | null>(examples.text.output);
+  const [output, setOutput] = useState<string | string[] | null>(examples.text.output);
   const [restoredParams, setRestoredParams] = useState<any>(null);
   const [history, setHistory] = useState<HistoryItem[]>([
     {
@@ -226,6 +231,7 @@ export default function Playground() {
       result: examples.image.output,
       cost: 50,
       timestamp: Date.now() - 1000 * 60 * 60,
+      params: { n: 3 }
     },
     {
       id: '3',
@@ -284,13 +290,17 @@ export default function Playground() {
 
     // Mock API call
     setTimeout(() => {
-      let mockResult = '';
+      let mockResult: string | string[] = '';
       switch (modality) {
         case 'text':
           mockResult = "This is a simulated response from the model based on your prompt: " + prompt;
           break;
         case 'image':
-          mockResult = "https://picsum.photos/seed/" + Math.random() + "/800/600";
+          if (n > 1) {
+            mockResult = Array.from({ length: n }).map((_, i) => "https://picsum.photos/seed/" + Math.random() + "/800/600?i=" + i);
+          } else {
+            mockResult = "https://picsum.photos/seed/" + Math.random() + "/800/600";
+          }
           break;
         case 'video':
           mockResult = "https://www.w3schools.com/html/mov_bbb.mp4";
@@ -468,11 +478,12 @@ export default function Playground() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col bg-zinc-50 overflow-hidden">
+    <div className={cn("flex flex-col bg-zinc-50 overflow-hidden", inline ? "h-[800px]" : "h-[calc(100vh-4rem)]")}>
       {/* Header */}
+      {!inline && (
       <header className="h-14 bg-white border-b border-zinc-200 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/models')} className="h-8 w-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-2">
@@ -481,7 +492,7 @@ export default function Playground() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-semibold text-sm">{currentModel?.name || id || 'seedance-1-0-pro-fast'}</h1>
+                <Link to={`/models/${id}`} className="font-semibold text-sm hover:underline">{currentModel?.name || id || 'seedance-1-0-pro-fast'}</Link>
                 <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{currentModel?.provider || 'Provider'}</Badge>
               </div>
               <p className="text-xs text-zinc-500">{currentModel?.description || 'High-performance multimodal generation model'}</p>
@@ -493,6 +504,10 @@ export default function Playground() {
         </div>
 
         <div className="flex items-center gap-6">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/models/${id}`)} className="h-8 text-xs border-zinc-200">
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            {t("Model Details")}
+          </Button>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-zinc-600">
               <Coins className="h-4 w-4 text-amber-500" />
@@ -507,6 +522,7 @@ export default function Playground() {
           </div>
         </div>
       </header>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">

@@ -11,6 +11,8 @@ import { DevAnnotation } from "@/components/DevAnnotation";
 import { models } from "@/data/models";
 import { pricingData } from "@/data/pricing";
 
+import Playground from "./Playground";
+
 const ModelIdCopyButton = ({ id }: { id: string }) => {
   const [copied, setCopied] = useState(false);
 
@@ -30,7 +32,7 @@ const ModelIdCopyButton = ({ id }: { id: string }) => {
 export default function ModelDetails() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<"playground" | "readme">("readme");
+  const [activeTab, setActiveTab] = useState<"playground" | "readme">("playground");
   const [copied, setCopied] = useState(false);
 
   const model = models.find(m => m.id === id);
@@ -217,15 +219,14 @@ export default function ModelDetails() {
           <DevAnnotation
             elementName="Playground Tab"
             componentType="Tab"
-            functionDesc="Interactive testing area (Phase 2 planning)"
-            devNotes="Phase 2 feature, currently can be used as a placeholder or to display simple UI."
+            functionDesc="Interactive testing area"
           >
-            <Link
-              to={`/models/${id}/playground`}
+            <button
+              onClick={() => setActiveTab("playground")}
               className={cn("pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2", activeTab === "playground" ? "border-blue-600 text-blue-600" : "border-transparent text-zinc-500 hover:text-zinc-900")}
             >
               <Play className="w-4 h-4" /> Playground
-            </Link>
+            </button>
           </DevAnnotation>
           <DevAnnotation
             elementName="README Tab"
@@ -257,8 +258,13 @@ export default function ModelDetails() {
           </DevAnnotation>
         </div>
 
-        <div className="p-8">
+        <div className="p-0">
+          {activeTab === "playground" && (
+            <Playground inline modelId={id} />
+          )}
+
           {activeTab === "readme" && (
+            <div className="p-8">
             <DevAnnotation
               elementName="README 模块动态组件"
               componentType="Markdown/UI"
@@ -489,6 +495,7 @@ export default function ModelDetails() {
               </section>
             </div>
             </DevAnnotation>
+            </div>
           )}
         </div>
       </div>

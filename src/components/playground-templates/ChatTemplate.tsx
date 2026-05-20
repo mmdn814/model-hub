@@ -9,13 +9,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+
 export function ChatTemplate({ model, restoredParams, onValidate, onAddHistory }: { model: any, restoredParams?: any, onValidate?: (cb: () => void) => void, onAddHistory?: (item: any) => void }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hello! I am ready to help. What would you like to discuss today?' }
   ]);
   const [input, setInput] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful AI assistant.');
-  const [showSystem, setShowSystem] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   
   // Params
@@ -48,7 +49,10 @@ export function ChatTemplate({ model, restoredParams, onValidate, onAddHistory }
 
   const getPayload = () => ({
     model: model?.id,
-    messages: [{ role: 'user', content: input }],
+    messages: [
+      ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+      { role: 'user', content: input }
+    ],
     temperature: temperature[0],
     top_p: topP[0],
     max_tokens: maxTokens,
@@ -109,6 +113,22 @@ export function ChatTemplate({ model, restoredParams, onValidate, onAddHistory }
         </div>
         
         <div className="p-5 space-y-6">
+          <Accordion className="w-full">
+            <AccordionItem value="system-prompt" className="border-b-0">
+              <AccordionTrigger className="py-2 hover:no-underline text-xs font-semibold text-zinc-700 uppercase tracking-wider">
+                System Prompt
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-0">
+                <Textarea 
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  placeholder="You are a helpful assistant..."
+                  className="min-h-[80px] text-sm resize-y"
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
           <div className="space-y-3">
             <div className="flex justify-between">
               <label className="text-xs font-medium text-zinc-700">Temperature</label>
@@ -184,31 +204,6 @@ export function ChatTemplate({ model, restoredParams, onValidate, onAddHistory }
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
-        {/* System Prompt Toggle */}
-        <div className="px-4 py-2 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-zinc-500 hover:text-zinc-900"
-            onClick={() => setShowSystem(!showSystem)}
-          >
-            <Settings2 className="w-4 h-4 mr-2" />
-            {showSystem ? 'Hide System Prompt' : 'Set System Prompt'}
-          </Button>
-        </div>
-        
-        {showSystem && (
-          <div className="p-4 border-b border-zinc-100 bg-zinc-50">
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">System Prompt</label>
-            <Textarea 
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-              placeholder="You are a helpful assistant..."
-              className="min-h-[80px] bg-white resize-y"
-            />
-          </div>
-        )}
-
         {/* Chat Messages */}
         <ScrollArea className="flex-1 p-4">
           <div className="max-w-3xl mx-auto space-y-6 pb-4">

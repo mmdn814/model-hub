@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis } from "recharts";
-import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet } from "lucide-react";
+import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -66,6 +66,14 @@ const apiKeyLegendItems = [
   { name: "lover-demp", color: "#0ea5e9", value: "0.00826", reqs: "41", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
   { name: "test-bookmarks", color: "#10b981", value: "0.00493", reqs: "29", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
   { name: "openclaw", color: "#f59e0b", value: "0.00000", reqs: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
+];
+
+const topErrors = [
+  { model: "Claude Opus 4.6", errorRate: "2.1%", errorCount: 45 },
+  { model: "GPT-4o-mini", errorRate: "1.5%", errorCount: 120 },
+  { model: "gpt-oss-120b", errorRate: "0.8%", errorCount: 30 },
+  { model: "Others", errorRate: "0.2%", errorCount: 5 },
+  { model: "openclaw", errorRate: "0.1%", errorCount: 1 },
 ];
 
 export default function Dashboard() {
@@ -156,6 +164,84 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </DevAnnotation>
+
+      {/* Overview Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Account Balance */}
+        <DevAnnotation
+          elementName="账户余额"
+          componentType="Card"
+          functionDesc="显示用户当前可用余额及Credits"
+        >
+          <Card className="bg-zinc-900 border-zinc-900 shadow-xl relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl"></div>
+            
+            <CardContent className="p-7 relative z-10 flex flex-col h-full justify-between">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-2 text-zinc-400 font-medium text-sm">
+                  <Wallet className="w-4 h-4" />
+                  {t("Current Balance")}
+                </div>
+                <Button variant="outline" className="border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-200 hover:text-white rounded-full h-8 px-4 text-xs gap-1.5 transition-colors" onClick={() => navigate('/billing')}>
+                  <Plus className="w-3 h-3" /> {t("Add Funds")}
+                </Button>
+              </div>
+
+              <div>
+                <div className="flex items-baseline gap-2 mb-3">
+                  <span className="text-4xl sm:text-5xl font-bold tracking-tight text-white">$120.50</span>
+                  <span className="text-lg font-medium text-zinc-500">USD</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800/50 border border-zinc-700/50 text-sm text-zinc-400">
+                  <CircleDollarSign className="w-4 h-4 text-zinc-500" />
+                  ≈ 120,500 {t("credits")}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </DevAnnotation>
+
+        {/* Top Error Models */}
+        <DevAnnotation
+          elementName="错误率统计面板"
+          componentType="Card"
+          functionDesc="统计并显示当前条件下错误率前五的模型"
+          interactionRule="随顶部过滤器变化"
+        >
+          <Card className="bg-white border-zinc-200 shadow-sm relative overflow-hidden flex flex-col justify-between h-full">
+            <CardContent className="p-0 flex flex-col h-full">
+              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+                <div className="text-sm font-medium text-zinc-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  {t("Top 5 Models by Error Rate")}
+                </div>
+              </div>
+              
+              <div className="p-2 flex-grow flex flex-col justify-center">
+                {topErrors.map((item, index) => (
+                  <div key={item.model} className="flex items-center justify-between px-4 py-2 rounded-lg hover:bg-zinc-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index < 3 ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'}`}>
+                        {index + 1}
+                      </div>
+                      <span className="text-sm font-medium text-zinc-700">{item.model}</span>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      <span className="text-xs text-zinc-500 font-medium w-20 text-right">
+                        {item.errorCount} {t("Errors")}
+                      </span>
+                      <span className="text-sm font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded w-14 text-center">
+                        {item.errorRate}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </DevAnnotation>
+      </div>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -636,6 +722,8 @@ export default function Dashboard() {
         </Card>
         </DevAnnotation>
       </div>
+
+
 
       {/* Logs Banner */}
       <DevAnnotation

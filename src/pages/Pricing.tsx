@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Search, Info, PlayCircle, Image as ImageIcon, Music, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -223,9 +224,9 @@ export default function Pricing() {
                       {providerLogo}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-zinc-900 leading-tight">
+                      <Link to={`/models/${model.id}`} className="hover:underline text-xl font-bold text-zinc-900 leading-tight block w-fit">
                         {fullModel?.name || model.id}
-                      </h3>
+                      </Link>
                       <p className="text-sm text-zinc-500 mt-0.5 font-medium">{fullModel?.description || "High-performance AI model"}</p>
                     </div>
                   </div>

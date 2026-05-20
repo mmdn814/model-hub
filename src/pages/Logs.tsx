@@ -13,13 +13,16 @@ import {
   Activity, 
   Box,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Calculator
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { BillingDetails } from '@/components/BillingDetails';
 
 const CHART_DATA = [
   { date: 'Mar 21', value: 200 },
@@ -31,69 +34,380 @@ const CHART_DATA = [
   { date: 'Mar 27', value: 300 },
 ];
 
-const MOCK_LOGS = [
+const MOCK_LOGS_RICH = [
   {
-    id: 'tsk_ch_9a8b7c6d...',
-    timestamp: 'Mar 27, 05:25 PM',
-    model: 'wan-2.1-video',
-    appType: 'VIDEO',
-    appName: 'prod-backend-key',
-    details: [
-      { label: 'RES', value: '1080p' },
-      { label: 'DUR', value: '5s' }
-    ],
-    costCredits: '150',
-    costUsd: '$0.150',
-    status: 'SUCCESS',
-    action: 'download'
+    "id": 2307,
+    "consume_id": "COS_20260518000053",
+    "biz_key_type": "request_id",
+    "biz_key": "20260518083718960160049NHVGhVnE",
+    "request_id": "20260518083718960160049NHVGhVnE",
+    "task_id": "",
+    "user_id": 91,
+    "user_name_snapshot": "xiazhi-xiao44",
+    "user_email_snapshot": "",
+    "model_id": "seed-2-0-pro-260328",
+    "request_type": "text",
+    "status": "success",
+    "quota": 3,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_tokens",
+      "cost_quota": 2,
+      "final_quota": 3,
+      "image_count": 0,
+      "matched_rule": {
+        "active_cache_read_cost_price": 0.528,
+        "active_cache_read_sale_price": 0.65182,
+        "active_cache_write_cost_price": 0.456,
+        "active_cache_write_sale_price": 0.56293,
+        "audio_type": "",
+        "base_cost_price": 0,
+        "base_sale_price": 0,
+        "billing_unit": "per_tokens",
+        "created_at": 1778824925,
+        "duration_value": 0,
+        "has_audio": -1,
+        "has_video": -1,
+        "id": 336,
+        "input_cost_price": 1.2,
+        "input_sale_price": 1.4814,
+        "media_type": "text",
+        "mode": "",
+        "model_name": "seed-2-0-pro-260328",
+        "output_cost_price": 7.2,
+        "output_sale_price": 8.8884,
+        "passive_cache_read_cost_price": 0.24,
+        "passive_cache_read_sale_price": 0.29628,
+        "priority": 100,
+        "remark": "",
+        "resolution": "",
+        "status": 1,
+        "token_end": 4000,
+        "token_start": 1280,
+        "unit_size": 1000000,
+        "updated_at": 1778824925
+      },
+      "matched_rule_id": 336,
+      "media_type": "text",
+      "model_name": "seed-2-0-pro-260328",
+      "pricing_mode": "calculator",
+      "quota_per_unit": 1000,
+      "sale_quota": 3,
+      "video_count": 0
+    },
+    "quota_snapshot_json": {
+      "billing_source": "wallet",
+      "final_pre_consumed_quota": 38,
+      "pricing_error_code": "",
+      "quota": 3,
+      "quota_delta": -35,
+      "subscription_id": 0
+    },
+    "request_params_json": {
+      "content_omitted": true,
+      "model": "seed-2-0-pro-260328",
+      "reasoning_effort": "minimal",
+      "request_type": "text",
+      "sanitized": true,
+      "stream": true,
+      "temperature": 0,
+      "top_p": 0
+    },
+    "async_origin_response_json": "",
+    "request_ip": "172.18.0.1",
+    "api_key_masked": "RJn3**********vu7o",
+    "response_latency_ms": 780,
+    "failure_reason": "",
+    "consume_time": 1779093440,
+    "created_at": 1779093440,
+    "updated_at": 1779093440,
+    "response_time": 1301,
+    "upstream_request_id": "",
+    "request_endpoint": "POST /v1/chat/completions",
+    "token_id": 154,
+    "provider_name_snapshot": "BytePlus",
+    "usage_snapshot_json": {
+      "provider_usage_raw": {
+        "completion_tokens": 11,
+        "prompt_tokens": 1373,
+        "total_tokens": 1384
+      },
+      "normalized_usage": {
+        "prompt_tokens": 1373,
+        "completion_tokens": 11,
+        "total_tokens": 1384
+      }
+    },
+    "pricing_error_code": "",
+    "user_agent": "Go-http-client/1.1"
   },
   {
-    id: 'chatcmpl-8f7e6d...',
-    timestamp: 'Mar 27, 05:24 PM',
-    model: 'qwen2.5-72b-instruct',
-    appType: 'CHAT',
-    appName: 'test-demo-key',
-    details: [
-      { label: 'In', value: '688' },
-      { label: 'Out', value: '812', valueColor: 'text-blue-600' }
-    ],
-    costCredits: '45',
-    costUsd: '$0.045',
-    status: 'SUCCESS',
-    action: 'view'
+    "id": 1968,
+    "consume_id": "COS_20260514000219",
+    "biz_key_type": "request_id",
+    "biz_key": "20260514102019508925058jXBpztSN",
+    "request_id": "20260514102019508925058jXBpztSN",
+    "task_id": "",
+    "user_id": 96,
+    "user_name_snapshot": "力鲁47",
+    "user_email_snapshot": "",
+    "model_id": "qwen3-max",
+    "request_type": "text",
+    "status": "success",
+    "quota": 24,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_tokens",
+      "cost_quota": 21,
+      "final_quota": 24,
+      "image_count": 0,
+      "matched_rule": {
+        "active_cache_read_cost_price": 0.22,
+        "active_cache_read_sale_price": 0.24719,
+        "active_cache_write_cost_price": 0.97405,
+        "active_cache_write_sale_price": 1.09444,
+        "audio_type": "",
+        "base_cost_price": 0,
+        "base_sale_price": 0,
+        "billing_unit": "per_tokens",
+        "created_at": 1778133315,
+        "duration_value": 0,
+        "has_audio": -1,
+        "has_video": -1,
+        "id": 230,
+        "input_cost_price": 1.32,
+        "input_sale_price": 1.48315,
+        "media_type": "text",
+        "mode": "",
+        "model_name": "qwen3-max",
+        "output_cost_price": 6.6,
+        "output_sale_price": 7.41576,
+        "passive_cache_read_cost_price": 0.264,
+        "passive_cache_read_sale_price": 0.29663,
+        "priority": 100,
+        "remark": "",
+        "resolution": "",
+        "status": 1,
+        "token_end": 32000,
+        "token_start": 0,
+        "unit_size": 1000000,
+        "updated_at": 1778725910
+      },
+      "matched_rule_id": 230,
+      "media_type": "text",
+      "model_name": "qwen3-max",
+      "pricing_mode": "calculator",
+      "quota_per_unit": 1000,
+      "sale_quota": 24,
+      "video_count": 0
+    },
+    "quota_snapshot_json": {
+      "billing_source": "wallet",
+      "final_pre_consumed_quota": 0,
+      "pricing_error_code": "",
+      "quota": 24,
+      "quota_delta": 24,
+      "subscription_id": 0
+    },
+    "request_params_json": {
+      "content_omitted": true,
+      "max_tokens": 64000,
+      "model": "qwen3-max",
+      "request_type": "text",
+      "sanitized": true,
+      "stream": true
+    },
+    "async_origin_response_json": "",
+    "request_ip": "154.193.246.82",
+    "api_key_masked": "i7oM**********oni4",
+    "response_latency_ms": 3258,
+    "failure_reason": "",
+    "consume_time": 1778754064,
+    "created_at": 1778754064,
+    "updated_at": 1778754064,
+    "response_time": 45305,
+    "upstream_request_id": "",
+    "request_endpoint": "POST /v1/messages",
+    "token_id": 74,
+    "provider_name_snapshot": "Ali",
+    "usage_snapshot_json": {
+      "provider_usage_raw": {
+        "cache_creation_input_tokens": 338,
+        "claude_cache_creation_5_m_tokens": 338,
+        "completion_tokens": 1405,
+        "prompt_tokens": 4,
+        "prompt_tokens_details": {
+          "cached_tokens": 51753
+        },
+        "total_tokens": 1409
+      },
+      "normalized_usage": {
+        "prompt_tokens": 4,
+        "completion_tokens": 1405,
+        "total_tokens": 1409,
+        "cache_write_tokens": 338,
+        "cache_read_tokens": 51753
+      }
+    },
+    "pricing_error_code": "",
+    "user_agent": "claude-cli/2.1.141 (external, cli)"
   },
   {
-    id: 'tsk_ch_7e6d5c4b...',
-    timestamp: 'Mar 27, 05:10 PM',
-    model: 'seedream-5-0',
-    appType: 'IMAGE',
-    appName: 'prod-backend-key',
-    details: [
-      { label: 'RES', value: '1024x1024' },
-      { label: 'N', value: '4' }
-    ],
-    costCredits: '120',
-    costUsd: '$0.120',
-    status: 'RUNNING',
-    action: 'clock'
+    "id": 2308,
+    "consume_id": "COS_20260518000054",
+    "request_id": "20260518093054546164423TwGaq2Ua",
+    "user_name_snapshot": "bianhubhub55",
+    "model_id": "dreamina-seedance-2-0-260128",
+    "request_type": "video",
+    "status": "success",
+    "quota": 2400,
+    "provider_latency": 15400,
+    "throughput": 0.5,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_tokens",
+      "duration": 5,
+      "final_quota": 2400,
+      "matched_rule": {
+        "base_sale_price": 9.79254,
+        "output_sale_price": 9.79254,
+        "resolution": "1080P"
+      },
+      "matched_rule_id": 293,
+      "media_type": "video",
+      "resolution": "1080p",
+      "video_token_duration_seconds": 5
+    },
+    "usage_snapshot_json": {
+      "normalized_usage": {}
+    },
+    "created_at": 1779096655,
   },
   {
-    id: 'tsk_ch_6d5c4b3a...',
-    timestamp: 'Mar 27, 04:55 PM',
-    model: 'kling-2.5-turbo',
-    appType: 'VIDEO',
-    appName: 'marketing-script',
-    details: [
-      { label: 'RES', value: '720p' },
-      { label: 'DUR', value: '10s' }
-    ],
-    costCredits: '--',
-    costUsd: '',
-    status: 'FAILED',
-    error: 'Safety policy violation: Prom...',
-    action: 'code'
+    "id": 2069,
+    "consume_id": "COS_20260515000088",
+    "request_id": "20260515095653302559674yRiPfSGw",
+    "user_name_snapshot": "xiazhi-xiao44",
+    "model_id": "wan2.7-image-pro",
+    "request_type": "image",
+    "status": "success",
+    "quota": 91,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_image",
+      "final_quota": 91,
+      "image_count": 1,
+      "matched_rule": {
+        "base_sale_price": 0.09075
+      },
+      "matched_rule_id": 46,
+      "media_type": "image"
+    },
+    "usage_snapshot_json": {},
+    "created_at": 1778839024,
+  },
+  {
+    "id": 2043,
+    "consume_id": "COS_20260515000062",
+    "request_id": "202605150836548798266467D8BUmnS",
+    "model_id": "speech-2.8-hd",
+    "request_type": "audio",
+    "status": "success",
+    "quota": 13,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_characters",
+      "final_quota": 13,
+      "quota_per_unit": 1000,
+      "matched_rule": {
+        "base_sale_price": 0.121
+      },
+      "matched_rule_id": 233,
+      "media_type": "audio"
+    },
+    "usage_snapshot_json": {
+      "normalized_usage": {
+        "prompt_tokens": 104
+      }
+    },
+    "created_at": 1778834218,
+  },
+  {
+    "id": 2045,
+    "consume_id": "COS_20260515000077",
+    "request_id": "202605150836548798266467D8FAILED",
+    "model_id": "kling-2.5-turbo",
+    "request_type": "video",
+    "status": "failed",
+    "quota": 0,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_tokens",
+      "final_quota": 0,
+      "matched_rule_id": 102,
+      "media_type": "video",
+      "resolution": "720p",
+      "duration": 10
+    },
+    "usage_snapshot_json": {},
+    "created_at": 1778934218,
+    "failure_reason": "Safety policy violation: Error..."
+  },
+  {
+    "id": 2047,
+    "consume_id": "COS_20260515000088",
+    "request_id": "202605150836548798266467DPENDING",
+    "model_id": "seedream-5-0",
+    "request_type": "image",
+    "status": "processing",
+    "quota": 120,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_image",
+      "final_quota": 120,
+      "image_count": 4,
+      "matched_rule": {
+        "resolution": "1024x1024",
+        "base_sale_price": 0.03
+      },
+      "media_type": "image"
+    },
+    "usage_snapshot_json": {},
+    "created_at": 1779034218,
   }
 ];
+
+const MOCK_LOGS = MOCK_LOGS_RICH.map(log => {
+  const date = new Date(log.created_at * 1000);
+  const formattedDate = date.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+
+  const isText = log.request_type === 'text';
+  const isVideo = log.request_type === 'video';
+  const isImage = log.request_type === 'image';
+  const isAudio = log.request_type === 'audio';
+
+  const details = [];
+  if (isText) {
+    details.push({ label: 'In', value: log.usage_snapshot_json?.normalized_usage?.prompt_tokens });
+    details.push({ label: 'Out', value: log.usage_snapshot_json?.normalized_usage?.completion_tokens, valueColor: 'text-blue-600' });
+  } else if (isVideo) {
+    details.push({ label: 'RES', value: log.pricing_snapshot_json.resolution || '1080p' });
+    details.push({ label: 'DUR', value: `${log.pricing_snapshot_json.duration || 5}s` });
+  } else if (isImage) {
+    details.push({ label: 'RES', value: log.pricing_snapshot_json.matched_rule?.resolution || 'Default' });
+    details.push({ label: 'N', value: log.pricing_snapshot_json.image_count || 1 });
+  } else if (isAudio) {
+    details.push({ label: 'CHARS', value: log.usage_snapshot_json?.normalized_usage?.prompt_tokens });
+  }
+
+  return {
+    id: log.request_id.slice(0,16)+'...',
+    timestamp: formattedDate,
+    model: log.model_id,
+    appType: log.request_type.toUpperCase(),
+    appName: 'prod-api-key',
+    details,
+    costCredits: log.quota,
+    costUsd: `$${(log.quota / 1000).toFixed(3)}`,
+    status: log.status === 'success' ? 'SUCCESS' : log.status === 'failed' ? 'FAILED' : 'RUNNING',
+    error: log.failure_reason || '',
+    action: log.status === 'processing' ? 'clock' : log.status === 'failed' ? 'code' : (isText ? 'view' : 'download'),
+    raw: log
+  };
+});
 
 export default function Logs() {
   const { t } = useTranslation();
@@ -140,7 +454,7 @@ export default function Logs() {
     }
   };
 
-  const getActionButton = (action: string) => {
+  const getActionButton = (action: string, log?: any) => {
     switch (action) {
       case 'download':
         return (
@@ -333,8 +647,23 @@ export default function Logs() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <div className="flex justify-center">
-                        {getActionButton(log.action)}
+                      <div className="flex justify-center gap-2">
+                        {log.status === 'SUCCESS' && (
+                          <Dialog>
+                            <DialogTrigger>
+                              <Button variant="outline" size="icon" className="h-8 w-8 text-violet-500 hover:text-violet-700 hover:bg-violet-50 border-violet-200" title={t("Billing Breakdown")}>
+                                <Calculator className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>{t("Billing Details")}</DialogTitle>
+                              </DialogHeader>
+                              {log && log.raw && <BillingDetails log={log.raw} />}
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        {getActionButton(log.action, log)}
                       </div>
                     </td>
                   </tr>
