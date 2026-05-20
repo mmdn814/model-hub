@@ -100,73 +100,75 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Quick Start Guide */}
-      <DevAnnotation
-        elementName="Quick Start Guide"
-        componentType="Card"
-        functionDesc="Guides new users through the initial setup process"
-      >
-        <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-blue-100 shadow-sm relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-blue-100/50 blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-indigo-100/50 blur-2xl"></div>
-          
-          <CardContent className="p-6 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-              <div className="text-center lg:text-left">
-                <h3 className="text-xl font-bold text-zinc-800 mb-2">{t("Welcome! Let's get started")}</h3>
-                <p className="text-zinc-600 text-sm max-w-md">
-                  {t("Follow these three simple steps to start building with our models.")}
-                </p>
+      {/* Quick Start Guide and Balance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Quick Start Guide */}
+        <DevAnnotation
+          elementName="Quick Start Guide"
+          componentType="Card"
+          functionDesc="Guides new users through the initial setup process"
+        >
+          <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-blue-100 shadow-sm relative overflow-hidden h-full flex flex-col justify-center">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-blue-100/50 blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-indigo-100/50 blur-2xl"></div>
+            
+            <CardContent className="p-6 relative z-10 flex-grow flex flex-col justify-center">
+              <div className="flex flex-col xl:flex-row items-center justify-between gap-6">
+                <div className="text-center xl:text-left">
+                  <h3 className="flex items-center justify-center xl:justify-start gap-2 text-xl font-bold text-zinc-800 mb-2">
+                    {t("Welcome! Let's get started")}
+                  </h3>
+                  <p className="text-zinc-600 text-sm max-w-sm">
+                    {t("Follow these three simple steps to start building with our models.")}
+                  </p>
+                </div>
+                
+                <div className="flex flex-row items-center justify-center gap-3 w-full xl:w-auto relative">
+                  {/* Step 1 */}
+                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
+                    <Link to="/billing" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-blue-200 group-hover:text-blue-700 transition-all">
+                      <Wallet className="w-5 h-5" />
+                    </Link>
+                    <div className="text-center">
+                      <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">{t("Step 1")}</div>
+                      <span className="text-xs font-medium text-zinc-700">{t("Recharge")}</span>
+                    </div>
+                  </div>
+
+                  {/* Connecting Line 1 */}
+                  <div className="h-px w-6 border-t-2 border-dashed border-zinc-200 mb-8 max-[400px]:hidden"></div>
+
+                  {/* Step 2 */}
+                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
+                    <Link to="/keys" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-emerald-200 group-hover:text-emerald-700 transition-all">
+                      <Key className="w-5 h-5" />
+                    </Link>
+                    <div className="text-center">
+                      <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{t("Step 2")}</div>
+                      <span className="text-xs font-medium text-zinc-700">{t("Create Key")}</span>
+                    </div>
+                  </div>
+
+                  {/* Connecting Line 2 */}
+                  <div className="h-px w-6 border-t-2 border-dashed border-zinc-200 mb-8 max-[400px]:hidden"></div>
+
+                  {/* Step 3 */}
+                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
+                    <Link to="/models" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-purple-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-purple-200 group-hover:text-purple-700 transition-all">
+                      <Terminal className="w-5 h-5" />
+                    </Link>
+                    <div className="text-center">
+                      <div className="text-[10px] font-bold text-purple-600 uppercase tracking-wider mb-0.5">{t("Step 3")}</div>
+                      <span className="text-xs font-medium text-zinc-700">{t("Start Building")}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto relative">
-                {/* Step 1 */}
-                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
-                  <Link to="/billing" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-blue-200 group-hover:text-blue-700 transition-all">
-                    <Wallet className="w-6 h-6" />
-                  </Link>
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">{t("Step 1")}</div>
-                    <span className="text-sm font-medium text-zinc-700">{t("Recharge")}</span>
-                  </div>
-                </div>
+            </CardContent>
+          </Card>
+        </DevAnnotation>
 
-                {/* Connecting Line 1 */}
-                <div className="hidden sm:block h-px w-12 border-t-2 border-dashed border-zinc-200 mb-10"></div>
-
-                {/* Step 2 */}
-                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
-                  <Link to="/keys" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-emerald-200 group-hover:text-emerald-700 transition-all">
-                    <Key className="w-6 h-6" />
-                  </Link>
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{t("Step 2")}</div>
-                    <span className="text-sm font-medium text-zinc-700">{t("Create Key")}</span>
-                  </div>
-                </div>
-
-                {/* Connecting Line 2 */}
-                <div className="hidden sm:block h-px w-12 border-t-2 border-dashed border-zinc-200 mb-10"></div>
-
-                {/* Step 3 */}
-                <div className="flex flex-col items-center gap-3 group flex-1 min-w-[120px]">
-                  <Link to="/models" className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-purple-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-purple-200 group-hover:text-purple-700 transition-all">
-                    <Terminal className="w-6 h-6" />
-                  </Link>
-                  <div className="text-center">
-                    <div className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-0.5">{t("Step 3")}</div>
-                    <span className="text-sm font-medium text-zinc-700">{t("Start Building")}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DevAnnotation>
-
-      {/* Overview Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Account Balance */}
         <DevAnnotation
           elementName="账户余额"
@@ -197,46 +199,6 @@ export default function Dashboard() {
                   <CircleDollarSign className="w-4 h-4 text-zinc-500" />
                   ≈ 120,500 {t("credits")}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </DevAnnotation>
-
-        {/* Top Error Models */}
-        <DevAnnotation
-          elementName="错误率统计面板"
-          componentType="Card"
-          functionDesc="统计并显示当前条件下错误率前五的模型"
-          interactionRule="随顶部过滤器变化"
-        >
-          <Card className="bg-white border-zinc-200 shadow-sm relative overflow-hidden flex flex-col justify-between h-full">
-            <CardContent className="p-0 flex flex-col h-full">
-              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
-                <div className="text-sm font-medium text-zinc-800 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  {t("Top 5 Models by Error Rate")}
-                </div>
-              </div>
-              
-              <div className="p-2 flex-grow flex flex-col justify-center">
-                {topErrors.map((item, index) => (
-                  <div key={item.model} className="flex items-center justify-between px-4 py-2 rounded-lg hover:bg-zinc-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index < 3 ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'}`}>
-                        {index + 1}
-                      </div>
-                      <span className="text-sm font-medium text-zinc-700">{item.model}</span>
-                    </div>
-                    <div className="flex items-center gap-5">
-                      <span className="text-xs text-zinc-500 font-medium w-20 text-right">
-                        {item.errorCount} {t("Errors")}
-                      </span>
-                      <span className="text-sm font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded w-14 text-center">
-                        {item.errorRate}
-                      </span>
-                    </div>
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -723,7 +685,50 @@ export default function Dashboard() {
         </DevAnnotation>
       </div>
 
-
+      {/* Top Error Models */}
+      <div className="grid grid-cols-1 gap-6">
+        <DevAnnotation
+          elementName="错误率统计面板"
+          componentType="Card"
+          functionDesc="统计并显示当前条件下错误率前五的模型"
+          interactionRule="随顶部过滤器变化"
+        >
+          <Card className="bg-white border-zinc-200 shadow-sm relative overflow-hidden">
+            <CardContent className="p-0">
+              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+                <div className="text-sm font-medium text-zinc-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  {t("Top 5 Models by Error Rate")}
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  {topErrors.map((item, index) => (
+                    <div key={item.model} className="flex flex-col p-4 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-200 transition-colors">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index < 3 ? 'bg-red-100 text-red-600' : 'bg-zinc-200 text-zinc-600'}`}>
+                          {index + 1}
+                        </div>
+                        <span className="text-sm font-medium text-zinc-800 truncate" title={item.model}>{item.model}</span>
+                      </div>
+                      <div className="flex items-end justify-between mt-auto">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-zinc-500 mb-1">{t("Errors")}</span>
+                          <span className="text-lg font-semibold text-zinc-700">{item.errorCount}</span>
+                        </div>
+                        <div className="flex items-center bg-red-50 px-2.5 py-1 rounded-md border border-red-100">
+                          <span className="text-sm font-bold text-red-600">{item.errorRate}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </DevAnnotation>
+      </div>
 
       {/* Logs Banner */}
       <DevAnnotation
@@ -742,9 +747,9 @@ export default function Dashboard() {
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-medium text-zinc-900 mb-1">{t("Logs have moved")}</h3>
+            <h3 className="font-medium text-zinc-900 mb-1">{t("Detailed Logs")}</h3>
             <p className="text-zinc-600 text-sm">
-              {t("Your API request logs now have their own")} <span className="text-indigo-600 hover:underline">{t("dedicated page")}</span>.
+              {t("To view detailed logs, please go to the")} <span className="text-indigo-600 hover:underline">{t("Logs page")}</span>.
             </p>
           </div>
         </div>
