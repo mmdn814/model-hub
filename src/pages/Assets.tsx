@@ -749,6 +749,36 @@ export default function Assets() {
           </p>
         </div>
 
+        <div className="bg-white border border-zinc-200 rounded-xl p-4 flex flex-col md:flex-row gap-6 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-zinc-100 shadow-sm">
+          <div className="flex-1 px-4 pt-4 md:pt-0 first:pl-0 first:pt-0 last:pr-0">
+            <div className="flex items-center gap-2 mb-2">
+              <ImageIcon className="w-4 h-4 text-indigo-500" />
+              <h4 className="font-semibold text-zinc-900 text-sm">Images</h4>
+            </div>
+            <p className="text-[13px] text-zinc-500 leading-relaxed">
+              JPEG, JPG, PNG, WebP, GIF, HEIC. &lt; 30MB. Ratio 0.4-2.5. 300-6000px.
+            </p>
+          </div>
+          <div className="flex-1 px-4 pt-4 md:pt-0 first:pl-0 first:pt-0 last:pr-0">
+            <div className="flex items-center gap-2 mb-2">
+              <Video className="w-4 h-4 text-purple-500" />
+              <h4 className="font-semibold text-zinc-900 text-sm">Videos</h4>
+            </div>
+            <p className="text-[13px] text-zinc-500 leading-relaxed">
+              MP4, MOV. 480p/720p. 2-15s. &le; 50MB. 24-60fps.
+            </p>
+          </div>
+          <div className="flex-1 px-4 pt-4 md:pt-0 first:pl-0 first:pt-0 last:pr-0">
+            <div className="flex items-center gap-2 mb-2">
+              <AudioLines className="w-4 h-4 text-emerald-500" />
+              <h4 className="font-semibold text-zinc-900 text-sm">Audio</h4>
+            </div>
+            <p className="text-[13px] text-zinc-500 leading-relaxed">
+              WAV, MP3. 2-15s. &le; 15MB. Studio quality preferred.
+            </p>
+          </div>
+        </div>
+
         {/* Tab Navigation */}
         <div className="flex items-center gap-1 border-b border-zinc-200 pb-0">
           <button
