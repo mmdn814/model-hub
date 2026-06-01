@@ -24,11 +24,11 @@ const AssetContext = createContext<AssetContextType | undefined>(undefined);
 
 export function AssetProvider({ children }: { children: React.ReactNode }) {
   const [hasSignedAgreement, setHasSignedAgreement] = useState(() => {
-    return localStorage.getItem("hasSignedSeedanceAgreement_v4") === "true";
+    return localStorage.getItem("hasSignedSeedanceAgreement_v7") === "true";
   });
 
   const [assets, setAssets] = useState<Asset[]>(() => {
-    const stored = localStorage.getItem("seedanceAssets_v4");
+    const stored = localStorage.getItem("seedanceAssets_v7");
     if (stored) return JSON.parse(stored);
     
     return [
@@ -36,31 +36,23 @@ export function AssetProvider({ children }: { children: React.ReactNode }) {
         id: "asset-1",
         type: "image",
         url: "https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?w=500&q=80",
-        name: "Neon City Scape",
+        name: "66_AICG_group",
         createdAt: Date.now() - 100000,
         size: 2500000
       },
       {
         id: "asset-2",
-        type: "image",
-        url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&q=80",
-        name: "Retro Computer",
-        createdAt: Date.now() - 200000,
-        size: 1800000
-      },
-      {
-        id: "asset-3",
         type: "video",
         url: "https://fake-storage/sample-vid.mp4",
-        name: "Sample Reference Video (MP4)",
-        createdAt: Date.now() - 300000,
+        name: "81_AICG_group",
+        createdAt: Date.now() - 200000,
         size: 15400000
       },
       {
-        id: "asset-4",
+        id: "asset-3",
         type: "audio",
         url: "https://fake-storage/sample-audio.mp3",
-        name: "Cyberpunk Beat (WAV)",
+        name: "Audio_recorded_01_group",
         createdAt: Date.now() - 400000,
         size: 4200000
       }
@@ -68,11 +60,11 @@ export function AssetProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem("hasSignedSeedanceAgreement_v4", String(hasSignedAgreement));
+    localStorage.setItem("hasSignedSeedanceAgreement_v7", String(hasSignedAgreement));
   }, [hasSignedAgreement]);
 
   useEffect(() => {
-    localStorage.setItem("seedanceAssets_v4", JSON.stringify(assets));
+    localStorage.setItem("seedanceAssets_v7", JSON.stringify(assets));
   }, [assets]);
 
   const signAgreement = () => {

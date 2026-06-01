@@ -14,9 +14,15 @@ import {
   Box,
   AlertTriangle,
   Calendar,
-  Calculator
+  Calculator,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip as UITooltip,
+  TooltipTrigger,
+  TooltipContent
+} from "@/components/ui/tooltip";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -367,6 +373,48 @@ const MOCK_LOGS_RICH = [
     },
     "usage_snapshot_json": {},
     "created_at": 1779034218,
+  },
+  {
+    "id": 2048,
+    "consume_id": "COS_20260515000089",
+    "request_id": "202605150836548798266467DEL",
+    "model_id": "seed-2-0-pro-260328",
+    "request_type": "text",
+    "status": "deleted",
+    "quota": 0,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_tokens",
+      "final_quota": 0,
+      "matched_rule_id": 102,
+      "media_type": "text",
+      "matched_rule": {
+        "resolution": "1024x1024",
+        "base_sale_price": 0.03
+      }
+    },
+    "usage_snapshot_json": {},
+    "created_at": 1779034300,
+  },
+  {
+    "id": 2049,
+    "consume_id": "COS_20260515000090",
+    "request_id": "202605150836548798266467CAN",
+    "model_id": "wan2.7-image-pro",
+    "request_type": "image",
+    "status": "cancelled",
+    "quota": 0,
+    "pricing_snapshot_json": {
+      "billing_unit": "per_image",
+      "final_quota": 0,
+      "matched_rule_id": 103,
+      "media_type": "image",
+      "matched_rule": {
+        "resolution": "1024x1024",
+        "base_sale_price": 0.03
+      }
+    },
+    "usage_snapshot_json": {},
+    "created_at": 1779034400,
   }
 ];
 
@@ -402,9 +450,9 @@ const MOCK_LOGS = MOCK_LOGS_RICH.map(log => {
     details,
     costCredits: log.quota,
     costUsd: `$${(log.quota / 1000).toFixed(3)}`,
-    status: log.status === 'success' ? 'SUCCESS' : log.status === 'failed' ? 'FAILED' : 'RUNNING',
+    status: log.status === 'success' ? 'SUCCESS' : log.status === 'failed' ? 'FAILED' : log.status === 'deleted' ? 'DELETED' : log.status === 'cancelled' ? 'CANCELLED' : 'RUNNING',
     error: log.failure_reason || '',
-    action: log.status === 'processing' ? 'clock' : log.status === 'failed' ? 'code' : (isText ? 'view' : 'download'),
+    action: log.status === 'processing' ? 'clock' : log.status === 'failed' ? 'code' : log.status === 'deleted' ? 'log' : log.status === 'cancelled' ? 'none' : (isText ? 'view' : 'download'),
     raw: log
   };
 });
@@ -433,6 +481,20 @@ export default function Logs() {
         return (
           <Badge variant="secondary" className="bg-red-50 text-red-700 hover:bg-red-50 border-red-100 px-2 py-1 gap-1">
             <XCircle className="w-3 h-3" />
+            {status}
+          </Badge>
+        );
+      case 'DELETED':
+        return (
+          <Badge variant="secondary" className="bg-zinc-100 text-zinc-600 hover:bg-zinc-100 border-zinc-200 px-2 py-1 gap-1">
+            <XCircle className="w-3 h-3" />
+            {status}
+          </Badge>
+        );
+      case 'CANCELLED':
+        return (
+          <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-50 border-orange-100 px-2 py-1 gap-1">
+            <AlertTriangle className="w-3 h-3" />
             {status}
           </Badge>
         );
@@ -480,6 +542,29 @@ export default function Logs() {
             <Code className="w-4 h-4" />
           </Button>
         );
+      case 'log':
+        // Action for deleted
+        return (
+          <UITooltip>
+            <TooltipTrigger render={<Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 text-zinc-500 hover:text-zinc-900 border-zinc-200"
+              />}>
+                <FileText className="w-4 h-4" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("此按钮显示当前task id的日志")}</p>
+            </TooltipContent>
+          </UITooltip>
+        );
+      case 'none':
+        // Action for cancelled
+        return (
+          <div title={t("此任务已取消")} className="h-8 flex flex-col justify-center px-2 cursor-help text-zinc-400 text-xl font-bold">
+            -
+          </div>
+        );
       default:
         return null;
     }
@@ -489,7 +574,12 @@ export default function Logs() {
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-[#0f172a] tracking-tight">{t("Activity Logs")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-[#0f172a] tracking-tight">{t("Activity Logs")}</h1>
+          <DevAnnotation customContent={<div className="whitespace-pre-wrap">26/6/1新增需求：{"\n"}增加2个状态 deleted和 cancelled，两个状态目前支持的是异步任务：{"\n"}deleted类型的action显示当前taskid的log{"\n"}cancelled类型的action显示是无，没有任务行为</div>}>
+            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-600 border-amber-200 cursor-help">26/6/1 Update</Badge>
+          </DevAnnotation>
+        </div>
         <p className="text-zinc-500 mt-2 text-base">{t("Track your API usage, review generated assets, and debug requests.")}</p>
       </div>
 

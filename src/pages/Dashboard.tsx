@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis } from "recharts";
-import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign } from "lucide-react";
+import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, AreaChart, Area } from "recharts";
+import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign, Clock, Activity, Settings, BarChart2, Calendar as CalendarIcon, X, ChevronRight, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import {
   Tooltip as UITooltip,
   TooltipTrigger,
@@ -15,745 +17,944 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { useState } from "react";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
 const data = [
-  { time: "2026-04-01", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
-  { time: "2026-04-02", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
-  { time: "2026-04-03", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
-  { time: "2026-04-04", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
-  { time: "2026-04-05", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "1", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
+  { time: "2", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "3", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
+  { time: "4", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
+  { time: "5", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
 ];
 
 const legendItems = [
-  { name: "GPT-4o-mini", color: "#ef4444", value: "4.93", reqs: "11", successRate: "99.9%" },
-  { name: "Claude Opus 4.6", color: "#3b82f6", value: "4.07", reqs: "34", successRate: "99.5%" },
-  { name: "gpt-oss-120b", color: "#f97316", value: "3.40", reqs: "10", successRate: "98.2%" },
-  { name: "Others", color: "#d4d4d8", value: "0.79", reqs: "15", successRate: "99.1%" },
+  { name: "GPT-4o-mini", color: "#ef4444", value: "4.93", usd: "$0.49", reqs: "11", successRate: "99.9%" },
+  { name: "Claude Opus 4.6", color: "#3b82f6", value: "4.07", usd: "$0.41", reqs: "34", successRate: "99.5%" },
+  { name: "gpt-oss-120b", color: "#f97316", value: "3.40", usd: "$0.34", reqs: "10", successRate: "98.2%" },
+  { name: "Others", color: "#d4d4d8", value: "0.79", usd: "$0.08", reqs: "15", successRate: "99.1%" },
 ];
 
 const apiKeyData = [
-  { time: "2026-04-01", "lover-demp": 2.0, "test-bookmarks": 1.6 },
-  { time: "2026-04-02", "lover-demp": 1.5, "test-bookmarks": 2.7 },
-  { time: "2026-04-03", "lover-demp": 3.0, "test-bookmarks": 2.4 },
-  { time: "2026-04-04", "lover-demp": 1.0, "test-bookmarks": 6.3 },
-  { time: "2026-04-05", "lover-demp": 0.76, "test-bookmarks": 2.2 },
+  { time: "1", "lover-demp": 2.0, "test-bookmarks": 1.6 },
+  { time: "2", "lover-demp": 1.5, "test-bookmarks": 2.7 },
+  { time: "3", "lover-demp": 3.0, "test-bookmarks": 2.4 },
+  { time: "4", "lover-demp": 1.0, "test-bookmarks": 6.3 },
+  { time: "5", "lover-demp": 0.76, "test-bookmarks": 2.2 },
 ];
 
 const apiKeyLegendItems = [
-  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", reqs: "41", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
-  { name: "test-bookmarks", color: "#10b981", value: "0.00493", reqs: "29", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
-  { name: "openclaw", color: "#f59e0b", value: "0.00000", reqs: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
+  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", usd: "$0.0008", reqs: "41", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
+  { name: "test-bookmarks", color: "#10b981", value: "0.00493", usd: "$0.0005", reqs: "29", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
+  { name: "openclaw", color: "#f59e0b", value: "0.00000", usd: "$0.0000", reqs: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
+];
+
+const trendData = [
+  { date: "Day 1", calls: 120 },
+  { date: "Day 2", calls: 132 },
+  { date: "Day 3", calls: 101 },
+  { date: "Day 4", calls: 145 },
+  { date: "Day 5", calls: 160 },
+  { date: "Day 6", calls: 110 },
+  { date: "Day 7", calls: 245 },
+];
+
+const appConsumptionData = [
+  { name: "Chat", credits: "4.2", usd: "$0.42", reqs: "120 calls", success: "99.8%", latency: "380ms", progress: 40, color: "bg-blue-500" },
+  { name: "Video (task)", credits: "3.5", usd: "$0.35", reqs: "45 tasks", success: "95.2%", latency: "~3m 28s", progress: 30, color: "bg-emerald-500" },
+  { name: "Image", credits: "2.1", usd: "$0.21", reqs: "80 tasks", success: "99.9%", latency: "~12s", progress: 20, color: "bg-purple-500" },
+  { name: "Audio", credits: "1.2", usd: "$0.12", reqs: "60 calls", success: "98.5%", latency: "150ms", progress: 10, color: "bg-amber-500" },
 ];
 
 const topErrors = [
-  { model: "Claude Opus 4.6", errorRate: "2.1%", errorCount: 45 },
-  { model: "GPT-4o-mini", errorRate: "1.5%", errorCount: 120 },
-  { model: "gpt-oss-120b", errorRate: "0.8%", errorCount: 30 },
-  { model: "Others", errorRate: "0.2%", errorCount: 5 },
-  { model: "openclaw", errorRate: "0.1%", errorCount: 1 },
+  { 
+    reason: "Rate Limit Exceeded", 
+    count: 145, 
+    percent: "45%",
+    attributions: [
+      { name: "abab6.5-chat", count: 98, percent: "67.6%" },
+      { name: "Doubao-pro-32k", count: 35, percent: "24.1%" },
+      { name: "qwen-max", count: 12, percent: "8.3%" }
+    ]
+  },
+  { 
+    reason: "Model Overloaded", 
+    count: 120, 
+    percent: "35%",
+    attributions: [
+      { name: "Claude 3.5 Sonnet", count: 70, percent: "58.3%" },
+      { name: "qwen-max", count: 50, percent: "41.7%" }
+    ]
+  },
+  { 
+    reason: "Invalid API Key", 
+    count: 30, 
+    percent: "10%",
+    attributions: [
+      { name: "sk-proj-a1B2...", count: 20, percent: "66.7%" },
+      { name: "sk-ant-api03...", count: 10, percent: "33.3%" }
+    ]
+  },
+  { 
+    reason: "Context Length Exceeded", 
+    count: 25, 
+    percent: "8%",
+    attributions: [
+      { name: "Claude Opus 4.6", count: 15, percent: "60%" },
+      { name: "GPT-4o-mini", count: 7, percent: "28%" },
+      { name: "gpt-oss-120b", count: 3, percent: "12%" }
+    ]
+  },
+  { 
+    reason: "Network Error", 
+    count: 10, 
+    percent: "2%",
+    attributions: [
+      { name: "Claude 3.5 Sonnet", count: 6, percent: "60.0%" },
+      { name: "abab6.5-chat", count: 4, percent: "40.0%" }
+    ]
+  },
+];
+
+const topCostModels1Week = [
+  { name: "Claude 3.5 Sonnet", cost: "45%", value: "$520.50" },
+  { name: "GPT-4o", cost: "30%", value: "$345.20" },
+  { name: "Gemini 1.5 Pro", cost: "12%", value: "$138.00" },
+  { name: "Mistral-Large", cost: "8%", value: "$92.10" },
+  { name: "Others", cost: "5%", value: "$57.80" },
+];
+
+const providerHealthData = [
+  { name: "BytePlus", successRate: "99.9%", latency: "320ms", successColor: "text-emerald-500", dot: "bg-blue-500" },
+  { name: "MiniMax", successRate: "99.5%", latency: "480ms", successColor: "text-emerald-500", dot: "bg-orange-500" },
+  { name: "Alibaba", successRate: "97.2%", latency: "650ms", successColor: "text-amber-500", dot: "bg-emerald-500" },
+  { name: "Anthropic", successRate: "99.8%", latency: "390ms", successColor: "text-emerald-500", dot: "bg-pink-500" },
+  { name: "Zhipu", successRate: "99.1%", latency: "410ms", successColor: "text-emerald-500", dot: "bg-purple-500" },
 ];
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [timeFilter, setTimeFilter] = useState("1 Month");
+  const [modalityFilter, setModalityFilter] = useState("All");
   const [groupFilter, setGroupFilter] = useState("By Model");
-  const [selectedModels, setSelectedModels] = useState<string[]>(legendItems.map(item => item.name));
-  const [selectedApiKeys, setSelectedApiKeys] = useState<string[]>(apiKeyLegendItems.map(item => item.name));
+  const [activeFilters, setActiveFilters] = useState<{type: string, value: string}[]>([
+    { type: 'Model', value: 'GPT-4o-mini' }
+  ]);
+  const [filterMenuState, setFilterMenuState] = useState<"root" | "model" | "apikey">("root");
+  const [filterSearchQuery, setFilterSearchQuery] = useState("");
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>();
+  const [expandedErrors, setExpandedErrors] = useState<Record<number, boolean>>({});
+
+  const toggleExpandedError = (idx: number) => {
+    setExpandedErrors(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
 
   const currentData: any[] = groupFilter === "By API Key" ? apiKeyData : data;
   const allLegendItems = groupFilter === "By API Key" ? apiKeyLegendItems : legendItems;
-  const selectedFilters = groupFilter === "By API Key" ? selectedApiKeys : selectedModels;
+  
+  const activeModelFilters = activeFilters.filter(f => f.type === 'Model').map(f => f.value);
+  const activeApiKeyFilters = activeFilters.filter(f => f.type === 'API Key').map(f => f.value);
+
+  const selectedFilters = groupFilter === "By API Key" 
+    ? (activeApiKeyFilters.length > 0 ? activeApiKeyFilters : apiKeyLegendItems.map(i => i.name))
+    : (activeModelFilters.length > 0 ? activeModelFilters : legendItems.map(i => i.name));
   
   const currentLegendItems = allLegendItems.filter(item => selectedFilters.includes(item.name));
 
-  const toggleFilter = (name: string) => {
-    if (groupFilter === "By Model") {
-      setSelectedModels(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
-    } else {
-      setSelectedApiKeys(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
-    }
-  };
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Quick Start Guide and Balance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Start Guide */}
-        <DevAnnotation
-          elementName="Quick Start Guide"
-          componentType="Card"
-          functionDesc="Guides new users through the initial setup process"
-        >
-          <Card className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-blue-100 shadow-sm relative overflow-hidden h-full flex flex-col justify-center">
-            {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-blue-100/50 blur-2xl"></div>
-            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-indigo-100/50 blur-2xl"></div>
-            
-            <CardContent className="p-6 relative z-10 flex-grow flex flex-col justify-center">
-              <div className="flex flex-col xl:flex-row items-center justify-between gap-6">
-                <div className="text-center xl:text-left">
-                  <h3 className="flex items-center justify-center xl:justify-start gap-2 text-xl font-bold text-zinc-800 mb-2">
-                    {t("Welcome! Let's get started")}
-                  </h3>
-                  <p className="text-zinc-600 text-sm max-w-sm">
-                    {t("Follow these three simple steps to start building with our models.")}
-                  </p>
-                </div>
-                
-                <div className="flex flex-row items-center justify-center gap-3 w-full xl:w-auto relative">
-                  {/* Step 1 */}
-                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
-                    <Link to="/billing" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-blue-200 group-hover:text-blue-700 transition-all">
-                      <Wallet className="w-5 h-5" />
-                    </Link>
-                    <div className="text-center">
-                      <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-0.5">{t("Step 1")}</div>
-                      <span className="text-xs font-medium text-zinc-700">{t("Recharge")}</span>
-                    </div>
-                  </div>
-
-                  {/* Connecting Line 1 */}
-                  <div className="h-px w-6 border-t-2 border-dashed border-zinc-200 mb-8 max-[400px]:hidden"></div>
-
-                  {/* Step 2 */}
-                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
-                    <Link to="/keys" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-emerald-200 group-hover:text-emerald-700 transition-all">
-                      <Key className="w-5 h-5" />
-                    </Link>
-                    <div className="text-center">
-                      <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{t("Step 2")}</div>
-                      <span className="text-xs font-medium text-zinc-700">{t("Create Key")}</span>
-                    </div>
-                  </div>
-
-                  {/* Connecting Line 2 */}
-                  <div className="h-px w-6 border-t-2 border-dashed border-zinc-200 mb-8 max-[400px]:hidden"></div>
-
-                  {/* Step 3 */}
-                  <div className="flex flex-col items-center gap-2 group min-w-[70px]">
-                    <Link to="/models" className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-purple-600 shadow-sm border border-zinc-100 group-hover:scale-105 group-hover:shadow-md group-hover:border-purple-200 group-hover:text-purple-700 transition-all">
-                      <Terminal className="w-5 h-5" />
-                    </Link>
-                    <div className="text-center">
-                      <div className="text-[10px] font-bold text-purple-600 uppercase tracking-wider mb-0.5">{t("Step 3")}</div>
-                      <span className="text-xs font-medium text-zinc-700">{t("Start Building")}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </DevAnnotation>
-
-        {/* Account Balance */}
-        <DevAnnotation
-          elementName="账户余额"
-          componentType="Card"
-          functionDesc="显示用户当前可用余额及Credits"
-        >
-          <Card className="bg-zinc-900 border-zinc-900 shadow-xl relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl"></div>
-            
-            <CardContent className="p-7 relative z-10 flex flex-col h-full justify-between">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-2 text-zinc-400 font-medium text-sm">
-                  <Wallet className="w-4 h-4" />
-                  {t("Current Balance")}
-                </div>
-                <Button variant="outline" className="border-zinc-700 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-200 hover:text-white rounded-full h-8 px-4 text-xs gap-1.5 transition-colors" onClick={() => navigate('/billing')}>
-                  <Plus className="w-3 h-3" /> {t("Add Funds")}
-                </Button>
-              </div>
-
-              <div>
-                <div className="flex items-baseline gap-2 mb-3">
-                  <span className="text-4xl sm:text-5xl font-bold tracking-tight text-white">$120.50</span>
-                  <span className="text-lg font-medium text-zinc-500">USD</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-zinc-800/50 border border-zinc-700/50 text-sm text-zinc-400">
-                  <CircleDollarSign className="w-4 h-4 text-zinc-500" />
-                  ≈ 120,500 {t("credits")}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </DevAnnotation>
-      </div>
-
-      {/* Header */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Level 1: Top Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl text-zinc-600 font-medium">{t("Your usage across models on Powertokens")}</h2>
-        <div className="flex items-center gap-3">
-          <Popover>
-            <DevAnnotation
-              elementName="数据过滤器"
-              componentType="Dropdown / Popover"
-              functionDesc="用于过滤下方图表显示的数据维度"
-              interactionRule="点击展开包含Models和API Keys的折叠面板，勾选/取消勾选可实时更新图表数据"
-              defaultValue="全选"
-              dataSource="本地状态 selectedModels 和 selectedApiKeys"
-              autoLogic="当切换分组（By Model/By API Key）时，自动应用对应的过滤状态"
-              devNotes="注意：Popover内部使用了Accordion和Command组件，需确保事件冒泡正常"
-            >
-              <PopoverTrigger className="flex items-center gap-2 px-3 py-1.5 border border-zinc-200 rounded-full text-sm hover:bg-zinc-50 transition-colors">
-                <Filter className="w-4 h-4" /> {t("Filters")}
-              </PopoverTrigger>
-            </DevAnnotation>
-            <PopoverContent align="end" className="w-80 p-3 rounded-xl shadow-lg border-zinc-200">
-              <Accordion className="w-full space-y-3">
-                <AccordionItem value="models" className="border border-zinc-200 rounded-lg px-3 py-1 bg-white shadow-sm">
-                  <AccordionTrigger className="hover:no-underline py-2 text-base font-medium">
-                    {t("Models")}
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-1 border-t border-zinc-100 mt-2">
-                    <Command className="bg-transparent">
-                      <DevAnnotation
-                        elementName="模型搜索框"
-                        componentType="Input"
-                        functionDesc="在模型列表中搜索特定模型"
-                        interactionRule="输入文本实时过滤下方列表"
-                        defaultValue="空"
-                        autoLogic="使用模糊匹配搜索模型名称"
-                        devNotes="需处理防抖逻辑，避免频繁触发搜索"
-                      >
-                        <CommandInput placeholder={t("Search models")} className="h-9" />
-                      </DevAnnotation>
-                      <CommandList className="max-h-[200px]">
-                        <CommandEmpty>{t("No models found.")}</CommandEmpty>
-                        <CommandGroup heading={t("Models")}>
-                          {legendItems.map((item) => (
-                            <DevAnnotation
-                              key={item.name}
-                              elementName={`模型选项: ${item.name}`}
-                              componentType="Checkbox / CommandItem"
-                              functionDesc="选择或取消选择该模型"
-                              interactionRule="点击切换选中状态"
-                              defaultValue="默认全选"
-                              devNotes="选中状态需同步至全局过滤状态"
-                            >
-                              <CommandItem
-                                onSelect={() => {
-                                  if (groupFilter !== "By Model") setGroupFilter("By Model");
-                                  setSelectedModels(prev => prev.includes(item.name) ? prev.filter(n => n !== item.name) : [...prev, item.name]);
-                                }}
-                                className="flex items-center gap-2 cursor-pointer py-2"
-                              >
-                                <div className={`flex items-center justify-center w-4 h-4 border rounded-sm transition-colors ${selectedModels.includes(item.name) ? 'bg-zinc-900 border-zinc-900 text-white' : 'border-zinc-300'}`}>
-                                  {selectedModels.includes(item.name) && <Check className="w-3 h-3" />}
-                                </div>
-                                <span className="font-medium text-zinc-700">{item.name}</span>
-                              </CommandItem>
-                            </DevAnnotation>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="api-keys" className="border border-zinc-200 rounded-lg px-3 py-1 bg-white shadow-sm">
-                  <AccordionTrigger className="hover:no-underline py-2 text-base font-medium">
-                    {t("API Keys")}
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-2 pb-1 border-t border-zinc-100 mt-2">
-                    <Command className="bg-transparent">
-                      <DevAnnotation
-                        elementName="API Key搜索框"
-                        componentType="Input"
-                        functionDesc="在API Key列表中搜索特定Key"
-                        interactionRule="输入文本实时过滤下方列表"
-                        defaultValue="空"
-                        autoLogic="使用模糊匹配搜索Key名称或值"
-                        devNotes="需处理防抖逻辑"
-                      >
-                        <CommandInput placeholder={t("Search API keys")} className="h-9" />
-                      </DevAnnotation>
-                      <CommandList className="max-h-[200px]">
-                        <CommandEmpty>{t("No API keys found.")}</CommandEmpty>
-                        <CommandGroup heading={t("API Keys")}>
-                          {apiKeyLegendItems.map((item) => (
-                            <DevAnnotation
-                              key={item.name}
-                              elementName={`API Key选项: ${item.name}`}
-                              componentType="Checkbox / CommandItem"
-                              functionDesc="选择或取消选择该API Key"
-                              interactionRule="点击切换选中状态"
-                              defaultValue="默认全选"
-                              devNotes="选中状态需同步至全局过滤状态"
-                            >
-                              <CommandItem
-                                onSelect={() => {
-                                  if (groupFilter !== "By API Key") setGroupFilter("By API Key");
-                                  setSelectedApiKeys(prev => prev.includes(item.name) ? prev.filter(n => n !== item.name) : [...prev, item.name]);
-                                }}
-                                className="flex items-center gap-2 cursor-pointer py-2"
-                              >
-                                <div className={`flex items-center justify-center w-4 h-4 border rounded-sm transition-colors ${selectedApiKeys.includes(item.name) ? 'bg-zinc-900 border-zinc-900 text-white' : 'border-zinc-300'}`}>
-                                  {selectedApiKeys.includes(item.name) && <Check className="w-3 h-3" />}
-                                </div>
-                                <Key className="w-4 h-4 text-zinc-500" />
-                                <span className="font-medium text-zinc-900">{item.name}</span>
-                                <span className="text-zinc-400 text-sm ml-1">{item.keyString}</span>
-                              </CommandItem>
-                            </DevAnnotation>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </PopoverContent>
-          </Popover>
-
-          <DropdownMenu>
-            <DevAnnotation
-              elementName="时间范围选择器"
-              componentType="Dropdown"
-              functionDesc="选择图表数据的时间跨度"
-              interactionRule="点击展开时间选项，选择后更新图表X轴和数据"
-              defaultValue="1 Month"
-              dataSource="静态选项数组"
-              autoLogic="选择后自动关闭下拉菜单并触发数据重新获取（当前为Mock）"
-              devNotes="后续需接入真实API，根据选择的时间范围传递不同的 start/end 参数"
-            >
-              <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 border border-zinc-200 rounded-full text-sm hover:bg-zinc-50 transition-colors">
-                {t(timeFilter)} <ChevronDown className="w-4 h-4 text-zinc-400" />
-              </DropdownMenuTrigger>
-            </DevAnnotation>
-            <DropdownMenuContent align="end" className="w-40">
-              {["1 Hour", "1 Day", "1 Week", "1 Month", "1 Year"].map((time) => (
-                <DevAnnotation
-                  key={time}
-                  elementName={`时间选项: ${time}`}
-                  componentType="DropdownItem"
-                  functionDesc="选择特定的时间范围"
-                  interactionRule="点击后更新全局时间过滤状态并关闭下拉菜单"
-                  autoLogic="选中状态会显示 Check 图标"
-                  devNotes="需确保时间格式与后端API要求的格式一致"
-                >
-                  <DropdownMenuItem onClick={() => setTimeFilter(time)} className="justify-between">
-                    {t(time)}
-                    {timeFilter === time && <Check className="w-4 h-4" />}
-                  </DropdownMenuItem>
-                </DevAnnotation>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DevAnnotation
-              elementName="数据分组选择器"
-              componentType="Dropdown"
-              functionDesc="切换图表数据的聚合维度（按模型或按API Key）"
-              interactionRule="点击选择分组方式，图表和图例将立即切换到对应维度"
-              defaultValue="By Model"
-              dataSource="静态选项数组"
-              autoLogic="切换时，自动将 currentData 和 currentLegendItems 切换为对应的数据源"
-              devNotes="切换分组时，注意保持之前在Filters中设置的勾选状态隔离"
-            >
-              <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 border border-zinc-200 rounded-full text-sm hover:bg-zinc-50 transition-colors">
-                {t(groupFilter)} <ChevronDown className="w-4 h-4 text-zinc-400" />
-              </DropdownMenuTrigger>
-            </DevAnnotation>
-            <DropdownMenuContent align="end" className="w-40">
-              {["By API Key", "By Model"].map((group) => (
-                <DevAnnotation
-                  key={group}
-                  elementName={`分组选项: ${group}`}
-                  componentType="DropdownItem"
-                  functionDesc="选择特定的数据聚合维度"
-                  interactionRule="点击后更新全局分组状态并关闭下拉菜单"
-                  autoLogic="选中状态会显示 Check 图标"
-                  devNotes="切换分组时会触发图表数据的重新渲染"
-                >
-                  <DropdownMenuItem onClick={() => setGroupFilter(group)} className="justify-between">
-                    {t(group)}
-                    {groupFilter === group && <Check className="w-4 h-4" />}
-                  </DropdownMenuItem>
-                </DevAnnotation>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <Button className="h-9 px-4 text-sm font-medium rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors" onClick={() => navigate('/billing')}>
+            <Plus className="w-4 h-4 mr-1.5" /> {t("Add Funds")}
+          </Button>
         </div>
       </div>
 
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Spend Card */}
-        <DevAnnotation
-          elementName="花费统计模块"
-          componentType="Card / Chart"
-          functionDesc="展示用户在选定时间范围内的花费情况"
-          interactionRule="鼠标悬浮在柱状图上显示具体数值"
-          dataSource="后端聚合API / 缓存"
-          autoLogic="根据顶部过滤器（时间、分组）自动更新数据"
-          devNotes="需处理数据加载中和无数据状态的骨架屏显示"
-        >
-          <Card className="shadow-sm border-zinc-200">
-            <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="text-sm font-medium text-zinc-600 mb-1">{t("Spend")}</div>
-                <div className="flex items-baseline gap-1">
-                  <div className="text-3xl font-bold">13.2</div>
-                  <div className="text-sm text-zinc-500 font-medium">{t("credits")}</div>
-                </div>
-                <div className="text-xs text-zinc-400 mt-1">≈ $0.0132 USD</div>
-                <DevAnnotation
-                  elementName="充值按钮"
-                  componentType="Button"
-                  functionDesc="跳转到充值页面添加账户余额"
-                  interactionRule="点击后路由跳转至 /billing"
-                  devNotes="需确保用户有权限访问充值页面"
-                >
-                  <Button size="sm" className="mt-3 h-7 px-3 text-xs gap-1.5 rounded-full" onClick={() => navigate('/billing')}>
-                    <Plus className="w-3 h-3" /> {t("Add Funds")}
-                  </Button>
-                </DevAnnotation>
-              </div>
-              <DevAnnotation
-                elementName="放大图表按钮"
-                componentType="Button (Icon)"
-                functionDesc="全屏或在弹窗中放大显示当前图表"
-                interactionRule="点击后展开图表详细视图"
-                devNotes="当前暂未实现具体放大逻辑，可考虑使用 Dialog 组件包裹放大后的图表"
-              >
-                <button className="text-zinc-400 hover:text-zinc-600">
-                  <Maximize2 className="w-4 h-4" />
-                </button>
-              </DevAnnotation>
-            </div>
-            
-            <DevAnnotation
-              customContent={
-                <div className="text-xs whitespace-pre-wrap leading-relaxed">
-                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
-                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
-                    <li>固定 6 根柱子</li>
-                    <li>24h：每根 4h</li>
-                    <li>7d：每根 1d</li>
-                    <li>30d：每根 5d</li>
-                    <li>1y：每根 2 months</li>
-                    <li>堆叠只展示 Top 3 + Others</li>
-                  </ul>
-                </div>
-              }
-            >
-              <div className="h-[120px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </DevAnnotation>
-
-            <div className="space-y-3">
-              {currentLegendItems.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-zinc-700">{item.name}</span>
-                  </div>
-                  <span className="text-zinc-500 font-mono">{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        </DevAnnotation>
-
-        {/* Requests Card */}
-        <DevAnnotation
-          elementName="请求数统计模块"
-          componentType="Card / Chart"
-          functionDesc="展示用户在选定时间范围内的API请求次数"
-          interactionRule="鼠标悬浮在柱状图上显示具体数值"
-          dataSource="后端聚合API / 缓存"
-          autoLogic="根据顶部过滤器（时间、分组）自动更新数据"
-          devNotes="需处理数据加载中和无数据状态的骨架屏显示"
-        >
-        <Card className="shadow-sm border-zinc-200">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="text-sm font-medium text-zinc-600 mb-1">{t("Requests")}</div>
-                <div className="text-3xl font-bold">70</div>
-              </div>
-              <button className="text-zinc-400 hover:text-zinc-600">
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <DevAnnotation
-              customContent={
-                <div className="text-xs whitespace-pre-wrap leading-relaxed">
-                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
-                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
-                    <li>固定 6 根柱子</li>
-                    <li>24h：每根 4h</li>
-                    <li>7d：每根 1d</li>
-                    <li>30d：每根 5d</li>
-                    <li>1y：每根 2 months</li>
-                    <li>堆叠只展示 Top 3 + Others</li>
-                  </ul>
-                </div>
-              }
-            >
-              <div className="h-[120px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </DevAnnotation>
-
-            <div className="space-y-3">
-              {currentLegendItems.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-zinc-700">{item.name}</span>
-                  </div>
-                  <span className="text-zinc-500 font-mono">{item.reqs}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        </DevAnnotation>
-
-        {/* Success Rate Card */}
-        <DevAnnotation
-          customContent={
-            <div className="text-xs whitespace-pre-wrap leading-relaxed">
-              <div className="font-semibold mb-2 text-base">Success Rate = 成功请求数 / 总请求数</div>
-              
-              <div className="mb-2">
-                <span className="font-semibold text-sm">成功请求</span><br/>
-                指最终状态是：<br/>
-                • succeeded<br/>
-                • 或者同步请求返回 2xx 且拿到了有效结果
-              </div>
-
-              <div className="mb-2">
-                <span className="font-semibold text-sm">总请求</span><br/>
-                指所有真正发起执行的请求：<br/>
-                • succeeded<br/>
-                • failed<br/>
-                <span className="text-zinc-500">先不把用户主动取消的 cancel 算进去，也不把明显非法请求算进来。</span>
-              </div>
-
-              <div className="mb-2">
-                <span className="font-semibold text-sm">1）对话</span><br/>
-                成功 = 返回了有效回答<br/>
-                例如：<br/>
-                • 接口成功返回<br/>
-                • 有 message/content<br/>
-                • 没有上游错误<br/>
-                • 没超时<br/>
-                <span className="text-zinc-500">Chat Success Rate = 成功返回回答的请求数 / 总对话请求数</span>
-              </div>
-
-              <div className="mb-2">
-                <span className="font-semibold text-sm">2）图片</span><br/>
-                成功 = 图片任务最终完成，并且有可用图片 URL 或结果对象<br/>
-                <span className="text-zinc-500">Image Success Rate = 成功生成图片的请求数 / 总图片请求数</span>
-              </div>
-
-              <div className="mb-2">
-                <span className="font-semibold text-sm">3）视频</span><br/>
-                成功 = 视频任务最终完成，并拿到有效视频结果<br/>
-                因为视频大概率是异步任务，所以不能看“创建任务成功”，而要看：<br/>
-                最终任务是不是 completed / succeeded<br/>
-                <span className="text-zinc-500">Video Success Rate = 成功完成的视频任务数 / 总视频任务数</span>
-              </div>
-
-              <div className="mb-2">
-                <span className="font-semibold text-sm">4）音频</span><br/>
-                成功 = 音频任务最终完成，并返回有效音频或文本结果<br/>
-                比如：<br/>
-                • TTS 返回音频 URL<br/>
-                • STT 返回转写文本<br/>
-                • 音频生成返回结果文件
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-zinc-300">
-                <span className="font-semibold text-red-600 text-sm">最重要的一点：不要把“任务创建成功”当成成功率</span><br/>
-                比如视频请求：<br/>
-                1. 用户提交任务<br/>
-                2. 你们返回了 task_id<br/>
-                3. 但 30 秒后任务失败了<br/>
-                成功率看最终结果，不看任务是否创建成功。<br/>
-                <br/>
-                最终成功完成并返回有效结果的请求 / 总有效请求<br/>
-                <span className="text-zinc-500">总有效请求不包含：用户取消的、参数错误的、拒绝的都排除</span>
-              </div>
-            </div>
-          }
-        >
-        <Card className="shadow-sm border-zinc-200">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="text-sm font-medium text-zinc-600 mb-1 flex items-center gap-1.5">
-                  {t("Success Rate")}
-                </div>
-                <div className="text-3xl font-bold">99.8%</div>
-              </div>
-              <button className="text-zinc-400 hover:text-zinc-600">
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            </div>
-            
-            <DevAnnotation
-              customContent={
-                <div className="text-xs whitespace-pre-wrap leading-relaxed">
-                  <div className="font-semibold mb-2 text-sm">卡片内小柱图规则</div>
-                  <ul className="list-disc pl-4 space-y-1 text-zinc-700">
-                    <li>固定 6 根柱子</li>
-                    <li>24h：每根 4h</li>
-                    <li>7d：每根 1d</li>
-                    <li>30d：每根 5d</li>
-                    <li>1y：每根 2 months</li>
-                    <li>堆叠只展示 Top 3 + Others</li>
-                  </ul>
-                </div>
-              }
-            >
-              <div className="h-[120px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </DevAnnotation>
-
-            <div className="space-y-3">
-              {currentLegendItems.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-zinc-700">{item.name}</span>
-                  </div>
-                  <span className="text-zinc-500 font-mono">{item.successRate}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        </DevAnnotation>
+      {/* Modality Tabs */}
+      <div className="flex bg-transparent border-b border-zinc-200 w-full mb-6">
+        {["All", "Chat", "Video", "Image", "Audio"].map((modality) => (
+          <button
+            key={modality}
+            onClick={() => setModalityFilter(modality)}
+            className={`px-6 py-3 text-sm font-semibold transition-colors relative ${
+              modalityFilter === modality
+                ? "text-zinc-900"
+                : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50"
+            }`}
+          >
+            {t(modality)}
+            {modalityFilter === modality && (
+               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Top Error Models */}
-      <div className="grid grid-cols-1 gap-6">
-        <DevAnnotation
-          elementName="错误率统计面板"
-          componentType="Card"
-          functionDesc="统计并显示当前条件下错误率前五的模型"
-          interactionRule="随顶部过滤器变化"
-        >
-          <Card className="bg-white border-zinc-200 shadow-sm relative overflow-hidden">
-            <CardContent className="p-0">
-              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
-                <div className="text-sm font-medium text-zinc-800 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  {t("Top 5 Models by Error Rate")}
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2 mb-8 bg-zinc-50/50 p-2 rounded-xl border border-zinc-200 min-h-[48px]">
+        {['Model', 'API Key'].map((type) => {
+          const filtersOfType = activeFilters.filter(f => f.type === type);
+          if (filtersOfType.length === 0) return null;
+          
+          const firstValue = filtersOfType[0].value;
+          const remainingCount = filtersOfType.length - 1;
+          
+          return (
+            <div key={type} className="flex items-center text-sm bg-white border border-zinc-200 rounded-md shadow-sm overflow-hidden h-8">
+              <div className="px-2.5 py-1 bg-zinc-50 text-zinc-500 border-r border-zinc-200 font-medium whitespace-nowrap">
+                {type}
+              </div>
+              <div className="px-2.5 py-1 text-zinc-400 font-medium text-xs whitespace-nowrap">
+                 is {filtersOfType.length > 1 ? "any of" : ""}
+              </div>
+              <div className="px-2.5 py-1 font-medium text-zinc-900 bg-zinc-50/50 whitespace-nowrap">
+                {firstValue} {remainingCount > 0 ? `, +${remainingCount} more` : ""}
+              </div>
+              <button 
+                onClick={() => setActiveFilters(prev => prev.filter(f => f.type !== type))}
+                className="px-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 h-full flex items-center justify-center transition-colors border-l border-zinc-100"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          );
+        })}
+
+        <Popover open={filterPopoverOpen} onOpenChange={(open) => { setFilterPopoverOpen(open); if (!open) setTimeout(() => {setFilterMenuState("root"); setFilterSearchQuery("");}, 200); }}>
+          <PopoverTrigger className="flex items-center justify-center h-8 w-8 rounded-md bg-white text-zinc-400 hover:text-zinc-700 transition-colors border border-zinc-200 hover:shadow-sm" onClick={() => setFilterPopoverOpen(true)}>
+            <Plus className="w-4 h-4" />
+          </PopoverTrigger>
+          <PopoverContent align="start" className={`${filterMenuState === "root" ? "w-48" : "w-64"} p-0 rounded-xl shadow-lg border-zinc-200 overflow-hidden transition-all duration-200`}>
+            {filterMenuState === "root" && (
+              <div className="p-2">
+                <div className="text-[11px] font-semibold text-zinc-400 mb-2 px-2 uppercase tracking-wider">{t("Jump to...")}</div>
+                <div className="space-y-1">
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setFilterMenuState("model");
+                      setFilterSearchQuery("");
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
+                  >
+                    <span>{t("Model")}</span>
+                    <div className="flex items-center gap-2">
+                       {activeFilters.filter(f => f.type === 'Model').length > 0 && (
+                         <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
+                           {activeFilters.filter(f => f.type === 'Model').length}
+                         </div>
+                       )}
+                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+                    </div>
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setFilterMenuState("apikey");
+                      setFilterSearchQuery("");
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
+                  >
+                    <span>{t("API Key")}</span>
+                    <div className="flex items-center gap-2">
+                       {activeFilters.filter(f => f.type === 'API Key').length > 0 && (
+                         <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
+                           {activeFilters.filter(f => f.type === 'API Key').length}
+                         </div>
+                       )}
+                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+                    </div>
+                  </button>
                 </div>
               </div>
+            )}
+            
+            {(filterMenuState === "model" || filterMenuState === "apikey") && (
+              <div className="flex flex-col max-h-[300px]">
+                <div className="flex items-center px-3 py-2 border-b border-zinc-100 gap-2">
+                  <button onClick={(e) => { e.preventDefault(); setFilterMenuState("root"); }} className="text-zinc-400 hover:text-zinc-700">
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
+                  <Search className="w-4 h-4 text-zinc-400 shrink-0" />
+                  <input 
+                    type="text" 
+                    placeholder={`Search ${filterMenuState === 'model' ? 'models' : 'API keys'}`}
+                    value={filterSearchQuery}
+                    onChange={(e) => setFilterSearchQuery(e.target.value)}
+                    className="flex-1 bg-transparent border-none focus:outline-none text-sm text-zinc-800 placeholder:text-zinc-400 min-w-0"
+                    autoFocus
+                  />
+                </div>
+                <div className="overflow-y-auto p-1 py-1.5">
+                  {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems)
+                    .filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase()))
+                    .map((item, i) => {
+                      const isSelected = activeFilters.some(f => f.type === (filterMenuState === 'model' ? 'Model' : 'API Key') && f.value === item.name);
+                      return (
+                        <button
+                          key={i}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const type = filterMenuState === 'model' ? 'Model' : 'API Key';
+                            if (isSelected) {
+                              setActiveFilters(prev => prev.filter(f => !(f.type === type && f.value === item.name)));
+                            } else {
+                              setActiveFilters(prev => [...prev, { type, value: item.name }]);
+                            }
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-zinc-50 rounded-lg group transition-colors"
+                        >
+                          <span className={`${isSelected ? 'text-zinc-900 font-medium' : 'text-zinc-600 group-hover:text-zinc-900'} truncate mr-3`}>{item.name}</span>
+                          {isSelected && <Check className="w-4 h-4 text-zinc-900 shrink-0" />}
+                        </button>
+                      );
+                    })
+                  }
+                  {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems).filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase())).length === 0 && (
+                    <div className="px-3 py-4 text-sm text-center text-zinc-500">No results found</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {activeFilters.length > 0 && (
+          <button 
+            onClick={() => setActiveFilters([])}
+            className="ml-auto text-sm text-zinc-500 hover:text-zinc-800 px-3 font-medium transition-colors"
+          >
+            {t("Clear")}
+          </button>
+        )}
+      </div>
+
+      {modalityFilter === "Video" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mt-2">
+          {/* Card 1: Today's Cost */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+              <div className="text-sm font-medium text-zinc-500">
+                {t("Today's Cost")}
+              </div>
+              <div className="flex flex-col gap-1 mt-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-4xl font-bold tracking-tight text-zinc-900">125</span>
+                  <span className="text-sm font-medium text-zinc-500">{t("credits")}</span>
+                </div>
+                <span className="text-sm font-medium text-zinc-400">$12.50 USD</span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
+            <div className="text-[40px] leading-tight font-bold text-amber-500">8</div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-medium text-zinc-700">{t("Queued")}</div>
+              <div className="text-xs text-zinc-400">{t("right now")}</div>
+            </div>
+          </Card>
+
+          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
+            <div className="text-[40px] leading-tight font-bold text-indigo-500">3</div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-medium text-zinc-700">{t("Processing")}</div>
+              <div className="text-xs text-zinc-400">{t("right now")}</div>
+            </div>
+          </Card>
+
+          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
+            <div className="text-[40px] leading-tight font-bold text-emerald-500">142</div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-medium text-zinc-700">{t("Completed")}</div>
+              <div className="text-xs text-zinc-400">{t("today")}</div>
+            </div>
+          </Card>
+
+          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
+            <div className="text-[40px] leading-tight font-bold text-rose-500">2</div>
+            <div className="flex flex-col items-center">
+              <div className="text-sm font-medium text-zinc-700">{t("Failed")}</div>
+              <div className="text-xs text-zinc-400">{t("today")}</div>
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-2">
+          {/* Card 1: Today's Cost */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+              <div className="text-sm font-medium text-zinc-500">
+                {t("Today's Cost")}
+              </div>
+              <div className="flex flex-col gap-1 mt-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-4xl font-bold tracking-tight text-zinc-900">125</span>
+                  <span className="text-sm font-medium text-zinc-500">{t("credits")}</span>
+                </div>
+                <span className="text-sm font-medium text-zinc-400">$12.50 USD</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Today's Requests */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
+            <CardContent className="p-0 flex-grow flex flex-col justify-between">
+              <div className="px-5 pt-5 text-sm font-medium text-zinc-500">
+                {t("Today's Requests")}
+              </div>
+              <div className="px-5 mt-1">
+                <div className="text-4xl font-bold tracking-tight text-zinc-900">245</div>
+              </div>
               
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                  {topErrors.map((item, index) => (
-                    <div key={item.model} className="flex flex-col p-4 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-200 transition-colors">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index < 3 ? 'bg-red-100 text-red-600' : 'bg-zinc-200 text-zinc-600'}`}>
-                          {index + 1}
-                        </div>
-                        <span className="text-sm font-medium text-zinc-800 truncate" title={item.model}>{item.model}</span>
-                      </div>
-                      <div className="flex items-end justify-between mt-auto">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-zinc-500 mb-1">{t("Errors")}</span>
-                          <span className="text-lg font-semibold text-zinc-700">{item.errorCount}</span>
-                        </div>
-                        <div className="flex items-center bg-red-50 px-2.5 py-1 rounded-md border border-red-100">
-                          <span className="text-sm font-bold text-red-600">{item.errorRate}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              <div className="mt-2 h-[45px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendData}>
+                    <defs>
+                      <linearGradient id="colorCallsMetric" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="calls" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorCallsMetric)" isAnimationActive={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 3: Avg Latency */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+              <div className="text-sm font-medium text-zinc-500">
+                {modalityFilter === "Image" ? t("Avg Gen Time") : t("Avg Latency")}
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-4xl font-bold tracking-tight text-zinc-900">420</span>
+                <span className="text-sm font-medium text-zinc-400">ms</span>
+              </div>
+
+              <div className="mt-4 flex flex-col justify-end">
+                <div className="w-full flex h-1.5 rounded-full overflow-hidden mb-2">
+                  <div className="h-full bg-emerald-500" style={{ width: '45%' }}></div>
+                  <div className="h-full bg-amber-400" style={{ width: '40%' }}></div>
+                  <div className="h-full bg-rose-500" style={{ width: '15%' }}></div>
+                </div>
+                <div className="flex justify-between items-center text-[10px] font-medium text-zinc-400">
+                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>{t("Fast")}</div>
+                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>{t("Normal")}</div>
+                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>{t("Slow")}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        </DevAnnotation>
-      </div>
 
-      {/* Logs Banner */}
-      <DevAnnotation
-        elementName="日志迁移提示横幅"
-        componentType="System Logic / Banner"
-        functionDesc="提示用户日志功能已迁移至独立页面"
-        interactionRule="点击整个横幅区域跳转至 /logs 页面"
-        autoLogic="可考虑增加关闭按钮，点击后记录在 localStorage 中不再显示"
-        devNotes="当前为硬编码跳转，后续可根据用户配置决定是否显示"
-      >
-        <div 
-          onClick={() => navigate('/logs')}
-          className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex items-start gap-4 cursor-pointer hover:bg-indigo-50 transition-colors"
-        >
-          <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600 shrink-0">
-            <FileText className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-medium text-zinc-900 mb-1">{t("Detailed Logs")}</h3>
-            <p className="text-zinc-600 text-sm">
-              {t("To view detailed logs, please go to the")} <span className="text-indigo-600 hover:underline">{t("Logs page")}</span>.
-            </p>
+          {/* Card 4: Success Rate */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+              <div className="text-sm font-medium text-zinc-500">
+                {t("Success Rate")}
+              </div>
+              <div className="flex flex-col gap-1 mt-1 flex-grow">
+                <span className="text-4xl font-bold tracking-tight text-emerald-500">99.8%</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Level 3: Usage Charts */}
+      <div>
+        <div className="flex justify-between items-center mb-4 mt-8">
+          <h2 className="text-xl font-bold text-zinc-900">{t("Usage Analytics")}</h2>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger className={`flex justify-between items-center gap-2 px-3 py-1.5 bg-white border border-zinc-200 rounded-lg text-sm transition-colors shadow-sm ${date ? 'text-zinc-900 font-medium' : 'text-zinc-700'} hover:bg-zinc-50 min-w-[160px]`}>
+                <div className="flex items-center gap-2 truncate">
+                   <CalendarIcon className="w-4 h-4 text-zinc-400 shrink-0" />
+                   <span className="truncate">{date ? format(date, "MMM d, yyyy") : t("Last 7 days")}</span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => {
+                    setDate(d !== undefined ? d : undefined);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
-      </DevAnnotation>
+
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden mb-6">
+          <div className="p-4 border-b border-zinc-100 flex justify-end items-center bg-zinc-50/50">
+            <div className="flex bg-zinc-100/80 p-1 rounded-lg border border-zinc-200/50 shadow-inner">
+               <button 
+                 onClick={() => setGroupFilter("By Model")}
+                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By Model' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
+               >
+                 {t("By Model")}
+               </button>
+               <button 
+                 onClick={() => setGroupFilter("By API Key")}
+                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By API Key' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
+               >
+                 {t("By API Key")}
+               </button>
+            </div>
+          </div>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:divide-x divide-zinc-100">
+          {/* Spend Card */}
+          <div className="md:pr-8 md:first:pl-0 pl-0 pt-6 md:pt-0 first:pt-0">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">{t("Spend")}</div>
+                  <div className="flex items-baseline gap-1">
+                    <div className="text-2xl font-bold text-zinc-900">13.2</div>
+                    <div className="text-xs text-zinc-500 font-medium">{t("credits")} <span className="text-zinc-400">($1.32)</span></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="h-[140px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="space-y-3">
+                {currentLegendItems.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                       <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                    </div>
+                    <span className="text-zinc-500 font-mono text-xs">{item.value} <span className="text-zinc-400">({item.usd})</span></span>
+                  </div>
+                ))}
+              </div>
+          </div>
+
+          {/* Requests Card */}
+          <div className="md:px-8 pl-0 pt-6 md:pt-0">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">{t("Requests / Tasks")}</div>
+                  <div className="text-2xl font-bold text-zinc-900">70</div>
+                </div>
+              </div>
+              
+              <div className="h-[140px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="space-y-3">
+                {currentLegendItems.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                      <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                    </div>
+                    <span className="text-zinc-500 font-mono text-xs">{item.reqs}</span>
+                  </div>
+                ))}
+              </div>
+          </div>
+
+          {/* Success Rate Card */}
+          <div className="md:pl-8 pl-0 pt-6 md:pt-0">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="text-sm font-medium text-zinc-500 mb-1">{t("Success Rate")}</div>
+                  <div className="text-2xl font-bold text-zinc-900">99.8%</div>
+                </div>
+              </div>
+              
+              <div className="h-[140px] mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={currentData} barSize={12}>
+                    <XAxis dataKey="time" hide />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                    {currentLegendItems.map((item, index) => (
+                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="space-y-3">
+                {currentLegendItems.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                       <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                    </div>
+                    <span className="text-zinc-500 font-mono text-xs">{item.successRate}</span>
+                  </div>
+                ))}
+              </div>
+          </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Level 4: App Consumption & API Key Consumption */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* App Consumption Pivot Table */}
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+          <CardContent className="p-0 flex-grow">
+            <div className="p-5 border-b border-zinc-100">
+              <h3 className="font-bold text-zinc-900 text-base">{t("Model Type Consumption")}</h3>
+              <p className="text-xs text-zinc-500 mt-1">{t("Cost and usage across your model types")}</p>
+            </div>
+            
+            <div className="w-full overflow-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-zinc-50/50 text-zinc-500 border-b border-zinc-100">
+                  <tr>
+                    <th className="px-5 py-3 font-medium">{t("Model Type")}</th>
+                    <th className="px-5 py-3 font-medium">{t("Credits / USD")}</th>
+                    <th className="px-5 py-3 font-medium">{t("Calls / Tasks")}</th>
+                    <th className="px-5 py-3 font-medium">{t("Success")}</th>
+                    <th className="px-5 py-3 font-medium">{t("Performance")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {appConsumptionData.map((app, idx) => (
+                    <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                      <td className="px-5 py-3.5 font-medium text-zinc-800">
+                        {t(app.name)}
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-zinc-600">
+                        {app.credits} <span className="text-zinc-400 text-[10px]">({app.usd})</span>
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.reqs}</td>
+                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.success}</td>
+                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.latency}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-5 mt-auto">
+              <div className="w-full flex h-2 rounded-full overflow-hidden mb-3 bg-zinc-100">
+                {appConsumptionData.map((app, idx) => (
+                  <div key={idx} className={`h-full ${app.color}`} style={{ width: `${app.progress}%` }}></div>
+                ))}
+              </div>
+              <div className="flex gap-4">
+                {appConsumptionData.map((app, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
+                    <div className={`w-2 h-2 rounded-full ${app.color}`}></div>
+                    {t(app.name)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* API Key Consumption Rank */}
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+          <CardContent className="p-0 flex-grow">
+            <div className="p-5 border-b border-zinc-100 flex justify-between items-center">
+              <h3 className="font-bold text-zinc-900 text-base">{t("API Key Consumption")}</h3>
+              <Link to="/keys" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 hover:underline">{t("Manage Keys")}</Link>
+            </div>
+            
+            <div className="p-5 space-y-5">
+              {apiKeyLegendItems.map((key, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-md bg-zinc-100 text-zinc-600 flex items-center justify-center text-xs font-bold font-mono">
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-zinc-800">{key.name}</div>
+                        <div className="text-xs text-zinc-400 font-mono mt-0.5">{key.keyString}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-zinc-900">{key.value} <span className="text-xs font-normal text-zinc-500">credits</span> <span className="text-xs font-normal text-zinc-400">({key.usd})</span></div>
+                    </div>
+                  </div>
+                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-2">
+                    <div className="h-full bg-indigo-500" style={{ width: `${Math.max(10, 100 - idx * 25)}%` }}></div>
+                  </div>
+                  <div className="flex justify-between text-[11px] font-medium text-zinc-500">
+                    <span>{key.reqs} {t("Calls")}</span>
+                    <span>{key.successRate} {t("Success")}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Level 5: Top 5 Models by Cost, Provider Health & Fault Diagnosis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Top 5 Models by Cost */}
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+          <CardContent className="p-0 flex-grow">
+            <div className="p-5 border-b border-zinc-100">
+              <h3 className="font-bold text-zinc-900 text-base">{t("Top 5 Models by Cost")}</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              {topCostModels1Week.map((model, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="font-medium text-zinc-700">{model.name}</span>
+                    <span className="font-mono text-zinc-500 text-xs">{model.value}</span>
+                  </div>
+                  <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: model.cost }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Provider Health */}
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+          <CardContent className="p-0 flex-grow flex flex-col">
+            <div className="p-5 border-b border-zinc-100">
+              <h3 className="font-bold text-zinc-900 text-base">{t("Provider Health")}</h3>
+            </div>
+            <div className="p-5 flex-grow flex flex-col">
+              <div className="flex justify-between items-center text-[13px] font-semibold text-zinc-900 mb-4 pb-2 border-b border-zinc-100/50">
+                <span>{t("Provider")}</span>
+                <div className="flex items-center justify-between w-[40%]">
+                  <span>{t("Success Rate")}</span>
+                  <span>{t("Avg Latency")}</span>
+                </div>
+              </div>
+              <div className="space-y-4 flex-grow">
+                {providerHealthData.map((provider, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-sm pb-4 border-b border-zinc-50 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${provider.dot}`}></div>
+                      <span className="font-medium text-zinc-900">{provider.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between w-[40%] text-right font-mono text-xs">
+                      <span className={provider.successColor}>{provider.successRate}</span>
+                      <span className="text-zinc-900">{provider.latency}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-zinc-500 mt-6 pt-5 border-t border-zinc-100">
+                {t("Success rate + Avg Latency, spot provider issues at a glance")}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Fault Diagnosis Center */}
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+          <CardContent className="p-0 flex-grow">
+            <div className="p-5 border-b border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-zinc-900 text-base">{t("Top 5 Error Rates")}</h3>
+                <Popover>
+                  <PopoverTrigger className="focus:outline-none flex items-center justify-center p-1 -m-1 rounded-full hover:bg-zinc-100 transition-colors">
+                    <Info className="w-4 h-4 text-zinc-500 cursor-pointer" />
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="w-[420px] bg-zinc-900 border border-zinc-800 rounded-lg p-5 shadow-xl max-h-[85vh] max-w-[90vw] overflow-y-auto z-50 text-left">
+                    <div className="space-y-5 text-sm text-zinc-300">
+                      
+                      {/* Model Attribution */}
+                      <div>
+                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型等） — 适用于以下错误类型：</div>
+                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
+                          <div>Rate Limit Exceeded</div>
+                          <div>Model Overloaded</div>
+                          <div>Network Error</div>
+                          <div>Timeout</div>
+                          <div>502 Bad Gateway</div>
+                          <div>503 Service Unavailable</div>
+                          <div>Context Length Exceeded</div>
+                          <div>Invalid Parameters</div>
+                          <div>Content Filtered</div>
+                          <div>Unsupported Feature</div>
+                        </div>
+                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例：</div>
+                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
+                          <div className="flex justify-between text-zinc-200 font-medium">
+                            <span>Rate Limit Exceeded</span>
+                            <span>145 &nbsp;&nbsp;45%</span>
+                          </div>
+                          <div className="mt-1 flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;├── Claude Opus 4.6</span>
+                            <span>98 &nbsp;&nbsp;(67.6%)</span>
+                          </div>
+                          <div className="flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;├── GPT-4o-mini</span>
+                            <span>35 &nbsp;&nbsp;(24.1%)</span>
+                          </div>
+                          <div className="flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;└── gpt-oss-120b</span>
+                            <span>12 &nbsp;&nbsp;&nbsp;(8.3%)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* API Key Attribution */}
+                      <div>
+                        <div className="text-zinc-100 font-bold mb-1">需要归因（按 API Key） — 适用于以下错误类型：</div>
+                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
+                          <div>Invalid API Key</div>
+                        </div>
+                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (Invalid API Key)：</div>
+                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
+                          <div className="flex justify-between text-zinc-200 font-medium">
+                            <span>Invalid API Key</span>
+                            <span>30 &nbsp;&nbsp;&nbsp;10%</span>
+                          </div>
+                          <div className="mt-1 flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;├── sk-proj-a1B2...</span>
+                            <span>20 &nbsp;&nbsp;(66.7%)</span>
+                          </div>
+                          <div className="flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;└── sk-ant-api03...</span>
+                            <span>10 &nbsp;&nbsp;(33.3%)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* No Attribution */}
+                      <div>
+                        <div className="text-zinc-100 font-bold mb-1">不需要归因（用户侧问题） — 适用于以下错误类型：</div>
+                        <div className="pl-2 space-y-0.5 text-zinc-400">
+                          <div>Insufficient Balance</div>
+                          <div>Permission Denied</div>
+                          <div>Authentication Failed</div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 shrink-0">
+                <button
+                  onClick={() => navigate('/logs')}
+                  className="px-3 py-1.5 text-[11px] font-medium rounded-md hover:bg-white text-zinc-500 hover:text-zinc-900 transition-colors flex items-center gap-1.5"
+                >
+                  <Terminal className="w-3 h-3" />
+                  {t("View Realtime Logs")}
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-5">
+              <div className="flex flex-col gap-2">
+                {topErrors.map((error, idx) => {
+                  const isExpanded = expandedErrors[idx];
+                  const hasAttributions = error.attributions && error.attributions.length > 0;
+                  return (
+                  <div key={idx} className="flex flex-col bg-zinc-50 border border-zinc-100 rounded-xl overflow-hidden transition-all duration-200">
+                    <button 
+                      className={`flex items-center justify-between p-3 ${hasAttributions ? 'cursor-pointer hover:bg-zinc-100/50' : 'cursor-default'} transition-colors w-full`}
+                      onClick={() => hasAttributions && toggleExpandedError(idx)}
+                    >
+                      <div className="flex items-center gap-3">
+                         <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold shrink-0">
+                          {idx + 1}
+                        </div>
+                        <span className="text-sm font-semibold text-zinc-900">{error.reason}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 text-right">
+                          <span className="text-sm font-bold text-zinc-900">{error.count}</span>
+                          <span className="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100 min-w-[3rem] text-center">
+                            {error.percent}
+                          </span>
+                        </div>
+                        {hasAttributions ? (
+                          <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        ) : (
+                          <div className="w-4 h-4" />
+                        )}
+                      </div>
+                    </button>
+                    
+                    {isExpanded && hasAttributions && (
+                      <div className="px-3 pb-3 pt-1 bg-zinc-50 border-t border-zinc-100/50">
+                        <div className="flex flex-col text-xs text-zinc-600 font-mono">
+                          {error.attributions?.map((attr, attrIdx) => {
+                            const isLast = attrIdx === error.attributions!.length - 1;
+                            return (
+                              <div key={attrIdx} className="flex items-center py-1.5 px-2 hover:bg-zinc-100/50 rounded transition-colors group">
+                                <div className="w-8 flex justify-center shrink-0 text-zinc-300 group-hover:text-zinc-400">
+                                  {isLast ? "└──" : "├──"}
+                                </div>
+                                <div className="flex-1 font-medium text-zinc-700">{attr.name}</div>
+                                <div className="flex items-center gap-4 text-right pl-4">
+                                  <span className="w-8 text-zinc-700">{attr.count}</span>
+                                  <span className="w-16 text-zinc-500">({attr.percent})</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {error.reason === "Invalid API Key" && (
+                          <div className="mt-3 ml-10 pl-2">
+                             <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 navigate('/api-keys');
+                               }}
+                               className="text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 shadow-sm hover:bg-zinc-50 px-3 py-1.5 rounded-md transition-colors"
+                             >
+                               {t("Manage API Keys")}
+                             </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )})}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 }
