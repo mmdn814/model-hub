@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useAssets, AssetType } from "@/contexts/AssetContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image as ImageIcon, Video, Wand2, HardDrive, Clock, FileType2, Tag, Trash2, Pencil, Check, X, Loader2, Info, Upload, AlertCircle, AudioLines, Image, Plus, Library, ArrowLeft, RefreshCw, QrCode, Smartphone, ScanFace, ChevronRight, Languages } from "lucide-react";
@@ -21,8 +22,9 @@ type UploadingFile = {
 };
 
 export default function Assets() {
+  const location = useLocation();
   const { assets, updateAsset, deleteAsset, addAsset, hasSignedAgreement, signAgreement } = useAssets();
-  const [mainTab, setMainTab] = useState("virtual");
+  const [mainTab, setMainTab] = useState((location.state as any)?.tab || "virtual");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -41,7 +43,7 @@ export default function Assets() {
   const [rhSubTab, setRhSubTab] = useState<'created' | 'authorized'>('created');
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [h5DialogOpen, setH5DialogOpen] = useState(false);
-  const [h5Step, setH5Step] = useState<'login' | 'auth' | 'live' | 'success'>('login');
+  const [h5Step, setH5Step] = useState<'login' | 'auth' | 'live' | 'success' | 'upload' | 'upload_success'>('login');
   const [h5LiveStepStatus, setH5LiveStepStatus] = useState<'idle' | 'scanning' | 'done'>('idle');
   const [authAgreed, setAuthAgreed] = useState(false);
   const [h5ActionType, setH5ActionType] = useState<'auth_only' | 'auth_and_upload' | null>(null);
@@ -49,6 +51,9 @@ export default function Assets() {
   const [showMismatchTips, setShowMismatchTips] = useState(false);
   const [rhFlowInfoOpen, setRhFlowInfoOpen] = useState(false);
   const [h5FlowInfoOpen, setH5FlowInfoOpen] = useState(false);
+  const [h5UploadGroupName, setH5UploadGroupName] = useState("");
+  const [h5UploadedAssets, setH5UploadedAssets] = useState<string[]>([]);
+  const h5GroupCreatedRef = useRef(false);
 
   const [realHumanGroups, setRealHumanGroups] = useState([
     {
@@ -126,6 +131,36 @@ export default function Assets() {
         fileInputRef.current?.click();
       }
     }
+  };
+
+  const handleH5Close = () => {
+    if (!h5GroupCreatedRef.current) {
+        if ((h5Step === 'success' || h5Step === 'upload' || h5Step === 'upload_success') && h5ActionType === 'auth_and_upload') {
+            h5GroupCreatedRef.current = true;
+            const newId = `rh-${Date.now()}`;
+            const newAsset = {
+              id: newId,
+              name: h5UploadGroupName || "Unnamed Group",
+              assetCount: h5UploadedAssets.length,
+              url: h5UploadedAssets.length > 0 ? h5UploadedAssets[0] : "https://images.unsplash.com/photo-1517404215738-15263e9f9178?w=500&q=80&blur=100"
+            };
+            setRealHumanGroups(prev => [newAsset, ...prev]);
+        } else if (h5Step === 'success' && h5ActionType === 'auth_only') {
+            h5GroupCreatedRef.current = true;
+            const newId = `rh-${Date.now()}`;
+            const newAsset = {
+              id: newId,
+              name: "Unnamed Group",
+              assetCount: 0,
+              url: "https://images.unsplash.com/photo-1517404215738-15263e9f9178?w=500&q=80&blur=100"
+            };
+            setRealHumanGroups(prev => [newAsset, ...prev]);
+        }
+    }
+    setRhSubTab('created');
+    setAuthAgreed(false);
+    setH5ActionType(null);
+    setH5DialogOpen(false);
   };
 
   const handleLegalAccept = () => {
@@ -878,7 +913,16 @@ export default function Assets() {
       </Dialog>
 
       {/* H5 Mobile Simulation Dialog */}
-      <Dialog open={h5DialogOpen} onOpenChange={(open) => !open && setH5DialogOpen(false)}>
+      <Dialog open={h5DialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          handleH5Close();
+        } else {
+          h5GroupCreatedRef.current = false;
+          setH5UploadGroupName("");
+          setH5UploadedAssets([]);
+          setH5DialogOpen(true);
+        }
+      }}>
         <DialogContent className="p-0 border-none bg-transparent shadow-none w-full max-w-[375px]">
           <div className="w-[375px] h-[812px] bg-white rounded-[40px] shadow-2xl border-[8px] border-zinc-900 relative overflow-hidden flex flex-col mx-auto shrink-0 select-none">
             {/* Notch */}
@@ -1054,29 +1098,106 @@ export default function Assets() {
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-900 mb-2 mt-4">Authorization Complete</h3>
                   <p className="text-zinc-500 mb-10 text-[15px] px-4 leading-relaxed">
-                    You have successfully authorized your portrait. You may now close this window and return to your PC.
+                    {h5ActionType === 'auth_and_upload' 
+                      ? "Authorization successful. You may now upload your assets."
+                      : "You have successfully authorized your portrait. You may now close this window and return to your PC."}
                   </p>
                   
                   <Button 
                     className="w-full max-w-xs bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl h-[52px] font-medium"
                     onClick={() => {
-                      setH5DialogOpen(false);
-                      // Add new item to realHumanGroups
-                      const newId = `rh-${Date.now()}`;
-                      const isAuthAndUpload = h5ActionType === 'auth_and_upload';
-                      const newAsset = {
-                        id: newId,
-                        name: "",
-                        assetCount: isAuthAndUpload ? 1 : 0,
-                        url: isAuthAndUpload ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&q=80" : "https://images.unsplash.com/photo-1517404215738-15263e9f9178?w=500&q=80&blur=100", // Empty grey if no asset, otherwise valid reference image
-                      };
-                      setRealHumanGroups(prev => [...prev, newAsset]);
-                      setRhSubTab('created');
-                      setAuthAgreed(false);
-                      setH5ActionType(null);
+                      if (h5ActionType === 'auth_and_upload') {
+                        setH5Step('upload');
+                      } else {
+                        handleH5Close();
+                      }
                     }}
                   >
-                    Finish Simulation
+                    Continue
+                  </Button>
+                </div>
+              )}
+
+              {h5Step === 'upload' && (
+                <div className="flex-1 bg-white flex flex-col p-6 animate-in slide-in-from-right duration-300 overflow-y-auto pt-16">
+                    <p className="text-zinc-500 text-xs mb-6">Group ID: group-{Date.now().toString().slice(-6)}-v9c5g</p>
+                    
+                    <div className="space-y-4 flex-1">
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-900 mb-1.5">Asset group name:</label>
+                        <Input 
+                          placeholder="Please enter group name"
+                          value={h5UploadGroupName}
+                          onChange={(e) => setH5UploadGroupName(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="pt-2">
+                        <div className="flex flex-wrap gap-2 mb-2">
+                           <div 
+                             className="w-20 h-20 border-2 border-dashed border-zinc-200 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-zinc-50 hover:border-indigo-400 cursor-pointer transition-colors"
+                             onClick={() => {
+                               if (h5UploadedAssets.length < 10) {
+                                  const demoImages = [
+                                    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&q=80",
+                                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&q=80",
+                                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80"
+                                  ];
+                                  setH5UploadedAssets(prev => [...prev, demoImages[prev.length % demoImages.length]]);
+                               }
+                             }}
+                           >
+                             <Plus className="w-6 h-6" />
+                           </div>
+                           {h5UploadedAssets.map((url, i) => (
+                             <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-zinc-200">
+                               <img src={url} className="w-full h-full object-cover" />
+                               <button 
+                                 className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-black/70 shadow-sm"
+                                 onClick={() => setH5UploadedAssets(prev => prev.filter((_, idx) => idx !== i))}
+                               >
+                                 <X className="w-3 h-3" />
+                               </button>
+                             </div>
+                           ))}
+                        </div>
+                        <p className="text-zinc-500 text-xs">{h5UploadedAssets.length} items (Max 10)</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 space-y-4 pb-6">
+                      <p className="text-zinc-400 text-[11px] text-center leading-relaxed px-2">
+                        By uploading, you confirm that you own or have the necessary rights to the content, and that it does not violate any laws or infringe any third-party rights.
+                      </p>
+                      <Button 
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-12 font-medium shadow-md shadow-blue-500/20"
+                        onClick={() => {
+                          setH5Step('upload_success');
+                        }}
+                      >
+                         Upload and authorize
+                      </Button>
+                    </div>
+                </div>
+              )}
+
+              {h5Step === 'upload_success' && (
+                <div className="flex-1 bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95 duration-300">
+                  <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                    <Check className="w-10 h-10 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-zinc-900 mb-2 mt-4">Upload Complete</h3>
+                  <p className="text-zinc-500 mb-10 text-[15px] px-4 leading-relaxed">
+                    You have successfully authorized your portrait and uploaded your assets. You may now close this window and return to your PC.
+                  </p>
+                  
+                  <Button 
+                    className="w-full max-w-xs bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl h-[52px] font-medium"
+                    onClick={() => {
+                      handleH5Close();
+                    }}
+                  >
+                    Continue
                   </Button>
                 </div>
               )}
@@ -1233,14 +1354,20 @@ export default function Assets() {
               </ol>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="font-semibold text-base text-zinc-900 border-b pb-2">第四阶段：活体检测与数据回传 (Mobile H5 -{`>`} Server -{`>`} PC Web)</h3>
               <ol className="list-decimal pl-5 space-y-1">
                 <li>用户点击上述任意一个按钮后，H5 调取手机摄像头。</li>
                 <li>接入 Adorado（底层由字节提供）的活体检测接口，用户对着镜头完成摇头、张嘴等活体动作。</li>
-                <li>认证成功后，手机端提示“认证与授权成功”，可以关闭页面。</li>
+                <li>认证成功后，如果选择【Authorize and upload】，手机端进入填写资产组名称并上传素材的页面；若选择【Authorized Portrait】，则手机端提示“认证与授权成功”，可以关闭页面。</li>
                 <li>PC端的状态刷新：PC端一直处于轮询/监听状态，收到成功回调后自动关闭二维码弹窗，刷新资产组列表。</li>
               </ol>
+              <div className="bg-zinc-50 p-4 rounded-lg border border-zinc-200">
+                <h4 className="font-medium text-zinc-900 mb-2">Auth & Upload 流程特殊说明:</h4>
+                <p className="text-zinc-600 text-sm leading-relaxed">
+                  如果用户点击的是 <code>Authorize & Upload</code>，活体认证成功后会进入资产上传页，用户可以输入资产组名称并上传最多 10 个视频/图片资产。即使活体认证成功但用户未上传资产（例如直接关闭了页面），PC 端也会显示出新创建的当前资产组，只是该资产组内容为空。
+                </p>
+              </div>
             </section>
 
             <section className="space-y-2">
@@ -1330,8 +1457,28 @@ export default function Assets() {
             <section className="space-y-2">
               <h3 className="font-semibold text-base text-zinc-900 border-b pb-2">4. 授权成功结果页 (Success Step)</h3>
               <ul className="list-disc pl-5 space-y-1 text-zinc-600">
-                <li><span className="font-medium text-zinc-800">Authorization Complete</span> (授权完成)</li>
+                <li><span className="font-medium text-zinc-800">Verification Complete / Authorization Complete</span> (验证完成/授权完成)</li>
                 <li><span className="font-medium text-zinc-800">You have successfully authorized your portrait. You may now close this window and return to your PC.</span><br/>(您已成功授权您的人像。现在您可以关闭此窗口并返回电脑端进行操作。)</li>
+                <li><span className="font-medium text-zinc-800">Authorization successful. You may now upload your assets.</span><br/>(授权成功。您现在可以上传您的资产。 - 仅 auth_and_upload 流程)</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="font-semibold text-base text-zinc-900 border-b pb-2">5. 资产上传页面 (Upload Step - 仅 auth_and_upload)</h3>
+              <ul className="list-disc pl-5 space-y-1 text-zinc-600 mb-4">
+                <li><span className="font-medium text-zinc-800">Asset group name:</span> (资产组名称)</li>
+                <li><span className="font-medium text-zinc-800">Please enter group name</span> (请输入资产组名称)</li>
+                <li><span className="font-medium text-zinc-800">X items (Max 10)</span> (X 项 (最多 10 项))</li>
+                <li><span className="font-medium text-zinc-800">By uploading, you confirm that you own or have the necessary rights to the content, and that it does not violate any laws or infringe any third-party rights.</span><br/>(上传即表示您确认您拥有该内容的必要权利且不违反任何法律或侵犯任何第三方权利。)</li>
+                <li><span className="font-medium text-zinc-800">Upload and authorize</span> (上传并授权)</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h3 className="font-semibold text-base text-zinc-900 border-b pb-2">6. 上传成功结果页 (Upload Success Step - 仅 auth_and_upload)</h3>
+              <ul className="list-disc pl-5 space-y-1 text-zinc-600">
+                <li><span className="font-medium text-zinc-800">Upload Complete</span> (上传完成)</li>
+                <li><span className="font-medium text-zinc-800">You have successfully authorized your portrait and uploaded your assets. You may now close this window and return to your PC.</span><br/>(您已成功授权人像并上传资产。现在您可以关闭此窗口并返回电脑端进行操作。)</li>
               </ul>
             </section>
           </div>

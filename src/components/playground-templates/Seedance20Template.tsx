@@ -11,7 +11,8 @@ import {
   Plus,
   X,
   FileCheck,
-  Upload
+  Upload,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
@@ -54,6 +56,8 @@ export function Seedance20Template({
     onSuccess: (url: string) => void;
     type: AssetType;
   } | null>(null);
+
+  const [modalTab, setModalTab] = useState<'real-human' | 'virtual'>('real-human');
 
   const handleSlotClick = (type: AssetType, onSuccess: (url: string) => void) => {
     setPendingAction({ type, onSuccess });
@@ -700,15 +704,29 @@ export function Seedance20Template({
       {/* Asset Picker Modal */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="sm:max-w-2xl">
-          <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <DialogTitle>Select Asset</DialogTitle>
-              <DialogDescription>Select an asset from your library</DialogDescription>
+          <DialogHeader className="pb-0 space-y-4">
+            <div className="flex flex-row items-start justify-between">
+               <div>
+                 <DialogTitle>Select Asset</DialogTitle>
+                 <DialogDescription>Select an asset from your library</DialogDescription>
+               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => { setAssetPickerOpen(false); navigate("/assets"); }}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload New
-            </Button>
+            <div className="flex items-center gap-1 border-b border-zinc-200">
+               <button
+                 onClick={() => setModalTab('real-human')}
+                 className={cn("px-4 py-2.5 text-sm font-medium transition-colors relative rounded-t-lg", modalTab === 'real-human' ? "text-zinc-900 bg-zinc-50" : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50/50")}
+               >
+                 Real-human
+                 {modalTab === 'real-human' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
+               </button>
+               <button
+                 onClick={() => setModalTab('virtual')}
+                 className={cn("px-4 py-2.5 text-sm font-medium transition-colors relative rounded-t-lg", modalTab === 'virtual' ? "text-zinc-900 bg-zinc-50" : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50/50")}
+               >
+                 Virtual Portrait
+                 {modalTab === 'virtual' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />}
+               </button>
+            </div>
           </DialogHeader>
           
           <div className="h-[300px] overflow-y-auto pr-2 mt-4">
@@ -737,14 +755,20 @@ export function Seedance20Template({
               ))}
               {assets.filter(a => a.type === pendingAction?.type).length === 0 && (
                 <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
-                  <p className="text-zinc-500 text-sm mb-4">No assets found in your library for this type.</p>
-                  <Button className="bg-purple-600 hover:bg-purple-700 text-white" onClick={() => { setAssetPickerOpen(false); navigate("/assets"); }}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Go to Asset Library to Upload
-                  </Button>
+                  <p className="text-zinc-500 text-sm mb-4">No {modalTab} assets found in your library for this type.</p>
                 </div>
               )}
             </div>
+          </div>
+          
+          <div className="pt-4 mt-2 text-sm text-center text-zinc-500">
+            Need more assets?{" "}
+            <button
+              onClick={() => { setAssetPickerOpen(false); navigate("/assets", { state: { tab: modalTab } }); }}
+              className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors"
+            >
+              Go to Asset Library to upload
+            </button>
           </div>
         </DialogContent>
       </Dialog>
