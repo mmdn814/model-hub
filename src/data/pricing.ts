@@ -78,5 +78,23 @@ export const pricingData: PricingData[] = [
       { id: "standard", unit: "per 1K chars", price: 0.015, credits: 15 },
       { id: "hd", unit: "per 1K chars", price: 0.030, credits: 30 }
     ]
+  },
+  {
+    id: "vidu",
+    modelIds: ["vidu-chat", "vidu-image"],
+    category: "chat",
+    provider: "Vidu",
+    versions: [
+      { id: "Chat Instruct", unit: "per million tokens", price: 0.800, credits: 800 }
+    ]
+  },
+  {
+    id: "vidu",
+    modelIds: ["vidu-chat", "vidu-image"],
+    category: "image",
+    provider: "Vidu",
+    versions: [
+      { id: "Image Generation", unit: "per image", price: 0.100, credits: 100 }
+    ]
   }
 ];

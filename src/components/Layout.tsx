@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon } from "lucide-react";
+import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
@@ -63,24 +64,72 @@ export default function Layout() {
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                  isActive 
-                    ? "bg-zinc-100 text-zinc-900" 
-                    : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+              <div key={item.path} className={cn("flex items-center w-full group relative rounded-md", isActive ? "bg-zinc-100" : "hover:bg-zinc-50")}>
+                <Link
+                  to={item.path}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors flex-1",
+                    isActive 
+                      ? "text-zinc-900" 
+                      : "text-zinc-500 hover:text-zinc-900"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {t(item.labelKey)}
+                </Link>
+                {item.path === "/pricing" && (
+                  <Popover>
+                    <PopoverTrigger 
+                      className="absolute right-2 cursor-pointer text-[10px] font-semibold text-zinc-900 bg-amber-200/60 px-1.5 py-0.5 rounded border border-amber-300/50 hover:bg-amber-300/80 transition-colors" 
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      【202668 需求】
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" className="w-[350px] p-4 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl" onClick={(e) => e.stopPropagation()}>
+                      <p className="font-semibold text-zinc-900 mb-2 whitespace-nowrap">需求说明 (Pricing 定价逻辑兼容)</p>
+                      <ul className="list-decimal space-y-1.5 text-zinc-600 ml-4">
+                        <li>B端修改了定价逻辑，一个模型可以对应多个分类，每个分类可以有一个定价逻辑，需要在prcing页面兼容</li>
+                        <li>例如vidu支持chat和image，那么分别搜索这两个tag时候需要出现对应的价格</li>
+                        <li>在All，里面显示两个定价区域</li>
+                        <li>对应模型的read me的价格里面也需要适配</li>
+                        <li>在模型详情页中，也需要增加对应的价格，取第一条</li>
+                      </ul>
+                    </PopoverContent>
+                  </Popover>
                 )}
-              >
-                <item.icon className="w-4 h-4" />
-                {t(item.labelKey)}
-              </Link>
+              </div>
             );
           })}
+          
+          <div className="flex items-center w-full px-3 py-2 rounded-md transition-colors hover:bg-indigo-50 group">
+            <a
+              href="https://discord.com/invite/W33EWChT9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center gap-3 text-sm font-medium text-zinc-500 hover:text-indigo-600 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              {t("Discord Community")}
+            </a>
+            
+            <Popover>
+              <PopoverTrigger 
+                className="cursor-pointer text-[10px] font-semibold text-zinc-900 bg-amber-200/60 px-1.5 py-0.5 rounded border border-amber-300/50 hover:bg-amber-300/80 transition-colors ml-2" 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                【202668 需求】
+              </PopoverTrigger>
+              <PopoverContent side="right" align="start" className="w-[300px] p-4 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl" onClick={(e) => e.stopPropagation()}>
+                <p className="font-semibold text-zinc-900 mb-2">需求说明</p>
+                <p className="text-zinc-600">用户点击discord地址, 跳转到:<br/><a href="https://discord.com/invite/W33EWChT9" className="text-indigo-600 hover:underline break-all" target="_blank" rel="noopener noreferrer">https://discord.com/invite/W33EWChT9</a></p>
+              </PopoverContent>
+            </Popover>
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-zinc-200">
+        <div className="p-4 border-t border-zinc-200 space-y-1">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors"

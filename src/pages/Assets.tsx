@@ -2,12 +2,13 @@ import { useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAssets, AssetType } from "@/contexts/AssetContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image as ImageIcon, Video, Wand2, HardDrive, Clock, FileType2, Tag, Trash2, Pencil, Check, X, Loader2, Info, Upload, AlertCircle, AudioLines, Image, Plus, Library, ArrowLeft, RefreshCw, QrCode, Smartphone, ScanFace, ChevronRight, Languages } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Image as ImageIcon, Video, Wand2, HardDrive, Clock, FileType2, Tag, Trash2, Pencil, Check, X, Loader2, Info, Upload, AlertCircle, AudioLines, Image, Plus, Library, ArrowLeft, RefreshCw, QrCode, Smartphone, ScanFace, ChevronRight, Languages, Copy, Book } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AssetAgreementDialog } from "@/components/AssetAgreementDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 type UploadingFile = {
@@ -20,6 +21,114 @@ type UploadingFile = {
   file: File;
   previewUrl?: string;
 };
+
+const CopyIdButton = ({ id }: { id: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <div className={cn("absolute top-3 right-3 px-2 py-1.5 bg-black/50 hover:bg-black/70 rounded-md backdrop-blur-md transition-all cursor-pointer", copied ? "opacity-100" : "opacity-0 group-hover:opacity-100")} 
+      onClick={(e) => { 
+        e.stopPropagation(); 
+        navigator.clipboard.writeText(id);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}>
+       <span className="text-white text-xs font-mono font-medium flex items-center gap-1.5">
+         {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />} 
+         {copied ? "Copied successfully" : "Id"}
+       </span>
+    </div>
+  );
+};
+
+const OfficialAssetGrid = ({ items, onPreview }: { items: typeof OFFICIAL_ASSETS, onPreview: (asset: any) => void }) => {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+      {items.map((asset) => (
+        <div key={asset.id} className="relative group cursor-pointer aspect-[3/4] rounded-2xl bg-zinc-100 ring-1 ring-zinc-200" onClick={() => onPreview({
+          id: asset.id,
+          name: asset.shortDesc,
+          type: "image",
+          url: asset.url,
+          status: "done",
+          size: 0,
+          file: new File([], ''),
+          official: true,
+          biography: asset.biography,
+          tags: asset.tags
+        })}>
+          <img src={asset.url} alt={asset.shortDesc} className="w-full h-full object-cover rounded-2xl" />
+          
+          <CopyIdButton id={asset.id} />
+          
+          <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none rounded-b-2xl"></div>
+          
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+            <span className="text-white text-sm font-medium leading-tight max-w-[70%] line-clamp-2">{asset.tags.join(' • ')}</span>
+            <div className="flex gap-2 items-center">
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger 
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-md transition-colors relative cursor-pointer" 
+                    onClick={(e) => { e.stopPropagation(); }}
+                  >
+                    <Book className="w-5 h-5 text-white" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={12} className="w-80 bg-white rounded-xl shadow-2xl ring-1 ring-zinc-200 p-5 text-left pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-zinc-500 text-xs mb-1">character tag</p>
+                          <p className="text-zinc-900 text-sm font-medium">{asset.tags.join(', ')}</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-500 text-xs mb-1">asset ID</p>
+                          <div className="flex items-center gap-2 group/id">
+                            <p className="text-zinc-900 text-sm font-medium truncate">{asset.id}</p>
+                            <button onClick={() => navigator.clipboard.writeText(asset.id)} className="text-zinc-400 hover:text-zinc-600">
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <p className="text-blue-600 hover:underline text-xs mt-1 cursor-pointer w-fit" onClick={() => navigator.clipboard.writeText(asset.id)}>Generate and copy asset URIs</p>
+                        </div>
+                        <div>
+                          <p className="text-zinc-500 text-xs mb-1">biography</p>
+                          <p className="text-zinc-700 text-sm leading-relaxed whitespace-normal">{asset.biography}</p>
+                        </div>
+                      </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const OFFICIAL_ASSETS = [
+  {
+    id: "asset-20260225015229-d77t9",
+    url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&q=80",
+    tags: ["United Kingdom", "male", "Model"],
+    biography: "The 22-year-old British male model is an extremely perfect fit for street-style high-fashion shoots. He has a habit of whistling softly while waiting for his turn on set, and always spends his leisure time on the terrace of his apartment tending to the dozen or so ornamental pigeons he keeps.",
+    shortDesc: "United Kingdom 22-year-old male"
+  },
+  {
+    id: "asset-20260225015230-e88u0",
+    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=80",
+    tags: ["France", "female", "Fashion"],
+    biography: "A 24-year-old French female fashion model known for elegant editorial shoots. She enjoys vintage photography and often brings an old film camera to her sets.",
+    shortDesc: "France 24-year-old female"
+  },
+  {
+    id: "asset-20260225015231-f99v1",
+    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80",
+    tags: ["United States", "male", "Casual"],
+    biography: "A 28-year-old American actor with a rugged, casual style perfect for lifestyle and outdoor campaigns. An avid surfer who spends his weekends on the coast.",
+    shortDesc: "United States 28-year-old male"
+  }
+];
 
 export default function Assets() {
   const location = useLocation();
@@ -840,6 +949,68 @@ export default function Assets() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />
             )}
           </button>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setMainTab("official")}
+            className={cn(
+              "px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer",
+              mainTab === "official" ? "text-zinc-900 bg-zinc-100 rounded-t-lg" : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 rounded-t-lg"
+            )}
+          >
+            <div className="flex items-center gap-1.5">
+              Official Library
+              <Popover>
+                <PopoverTrigger 
+                  className="cursor-pointer text-xs font-semibold text-zinc-900 bg-amber-200/60 px-1.5 py-0.5 rounded border border-amber-300/50 hover:bg-amber-300/80 transition-colors inline-block" 
+                  onClick={(e) => e.stopPropagation()} 
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  【202668 需求】
+                </PopoverTrigger>
+                <PopoverContent side="bottom" align="start" className="w-[480px] p-5 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col">
+                    <p className="font-semibold text-zinc-900 mb-2">这一期的官方素材均来源于字节的官方虚拟人像图片素材</p>
+                    
+                    <div className="mt-3 mb-2 p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                      <p className="font-semibold text-zinc-900 mb-1.5">关于资产库的权限与来源</p>
+                      <ol className="list-decimal space-y-1.5 text-zinc-600 ml-4">
+                        <li>增加官方素材库<br/><span className="text-zinc-500">只有B端后台，开启官方素材库的用户并且在C端签署了《使用资产库》协议的用户才能看到官方素材库</span></li>
+                        <li>官方素材库的素材来源于我们的服务器</li>
+                        <li>官方素材库显示：资产标签、资产ID和资产描述，三个字段，这三个字段需要去字节后台的虚拟人像官方资产库提前抓取，并入到我们自己的库中</li>
+                      </ol>
+                    </div>
+
+                    <div className="p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                      <p className="font-semibold text-zinc-900 mb-1.5">关于资产库在C端的显示（已有权限的情况下）：</p>
+                      <ol className="list-decimal space-y-1.5 text-zinc-600 ml-4">
+                        <li>显示素材图片的缩略图</li>
+                        <li>缩略图上宣誓素材标签、详情的图标、复制ID图标</li>
+                      </ol>
+                      
+                      <p className="font-semibold text-zinc-900 mt-3 mb-1.5">关于素材库图片的功能：</p>
+                      <ol className="list-decimal space-y-1.5 text-zinc-600 ml-4">
+                        <li>点击缩略图，显示当前素材的大图</li>
+                        <li>鼠标悬停到【详情的图标】显示当前素材的tag、assetid和biography</li>
+                        <li>鼠标点击【复制ID图标】复制当前素材的assetid</li>
+                      </ol>
+                    </div>
+
+                    <div className="mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-100">
+                      <p className="font-semibold text-zinc-900 mb-1.5">关于官方素材的补充说明：</p>
+                      <ul className="list-disc space-y-1.5 text-zinc-600 ml-4">
+                        <li>如果当前用户有权限官方素材库,那么在seedance2.0的两个模型在选择素材的时候也需要能显示出来官方素材</li>
+                        <li>官方素材可以作为一个资产组来看待</li>
+                      </ul>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            {mainTab === "official" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />
+            )}
+          </div>
         </div>
       </div>
 
@@ -857,6 +1028,10 @@ export default function Assets() {
 
       {mainTab === "virtual" && selectedVirtualGroup && (
         <GroupDetail group={selectedVirtualGroup} onBack={() => setSelectedVirtualGroup(null)} />
+      )}
+      
+      {mainTab === "official" && (
+        <OfficialAssetGrid items={OFFICIAL_ASSETS} onPreview={setPreviewAsset} />
       )}
       
       <AssetAgreementDialog 

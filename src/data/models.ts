@@ -570,5 +570,17 @@ export const models = [
     category: "video",
     previewUrl: "https://picsum.photos/seed/wanx2.1-kf2v-plus/400/225",
     providerLogo: "A"
+  },
+  {
+    id: "vidu",
+    name: "Vidu Multimodal",
+    provider: "Vidu",
+    description: "Multimodal AI supporting Chat and Image Generation",
+    status: "Active",
+    visibility: "Visible",
+    tags: ["Chat", "Text to Image"],
+    category: "chat", // Primary category, but it will be filtered flexibly
+    previewUrl: "https://picsum.photos/seed/vidu/400/225",
+    providerLogo: "V"
   }
 ];

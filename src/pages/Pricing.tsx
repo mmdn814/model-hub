@@ -75,6 +75,18 @@ export default function Pricing() {
     });
   }, [groupedModels, searchQuery, activeCategory, activeProvider, activeTask]);
 
+  // Group by model id to support models with multiple pricing categories
+  const groupedByModelId = useMemo(() => {
+    const groups = new Map<string, typeof groupedModels>();
+    filteredModels.forEach(model => {
+      if (!groups.has(model.id)) {
+        groups.set(model.id, []);
+      }
+      groups.get(model.id)!.push(model);
+    });
+    return Array.from(groups.entries());
+  }, [filteredModels]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       <div>
@@ -175,6 +187,18 @@ export default function Pricing() {
         devNotes="Supports multi-language"
       >
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveCategory(null)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+              activeCategory === null 
+                ? "bg-zinc-900 text-white shadow-sm" 
+                : "bg-white text-zinc-600 hover:bg-zinc-50 border border-zinc-200"
+            )}
+          >
+            {t("All Categories")}
+          </button>
+          
           {categories.map((category) => {
             const Icon = category.icon;
             const isActive = activeCategory === category.id;
@@ -212,20 +236,21 @@ export default function Pricing() {
         devNotes="Refactored to match provided screenshot layout"
       >
         <div className="space-y-6">
-          {filteredModels.length > 0 ? (
-            filteredModels.map((model) => {
-              const fullModel = models.find(m => m.id === model.id || m.id.startsWith(model.id));
-              const providerLogo = fullModel?.providerLogo || model.provider[0];
+          {groupedByModelId.length > 0 ? (
+            groupedByModelId.map(([modelId, modelGroup]) => {
+              const fullModel = models.find(m => m.id === modelId || m.id.startsWith(modelId));
+              const providerLogo = fullModel?.providerLogo || modelGroup[0].provider[0];
+              const hasCachePrice = modelGroup.some(m => m.versions.some(v => v.cachePrice !== undefined));
               
               return (
-                <div key={model.id} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                <div key={modelId} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4 p-5 bg-zinc-50/80 border-b border-zinc-100">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center text-white font-bold text-lg shadow-sm">
                       {providerLogo}
                     </div>
                     <div>
-                      <Link to={`/models/${model.id}`} className="hover:underline text-xl font-bold text-zinc-900 leading-tight block w-fit">
-                        {fullModel?.name || model.id}
+                      <Link to={`/models/${modelId}`} className="hover:underline text-xl font-bold text-zinc-900 leading-tight block w-fit">
+                        {fullModel?.name || modelId}
                       </Link>
                       <p className="text-sm text-zinc-500 mt-0.5 font-medium">{fullModel?.description || "High-performance AI model"}</p>
                     </div>
@@ -251,7 +276,7 @@ export default function Pricing() {
                               </Tooltip>
                             </div>
                           </th>
-                          {model.versions.some(v => v.cachePrice !== undefined) && (
+                          {hasCachePrice && (
                             <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%] text-right">
                               {t("Cache Hit (Credits / USD)")}
                             </th>
@@ -262,60 +287,64 @@ export default function Pricing() {
                         </tr>
                       </thead>
                       <tbody>
-                        {model.versions.map((version, idx) => (
-                          <tr key={idx} className="border-b border-zinc-100 last:border-none hover:bg-zinc-50/50 transition-colors">
-                            <td className="py-4 px-6">
-                              <div className="flex flex-col gap-1.5">
-                                <span className="font-medium text-[15px] text-zinc-800">
-                                  {version.id}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="secondary" className={cn(
-                                    "text-[10px] uppercase tracking-wider border-transparent px-2 py-0.5 font-semibold",
-                                    model.category === "video" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
-                                    model.category === "chat" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
-                                    model.category === "image" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100"
-                                  )}>
-                                    {t(model.category.toLowerCase())}
-                                  </Badge>
-                                  <span className="text-sm text-zinc-500 font-medium">
-                                    {model.provider}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-4 px-6 align-top">
-                              <div className="flex flex-col">
-                                <span className="font-bold text-[17px] text-zinc-900">
-                                  {version.credits}
-                                </span>
-                                <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
-                                  {t(version.unit)}
-                                </span>
-                              </div>
-                            </td>
-                            {model.versions.some(v => v.cachePrice !== undefined) && (
-                              <td className="py-4 px-6 align-top text-right">
-                                {version.cachePrice !== undefined ? (
-                                  <div className="flex flex-col items-end">
-                                    <span className="font-bold text-[17px] text-emerald-600">
-                                      ${version.cachePrice.toFixed(3)}
+                        {modelGroup.map((model) => (
+                          <React.Fragment key={model.category}>
+                            {model.versions.map((version, idx) => (
+                              <tr key={`${model.category}-${idx}`} className="border-b border-zinc-100 last:border-none hover:bg-zinc-50/50 transition-colors">
+                                <td className="py-4 px-6">
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="font-medium text-[15px] text-zinc-800">
+                                      {version.id}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className={cn(
+                                        "text-[10px] uppercase tracking-wider border-transparent px-2 py-0.5 font-semibold",
+                                        model.category === "video" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                        model.category === "chat" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100",
+                                        model.category === "image" && "bg-blue-100 text-[#0055FF] hover:bg-blue-100"
+                                      )}>
+                                        {t(model.category.toLowerCase())}
+                                      </Badge>
+                                      <span className="text-sm text-zinc-500 font-medium">
+                                        {model.provider}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6 align-top">
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-[17px] text-zinc-900">
+                                      {version.credits}
                                     </span>
                                     <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
-                                      {version.cacheCredits} {t("credits")}
+                                      {t(version.unit)}
                                     </span>
                                   </div>
-                                ) : (
-                                  <span className="text-zinc-300">-</span>
+                                </td>
+                                {hasCachePrice && (
+                                  <td className="py-4 px-6 align-top text-right">
+                                    {version.cachePrice !== undefined ? (
+                                      <div className="flex flex-col items-end">
+                                        <span className="font-bold text-[17px] text-emerald-600">
+                                          ${version.cachePrice.toFixed(3)}
+                                        </span>
+                                        <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                          {version.cacheCredits} {t("credits")}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-zinc-300">-</span>
+                                    )}
+                                  </td>
                                 )}
-                              </td>
-                            )}
-                            <td className="py-4 px-6 align-top text-right">
-                              <span className="font-bold text-[17px] text-[#0055FF]">
-                                ${version.price.toFixed(3)}
-                              </span>
-                            </td>
-                          </tr>
+                                <td className="py-4 px-6 align-top text-right">
+                                  <span className="font-bold text-[17px] text-[#0055FF]">
+                                    ${version.price.toFixed(3)}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
                         ))}
                       </tbody>
                     </table>
