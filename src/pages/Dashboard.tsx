@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
@@ -68,7 +69,8 @@ const trendData = [
 const appConsumptionData = [
   { name: "Chat", credits: "4.2", usd: "$0.42", reqs: "120 calls", success: "99.8%", latency: "380ms", progress: 40, color: "bg-blue-500" },
   { name: "Video (task)", credits: "3.5", usd: "$0.35", reqs: "45 tasks", success: "95.2%", latency: "~3m 28s", progress: 30, color: "bg-emerald-500" },
-  { name: "Image", credits: "2.1", usd: "$0.21", reqs: "80 tasks", success: "99.9%", latency: "~12s", progress: 20, color: "bg-purple-500" },
+  { name: "Image", credits: "1.1", usd: "$0.11", reqs: "40 calls", success: "99.9%", latency: "~12s", progress: 10, color: "bg-purple-500" },
+  { name: "Image (task)", credits: "1.0", usd: "$0.10", reqs: "40 tasks", success: "99.5%", latency: "~45s", progress: 10, color: "bg-pink-500" },
   { name: "Audio", credits: "1.2", usd: "$0.12", reqs: "60 calls", success: "98.5%", latency: "150ms", progress: 10, color: "bg-amber-500" },
 ];
 
@@ -130,12 +132,20 @@ const topCostModels1Week = [
   { name: "Others", cost: "5%", value: "$57.80" },
 ];
 
-const providerHealthData = [
+const providerHealthDataSync = [
   { name: "BytePlus", successRate: "99.9%", latency: "320ms", successColor: "text-emerald-500", dot: "bg-blue-500" },
   { name: "MiniMax", successRate: "99.5%", latency: "480ms", successColor: "text-emerald-500", dot: "bg-orange-500" },
   { name: "Alibaba", successRate: "97.2%", latency: "650ms", successColor: "text-amber-500", dot: "bg-emerald-500" },
   { name: "Anthropic", successRate: "99.8%", latency: "390ms", successColor: "text-emerald-500", dot: "bg-pink-500" },
   { name: "Zhipu", successRate: "99.1%", latency: "410ms", successColor: "text-emerald-500", dot: "bg-purple-500" },
+];
+
+const providerHealthDataAsync = [
+  { name: "BytePlus", successRate: "99.8%", latency: "2.1s", successColor: "text-emerald-500", dot: "bg-blue-500" },
+  { name: "MiniMax", successRate: "98.5%", latency: "4.8s", successColor: "text-emerald-500", dot: "bg-orange-500" },
+  { name: "Alibaba", successRate: "95.2%", latency: "6.5s", successColor: "text-amber-500", dot: "bg-emerald-500" },
+  { name: "Anthropic", successRate: "99.0%", latency: "1.2s", successColor: "text-emerald-500", dot: "bg-pink-500" },
+  { name: "Zhipu", successRate: "98.1%", latency: "3.1s", successColor: "text-emerald-500", dot: "bg-purple-500" },
 ];
 
 export default function Dashboard() {
@@ -151,6 +161,8 @@ export default function Dashboard() {
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>();
   const [expandedErrors, setExpandedErrors] = useState<Record<number, boolean>>({});
+  const [providerHealthType, setProviderHealthType] = useState<"sync" | "async">("sync");
+  const [imageTopTaskMode, setImageTopTaskMode] = useState<"sync" | "async">("sync");
 
   const toggleExpandedError = (idx: number) => {
     setExpandedErrors(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -341,7 +353,36 @@ export default function Dashboard() {
         )}
       </div>
 
-      {modalityFilter === "Video" ? (
+      {modalityFilter === "Image" && (
+        <div className="flex justify-start mb-4">
+          <div className="flex bg-zinc-100/80 p-0.5 rounded-lg border border-zinc-200/50 h-[34px]">
+            <button
+              onClick={() => setImageTopTaskMode("sync")}
+              className={cn(
+                "px-3 py-1 text-xs font-semibold rounded-md transition-all",
+                imageTopTaskMode === "sync"
+                  ? "bg-white text-zinc-800 shadow-sm border border-zinc-200/50"
+                  : "text-zinc-500 hover:text-zinc-700"
+              )}
+            >
+              {t("Sync")}
+            </button>
+            <button
+              onClick={() => setImageTopTaskMode("async")}
+              className={cn(
+                "px-3 py-1 text-xs font-semibold rounded-md transition-all",
+                imageTopTaskMode === "async"
+                  ? "bg-white text-zinc-800 shadow-sm border border-zinc-200/50"
+                  : "text-zinc-500 hover:text-zinc-700"
+              )}
+            >
+              {t("Async (Task)")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {modalityFilter === "Video" || (modalityFilter === "Image" && imageTopTaskMode === "async") ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mt-2">
           {/* Card 1: Today's Cost */}
           <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
@@ -674,7 +715,7 @@ export default function Dashboard() {
                   <div key={idx} className={`h-full ${app.color}`} style={{ width: `${app.progress}%` }}></div>
                 ))}
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 {appConsumptionData.map((app, idx) => (
                   <div key={idx} className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
                     <div className={`w-2 h-2 rounded-full ${app.color}`}></div>
@@ -752,8 +793,32 @@ export default function Dashboard() {
         {/* Provider Health */}
         <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden flex flex-col">
           <CardContent className="p-0 flex-grow flex flex-col">
-            <div className="p-5 border-b border-zinc-100">
+            <div className="p-5 border-b border-zinc-100 flex items-center justify-between">
               <h3 className="font-bold text-zinc-900 text-base">{t("Provider Health")}</h3>
+              <div className="flex bg-zinc-100/80 p-0.5 rounded-lg border border-zinc-200/50">
+                <button
+                  onClick={() => setProviderHealthType("sync")}
+                  className={cn(
+                    "px-3 py-1 text-xs font-semibold rounded-md transition-all",
+                    providerHealthType === "sync"
+                      ? "bg-white text-zinc-800 shadow-sm border-zinc-200/50"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  )}
+                >
+                  {t("Sync")}
+                </button>
+                <button
+                  onClick={() => setProviderHealthType("async")}
+                  className={cn(
+                    "px-3 py-1 text-xs font-semibold rounded-md transition-all",
+                    providerHealthType === "async"
+                      ? "bg-white text-zinc-800 shadow-sm border-zinc-200/50"
+                      : "text-zinc-500 hover:text-zinc-700"
+                  )}
+                >
+                  {t("Async")}
+                </button>
+              </div>
             </div>
             <div className="p-5 flex-grow flex flex-col">
               <div className="flex justify-between items-center text-[13px] font-semibold text-zinc-900 mb-4 pb-2 border-b border-zinc-100/50">
@@ -764,7 +829,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="space-y-4 flex-grow">
-                {providerHealthData.map((provider, idx) => (
+                {(providerHealthType === "sync" ? providerHealthDataSync : providerHealthDataAsync).map((provider, idx) => (
                   <div key={idx} className="flex justify-between items-center text-sm pb-4 border-b border-zinc-50 last:border-0 last:pb-0">
                     <div className="flex items-center gap-3">
                       <div className={`w-2.5 h-2.5 rounded-full ${provider.dot}`}></div>
