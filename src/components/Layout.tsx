@@ -84,9 +84,9 @@ export default function Layout() {
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
                       onPointerDown={(e) => e.stopPropagation()}
                     >
-                      【202668 需求】
+                      【202668需求】
                     </PopoverTrigger>
-                    <PopoverContent side="right" align="start" className="w-[350px] p-4 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl" onClick={(e) => e.stopPropagation()}>
+                    <PopoverContent side="right" align="start" className="w-[350px] p-4 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl z-[100000]" onClick={(e) => e.stopPropagation()}>
                       <p className="font-semibold text-zinc-900 mb-2 whitespace-nowrap">需求说明 (Pricing 定价逻辑兼容)</p>
                       <ul className="list-decimal space-y-1.5 text-zinc-600 ml-4">
                         <li>B端修改了定价逻辑，一个模型可以对应多个分类，每个分类可以有一个定价逻辑，需要在prcing页面兼容</li>
@@ -95,6 +95,182 @@ export default function Layout() {
                         <li>对应模型的read me的价格里面也需要适配</li>
                         <li>在模型详情页中，也需要增加对应的价格，取第一条</li>
                       </ul>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                {item.path === "/models" && (
+                  <Popover>
+                    <PopoverTrigger 
+                      className="absolute right-2 cursor-pointer text-[10px] font-semibold text-zinc-900 bg-indigo-200/60 px-1.5 py-0.5 rounded border border-indigo-300/50 hover:bg-indigo-300/80 transition-colors" 
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      【2026616需求】
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" className="w-[900px] max-w-[90vw] p-0 text-sm bg-white text-zinc-800 shadow-2xl border border-zinc-200/80 rounded-xl overflow-hidden z-[100000]" onClick={(e) => e.stopPropagation()}>
+                      <div className="max-h-[85vh] overflow-y-auto p-6 space-y-8 font-sans">
+                        
+                        {/* Section 1 */}
+                        <div>
+                          <h3 className="text-lg font-bold text-zinc-900 mb-2 border-b pb-2">多模态理解模型 — Playground 文件上传支持</h3>
+                          <p className="text-zinc-600 mb-4">这类模型用于理解和分析用户上传的文件（非生成类），支持在输入框上传文件</p>
+                          <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+                              <thead className="bg-zinc-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模型 ID</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">厂商</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">支持的输入类型</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">说明</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white">
+                                <tr><td className="px-3 py-2">minimax-M3</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">文本 + 图片 + 视频</td><td className="px-3 py-2">原生多模态，1M 上下文，支持图片和视频理解</td></tr>
+                                <tr><td className="px-3 py-2">Qwen3.6-plus</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">文本 + 图片 + 视频</td><td className="px-3 py-2">原生多模态推理，1M 上下文，支持图像与视频分析</td></tr>
+                                <tr><td className="px-3 py-2">Qwen3.5-omni-flash</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">文本 + 图片 + 音频 + 视频</td><td className="px-3 py-2">全模态，支持 10h+ 音频 / 400s+ 视频输入，113 种语言语音识别</td></tr>
+                                <tr><td className="px-3 py-2">Seed-1.6-250915</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 视频</td><td className="px-3 py-2">支持 256K 上下文，图片/视频理解 + 深度思考</td></tr>
+                                <tr><td className="px-3 py-2">Seed-1.6-flash-250915</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 视频</td><td className="px-3 py-2">Seed 1.6 轻量版，同样支持图片/视频输入</td></tr>
+                                <tr><td className="px-3 py-2">Seed-1.8-251228</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 视频</td><td className="px-3 py-2">通用 Agent 模型，支持 1280 帧超长视频理解，256K 上下文</td></tr>
+                                <tr><td className="px-3 py-2">Seed-2.0-mini-260215</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 音频 + 视频</td><td className="px-3 py-2">全模态理解，低时延/高并发/低成本版</td></tr>
+                                <tr><td className="px-3 py-2">Seed-2.0-lite-260215</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 音频 + 视频</td><td className="px-3 py-2">全模态理解，首款豆包全模态理解模型，性价比版</td></tr>
+                                <tr><td className="px-3 py-2">Seed-2.0-pro-260328</td><td className="px-3 py-2">字节</td><td className="px-3 py-2">文本 + 图片 + 音频 + 视频</td><td className="px-3 py-2">全模态理解旗舰版，视觉/空间/视频理解 + 实时视频流分析</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Section 2 */}
+                        <div>
+                          <h3 className="text-lg font-bold text-zinc-900 mb-2 border-b pb-2">支持引用素材（image_mode: "references"）</h3>
+                          <p className="text-zinc-600 mb-4">这类模型在 Playground 的 prompt 区域支持 @ 引用已上传的图片/视频/音频，作为风格参考、角色参考、原图编辑等，不区分槽位顺序。</p>
+                          
+                          <h4 className="font-bold text-zinc-800 mt-4 mb-2">图像模型</h4>
+                          <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+                              <thead className="bg-zinc-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模型 ID</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">厂商</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模态</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">引用类型</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">说明</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white">
+                                <tr><td className="px-3 py-2">image-01</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">图生图，subject_reference 支持角色/物体一致性</td></tr>
+                                <tr><td className="px-3 py-2">qwen-image-2.0-pro</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Qwen 图像编辑，基于参考图修改（/v1/images/edits）</td></tr>
+                                <tr><td className="px-3 py-2">wan2.7-image-pro</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Wan 图像编辑，参考原图做修改（/v1/images/edits）</td></tr>
+                                <tr><td className="px-3 py-2">viduq2</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Q2 图片生成，支持 1~7 张参考图（reference2image），1080P~4K</td></tr>
+                                <tr><td className="px-3 py-2">seedream-4-0-250828</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedream 4.0 图生图，支持多图参考 + 组图生成</td></tr>
+                                <tr><td className="px-3 py-2">seedream-4-5-251128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedream 4.5 图生图，支持多图参考 + 组图生成</td></tr>
+                                <tr><td className="px-3 py-2">seedream-5-0-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedream 5.0 图生图，支持多图参考 + 组图生成</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3-omni</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V3 全能，image2image + series_image + element_control，最高 2K</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V3 旗舰，image2image + element_control，1K/2K</td></tr>
+                                <tr><td className="px-3 py-2">kling-image-o1</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">最新旗舰图片模型，image2image + element_control(multi-image) + restyle，最高 2K</td></tr>
+                                <tr><td className="px-3 py-2">kling-v2</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V2 标准，image2image(multi-image) + restyle</td></tr>
+                                <tr><td className="px-3 py-2">kling-v2-new</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">图像</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V2 新版，仅支持风格迁移 restyle（输出分辨率与输入一致）</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <h4 className="font-bold text-zinc-800 mt-6 mb-2">视频模型 — 图生视频（单图引用）</h4>
+                          <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+                              <thead className="bg-zinc-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模型 ID</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">厂商</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模态</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">引用类型</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">说明</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white">
+                                <tr><td className="px-3 py-2">wan2.7-i2v</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Wan 图生视频，@ 参考图驱动生成</td></tr>
+                                <tr><td className="px-3 py-2">wan2.7-r2v</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Wan 参考生视频（reference-to-video）</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3-pro</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Q3 旗舰，img2video，画质最优，540P1080P，116S</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3-turbo</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Q3 快速，img2video + reference2video，速度与性价比兼顾，540P~1080P</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3-pro-fast</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Q3 极速，img2video，生成速度最快，720P1080P，116S</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Q3 参考，reference2video，性价比最高，540P1080P，316S</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3-omni</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V3 全能，img2video + multi-shot + element_control + 参考视频</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V3 旗舰，img2video + multi-shot + element_control，1K/2K</td></tr>
+                                <tr><td className="px-3 py-2">kling-video-o1</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">最新旗舰视频模型，img2video（首帧/首尾帧）+ element_control</td></tr>
+                                <tr><td className="px-3 py-2">kling-v2-5-turbo</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V2.5 加速版，img2video，std(720P) / pro(1080P)</td></tr>
+                                <tr><td className="px-3 py-2">kling-v2-1-master</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">V2.1 大师级，img2video，1080P 24fps，5S/10S</td></tr>
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedance 2.0 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-fast-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedance 2.0 Fast 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">seedance-1-5-pro-251215</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedance 1.5 Pro 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">seedance-1-0-pro-250528</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedance 1.0 Pro 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">seedance-1-0-pro-fast-251015</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">Seedance 1.0 Pro Fast 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">MiniMax-Hailuo-2.3</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">海螺 2.3 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">MiniMax-Hailuo-2.3-Fast</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">海螺 2.3 Fast 图生视频</td></tr>
+                                <tr><td className="px-3 py-2">MiniMax-Hailuo-02</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片</td><td className="px-3 py-2">海螺 02 图生视频</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <h4 className="font-bold text-zinc-800 mt-6 mb-2">视频模型 — 多模态参考（图片+视频+音频）</h4>
+                          <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+                              <thead className="bg-zinc-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模型 ID</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">厂商</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模态</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">引用类型</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">说明</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white">
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片+视频+音频</td><td className="px-3 py-2">Seedance 2.0 多模态参考生视频，支持 reference_image / reference_video / reference_audio</td></tr>
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-fast-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">视频</td><td className="px-3 py-2">图片+视频+音频</td><td className="px-3 py-2">Seedance 2.0 Fast 多模态参考生视频</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Section 3 */}
+                        <div>
+                          <h3 className="text-lg font-bold text-zinc-900 mb-2 border-b pb-2">支持首尾帧（image_mode: "keyframes"）</h3>
+                          <p className="text-zinc-600 mb-4">这类模型在 Playground 渲染两个固定槽位（起始帧 / 结束帧），用户 @ 选图后填入对应位置，images[0] = 首帧，images[1] = 尾帧。</p>
+                          <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                            <table className="min-w-full divide-y divide-zinc-200 text-xs">
+                              <thead className="bg-zinc-50">
+                                <tr>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">模型 ID</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">厂商</th>
+                                  <th className="px-3 py-2 text-left font-bold text-zinc-800">说明</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-200 bg-white">
+                                <tr><td className="px-3 py-2">wan2.2-kf2v-flash</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">Wan 2.2 首尾帧生视频（Flash 版）</td></tr>
+                                <tr><td className="px-3 py-2">wan2.1-kf2v-plus</td><td className="px-3 py-2">阿里</td><td className="px-3 py-2">Wan 2.1 首尾帧生视频（Plus 版）</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3-pro</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">Q3 旗舰，start-end2video，540P1080P，116S</td></tr>
+                                <tr><td className="px-3 py-2">vidu-q3-turbo</td><td className="px-3 py-2">Vidu</td><td className="px-3 py-2">Q3 快速，start-end2video，540P~1080P</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3-omni</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">V3 全能，start-end2video</td></tr>
+                                <tr><td className="px-3 py-2">kling-v3</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">V3 旗舰，start-end2video，1K/2K</td></tr>
+                                <tr><td className="px-3 py-2">kling-video-o1</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">最新旗舰，start-end2video</td></tr>
+                                <tr><td className="px-3 py-2">kling-v2-5-turbo</td><td className="px-3 py-2">Kling</td><td className="px-3 py-2">V2.5 加速版，start-end2video（仅 1080P 模式支持）</td></tr>
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">Seedance 2.0 首尾帧生视频</td></tr>
+                                <tr><td className="px-3 py-2">dreamina-seedance-2-0-fast-260128</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">Seedance 2.0 Fast 首尾帧生视频</td></tr>
+                                <tr><td className="px-3 py-2">seedance-1-5-pro-251215</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">Seedance 1.5 Pro 首尾帧生视频</td></tr>
+                                <tr><td className="px-3 py-2">seedance-1-0-pro-250528</td><td className="px-3 py-2">BytePlus</td><td className="px-3 py-2">Seedance 1.0 Pro 首尾帧生视频</td></tr>
+                                <tr><td className="px-3 py-2">MiniMax-Hailuo-02</td><td className="px-3 py-2">MiniMax</td><td className="px-3 py-2">海螺 02 首尾帧生视频（start-end-to-video）</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Section 4 */}
+                        <div className="bg-zinc-50 p-4 rounded-lg border border-zinc-200">
+                          <ol className="list-decimal list-inside text-sm text-zinc-700 space-y-2">
+                            <li>同一模型可能出现在多个分类中：例如 <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">dreamina-seedance-2-0-260128</code> 同时支持图生视频（references）、首尾帧（keyframes）、多模态参考和文生视频</li>
+                            <li><code className="bg-white px-1 py-0.5 rounded border border-zinc-200">Kling V3 Omni</code> 是全能型：同时覆盖图像和视频的几乎所有生成模式（文生图/图生图/文生视频/图生视频/首尾帧/multi-shot/element_control）</li>
+                            <li><code className="bg-white px-1 py-0.5 rounded border border-zinc-200">kling-v2-5-turbo</code> 的首尾帧仅 <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">pro</code> （仅1080P）模式支持：std 模式下不可用，需在 Playground 中根据所选分辨率模式动态显隐首尾帧入口。</li>
+                          </ol>
+                        </div>
+                        
+                      </div>
                     </PopoverContent>
                   </Popover>
                 )}

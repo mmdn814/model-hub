@@ -1,17 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip as UITooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, AreaChart, Area } from "recharts";
-import { Filter, FileText, Maximize2, ChevronDown, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign, Clock, Activity, Settings, BarChart2, Calendar as CalendarIcon, X, ChevronRight, Search, ArrowLeft } from "lucide-react";
+import { Filter, FileText, Maximize2, ChevronDown, ChevronUp, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign, Clock, Activity, Settings, BarChart2, Calendar as CalendarIcon, X, ChevronRight, Search, ArrowLeft, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import {
-  Tooltip as UITooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider
-} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,9 +46,9 @@ const apiKeyData = [
 ];
 
 const apiKeyLegendItems = [
-  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", usd: "$0.0008", reqs: "41", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
-  { name: "test-bookmarks", color: "#10b981", value: "0.00493", usd: "$0.0005", reqs: "29", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
-  { name: "openclaw", color: "#f59e0b", value: "0.00000", usd: "$0.0000", reqs: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
+  { name: "lover-demp", color: "#0ea5e9", value: "0.00826", usd: "$0.0008", reqs: "41", tasks: "15", successRate: "99.8%", keyString: "sk-or-v1-146...fdc" },
+  { name: "test-bookmarks", color: "#10b981", value: "0.00493", usd: "$0.0005", reqs: "29", tasks: "2", successRate: "99.2%", keyString: "sk-or-v1-0d4...8bb" },
+  { name: "openclaw", color: "#f59e0b", value: "0.00000", usd: "$0.0000", reqs: "0", tasks: "0", successRate: "0.0%", keyString: "sk-or-v1-6db...b0d" },
 ];
 
 const trendData = [
@@ -76,7 +71,7 @@ const appConsumptionData = [
 
 const topErrors = [
   { 
-    reason: "Rate Limit Exceeded", 
+    reason: "INVALID_PARAMETER", 
     count: 145, 
     percent: "45%",
     attributions: [
@@ -86,40 +81,40 @@ const topErrors = [
     ]
   },
   { 
-    reason: "Model Overloaded", 
+    reason: "AUTH_FAILED", 
     count: 120, 
     percent: "35%",
     attributions: [
-      { name: "Claude 3.5 Sonnet", count: 70, percent: "58.3%" },
-      { name: "qwen-max", count: 50, percent: "41.7%" }
+      { name: "sk-proj-a1B2...", count: 70, percent: "58.3%" },
+      { name: "sk-ant-api03...", count: 50, percent: "41.7%" }
     ]
   },
   { 
-    reason: "Invalid API Key", 
+    reason: "RATE_LIMIT_REACHED", 
     count: 30, 
     percent: "10%",
     attributions: [
-      { name: "sk-proj-a1B2...", count: 20, percent: "66.7%" },
-      { name: "sk-ant-api03...", count: 10, percent: "33.3%" }
+      { name: "Claude 3.5 Sonnet", count: 20, percent: "66.7%" },
+      { name: "qwen-max", count: 10, percent: "33.3%" }
     ]
   },
   { 
-    reason: "Context Length Exceeded", 
+    reason: "SERVER_ERROR", 
     count: 25, 
     percent: "8%",
     attributions: [
-      { name: "Claude Opus 4.6", count: 15, percent: "60%" },
-      { name: "GPT-4o-mini", count: 7, percent: "28%" },
-      { name: "gpt-oss-120b", count: 3, percent: "12%" }
+      { name: "Claude Opus 4.6 (Anthropic)", count: 15, percent: "60%" },
+      { name: "GPT-4o-mini (OpenAI)", count: 7, percent: "28%" },
+      { name: "gpt-oss-120b (Together)", count: 3, percent: "12%" }
     ]
   },
   { 
-    reason: "Network Error", 
+    reason: "SERVICE_UNAVAILABLE", 
     count: 10, 
     percent: "2%",
     attributions: [
-      { name: "Claude 3.5 Sonnet", count: 6, percent: "60.0%" },
-      { name: "abab6.5-chat", count: 4, percent: "40.0%" }
+      { name: "Claude 3.5 Sonnet (Anthropic)", count: 6, percent: "60.0%" },
+      { name: "abab6.5-chat (Minimax)", count: 4, percent: "40.0%" }
     ]
   },
 ];
@@ -153,16 +148,33 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [modalityFilter, setModalityFilter] = useState("All");
   const [groupFilter, setGroupFilter] = useState("By Model");
-  const [activeFilters, setActiveFilters] = useState<{type: string, value: string}[]>([
-    { type: 'Model', value: 'GPT-4o-mini' }
-  ]);
+  const [activeFilters, setActiveFilters] = useState<{type: string, value: string}[]>([]);
   const [filterMenuState, setFilterMenuState] = useState<"root" | "model" | "apikey">("root");
   const [filterSearchQuery, setFilterSearchQuery] = useState("");
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>();
   const [expandedErrors, setExpandedErrors] = useState<Record<number, boolean>>({});
   const [providerHealthType, setProviderHealthType] = useState<"sync" | "async">("sync");
-  const [imageTopTaskMode, setImageTopTaskMode] = useState<"sync" | "async">("sync");
+  const [isEmptyState, setIsEmptyState] = useState(false);
+  const [showGuide, setShowGuide] = useState(true);
+
+  const EmptyStatePlaceholder = ({ 
+    title = t("No data"), 
+    message = t("There is no data to display for the selected period."),
+    icon: Icon = Inbox
+  }: { 
+    title?: string; 
+    message?: string;
+    icon?: React.ElementType;
+  }) => (
+    <div className="flex flex-col items-center justify-center p-8 text-center h-[calc(100%-2rem)] min-h-[160px] w-full bg-zinc-50/50 rounded-xl border border-dashed border-zinc-200/60 m-4 mx-auto max-w-[calc(100%-2rem)]">
+      <div className="w-10 h-10 rounded-full border border-zinc-200 bg-white flex items-center justify-center mb-3 shadow-sm">
+        <Icon className="w-5 h-5 text-zinc-400" />
+      </div>
+      <h3 className="text-sm font-semibold text-zinc-900 mb-1">{title}</h3>
+      {message && <p className="text-xs text-zinc-500 max-w-[220px] mx-auto leading-relaxed">{message}</p>}
+    </div>
+  );
 
   const toggleExpandedError = (idx: number) => {
     setExpandedErrors(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -180,341 +192,403 @@ export default function Dashboard() {
   
   const currentLegendItems = allLegendItems.filter(item => selectedFilters.includes(item.name));
 
+  const showTasks = modalityFilter === "All" || modalityFilter === "Video" || modalityFilter === "Image";
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Level 1: Top Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <h1 
+            className="text-2xl font-bold text-zinc-900 cursor-pointer hover:text-zinc-700 transition-colors"
+            onClick={() => setIsEmptyState(false)}
+          >
+            Dashboard
+          </h1>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+                <Info className="w-3.5 h-3.5" />
+                【2026616需求】
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="start" className="w-[800px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5 text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-xl border-zinc-200 bg-white text-zinc-800 break-words z-50">
+                <div className="space-y-4">
+                  <div>
+                    <div className="font-bold text-zinc-900 mb-1 text-sm border-b pb-1">Dashboard 划分为3个区域</div>
+                    <div className="pl-2 space-y-3 mt-2 text-zinc-600">
+                      <div>
+                        <div className="font-bold text-zinc-800">第一个区域：引导区域（已有）</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-zinc-800">第二个区域：全局24小时概率（新增）</div>
+                        <div className="pl-4 mt-1 space-y-1">
+                          <div>● 时间维度，近24小时内</div>
+                          <div>● 一级字段：花费（美金/credts）、请求量/任务数量、成功率（同步/异步）、平均延时（同步/异步）</div>
+                          <div>● 二级字段：任务数量鼠标悬停显示</div>
+                          <div>● 排队（异步任务排队中的数量）、执行中（异步任务执行中的数量）、成功（异步任务成功的数量）、失败（异步任务失败的数量）</div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-zinc-800">第三个区域：用量分析（已有+新增）</div>
+                        <div className="pl-4 mt-1 space-y-2">
+                          <div>● 此区域分为6个区域<br/>● 筛选条件：时间筛选框（默认近7天）</div>
+                          <div><span className="font-semibold text-zinc-700">子区域一：细分指标图</span>（部分有，需要可以按照日期模型、key显示）</div>
+                          <div>
+                            <span className="font-semibold text-zinc-700">子区域二、单位时间按类型统计（新增）</span>
+                            <div className="pl-2 mt-1 space-y-1 text-[11px]">
+                              <div>● 按照模型的类型+任务类型维度,一共5条数据</div>
+                              <div>● 字段：花费（美金/credts）、请求量/任务数量、成功率、平均延时（同步/异步）</div>
+                              <div>● 按照花费倒序</div>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-zinc-700">子区域三、单位时间花费前5API key的分析（新增）</span>
+                            <div className="pl-2 mt-1 space-y-1 text-[11px]">
+                              <div>● 按照API key的维度</div>
+                              <div>● 指标：花费（美金/credts）、请求量/任务数量、成功率</div>
+                              <div>● 按照花费倒序,显示前5</div>
+                              <div>● 按钮：Manage Keys 点击跳转到 API Keys页面</div>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-zinc-700">子区域四、单位时间花费前5的模型ID的分析（新增）</span>
+                            <div className="pl-2 mt-1 space-y-1 text-[11px]">
+                              <div>● 按照花费的维度</div>
+                              <div>● 指标：模型ID</div>
+                              <div>● 按照花费倒序,显示前5</div>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-zinc-700">子区五、单位时间供应商维度(新增)</span>
+                            <div className="pl-2 mt-1 space-y-1 text-[11px]">
+                              <div>● 按照供应商+任务类型(可以切换同步/异步)</div>
+                              <div>● 指标：成功率\平均延时</div>
+                              <div>● 按照成功率倒序</div>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-zinc-700">子区六、单位时间错误率前5(新增)</span>
+                            <div className="pl-2 mt-1 space-y-1 text-[11px]">
+                              <div>● 按照错误类型</div>
+                              <div>● 按照错误率统计数量倒序</div>
+                              <div>● 不同的错误率，可以展开显示不同的内容，参考下面的错误类</div>
+                              <div>● 按钮： view realtime logs，点击跳转到logs页面</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <div className="font-bold text-zinc-900 mb-1">维度：</div>
+                    <div className="pl-2 space-y-1 text-zinc-600">
+                      <div>1、类别维度：chat、image、video、audio</div>
+                      <div>2、任务方式的维度：同步任务、移步任务</div>
+                      <div>3、Key维度：按照key去统计花费、成功率和平均延时（区分任务方式）</div>
+                      <div>4、供应商维度（后端已有）</div>
+                      <div>5、模型维度（后端已有）</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="font-bold text-zinc-900 mb-2">指标表：</div>
+                    <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                      <table className="min-w-full divide-y divide-zinc-200 text-[11px] text-zinc-600">
+                        <thead className="bg-zinc-50 font-bold text-zinc-800">
+                          <tr>
+                            <th className="px-3 py-2 text-left whitespace-nowrap">#</th>
+                            <th className="px-3 py-2 text-left whitespace-nowrap">指标</th>
+                            <th className="px-3 py-2 text-left">公式 / 说明</th>
+                            <th className="px-3 py-2 text-left whitespace-nowrap">类型</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 bg-white">
+                          <tr><td className="px-3 py-2">1</td><td className="px-3 py-2">花费</td><td className="px-3 py-2">后端已有（USD + Credits 双币展示）</td><td className="px-3 py-2">累计值</td></tr>
+                          <tr><td className="px-3 py-2">2A</td><td className="px-3 py-2">同步请求次数</td><td className="px-3 py-2">单位时间 requests 总数</td><td className="px-3 py-2">累计值</td></tr>
+                          <tr><td className="px-3 py-2">2B</td><td className="px-3 py-2">异步任务次数</td><td className="px-3 py-2">单位时间 tasks 总数（含所有状态）</td><td className="px-3 py-2">累计值</td></tr>
+                          <tr><td className="px-3 py-2">3A</td><td className="px-3 py-2">同步平均延时</td><td className="px-3 py-2">单位时间总响应耗时 ÷ 单位时间 requests 总数</td><td className="px-3 py-2">均值</td></tr>
+                          <tr><td className="px-3 py-2">3C</td><td className="px-3 py-2">异步平均延时</td><td className="px-3 py-2">单位时间总响应耗时 ÷ 单位时间 task总数</td><td className="px-3 py-2">均值</td></tr>
+                          <tr><td className="px-3 py-2">4A</td><td className="px-3 py-2">同步成功率</td><td className="px-3 py-2">单位时间成功数(同步) ÷ 单位时间 requests 总数 × 100%</td><td className="px-3 py-2">百分比</td></tr>
+                          <tr><td className="px-3 py-2">4B</td><td className="px-3 py-2">异步成功率</td><td className="px-3 py-2">单位时间 completed 数 ÷ 单位时间 tasks 数(completed + failed) × 100%</td><td className="px-3 py-2">百分比（成功率不计算排队中和执行中的）</td></tr>
+                          <tr><td className="px-3 py-2">5</td><td className="px-3 py-2">排队中</td><td className="px-3 py-2">当前 status = queued 的 tasks 数量</td><td className="px-3 py-2">异步</td></tr>
+                          <tr><td className="px-3 py-2">6</td><td className="px-3 py-2">执行中</td><td className="px-3 py-2">当前 status = in_progress 的 tasks 数量</td><td className="px-3 py-2">异步</td></tr>
+                          <tr><td className="px-3 py-2">7</td><td className="px-3 py-2">已完成</td><td className="px-3 py-2">单位时间 status = completed 的 tasks 数量</td><td className="px-3 py-2">异步</td></tr>
+                          <tr><td className="px-3 py-2">8</td><td className="px-3 py-2">已失败</td><td className="px-3 py-2">单位时间 status = failed 的 tasks 数量</td><td className="px-3 py-2">异步</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="font-bold text-zinc-900 mb-1">指标说明：</div>
+                    <div className="pl-2 space-y-1 text-zinc-600">
+                      <div>1、花费（美金和credits）（后端已有）</div>
+                      <div>
+                        2、请求次数<br/>
+                        &nbsp;&nbsp;A：单位时间requests总次数<br/>
+                        &nbsp;&nbsp;B：单位时间tasks总次数（包含成功、失败、排队和执行中的）
+                      </div>
+                      <div>
+                        3、平均延时（同步移步分别计算）<br/>
+                        &nbsp;&nbsp;A：单位时间总延迟时间（同步）<br/>
+                        &nbsp;&nbsp;B：单位时间总延迟时间（异步）
+                      </div>
+                      <div>
+                        4、成功率（同步移步分别计算）<br/>
+                        &nbsp;&nbsp;A：（单位时间的成功总数（同步）<br/>
+                        &nbsp;&nbsp;B：（单位时间总延迟时间（异步）
+                      </div>
+                      <div>5、排队的数量（仅异步）</div>
+                      <div>6、执行中的数量（仅异步）</div>
+                      <div>7、完成的数量（仅异步）</div>
+                      <div>8、失败的数量（仅异步）</div>
+                      <div>
+                        9、错误类型
+                        <div className="pl-4 mt-1 space-y-1">
+                          <div>AUTH_FAILED: 身份验证失败（展示Key）</div>
+                          <div>INVALID_PARAMETER: 请求参数错误（展示模型ID）</div>
+                          <div>INSUFFICIENT_BALANCE: 余额不足</div>
+                          <div>PERMISSION_DENIED: 权限不足（展示key）</div>
+                          <div>MODEL_NOT_FOUND: 指定模型不存在（展示模型ID）</div>
+                          <div>RATE_LIMIT_REACHED: 触发限流（展示模型ID）</div>
+                          <div>SERVER_ERROR: 厂商或中转内部服务器错误（展示模型ID/供应商）</div>
+                          <div>SERVICE_UNAVAILABLE: 服务不可用或下线（展示模型ID/供应商）</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          <button 
+            onClick={() => setIsEmptyState(!isEmptyState)}
+            className={cn(
+              "px-2.5 py-1 text-xs font-semibold rounded-md border transition-colors hidden sm:block",
+              isEmptyState 
+                ? "bg-zinc-900 text-white border-zinc-900" 
+                : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
+            )}
+          >
+            {isEmptyState ? t("Filled Data") : t("Empty Data")}
+          </button>
+        </div>
         
         <div className="flex flex-wrap items-center gap-3">
+          {!showGuide && (
+            <Button variant="outline" className="h-9 px-3 text-sm font-medium rounded-lg border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors bg-white hover:bg-zinc-50" onClick={() => setShowGuide(true)}>
+              <Info className="w-4 h-4 mr-1.5" /> {t("Show Guide")}
+            </Button>
+          )}
           <Button className="h-9 px-4 text-sm font-medium rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors" onClick={() => navigate('/billing')}>
             <Plus className="w-4 h-4 mr-1.5" /> {t("Add Funds")}
           </Button>
         </div>
       </div>
 
-      {/* Modality Tabs */}
-      <div className="flex bg-transparent border-b border-zinc-200 w-full mb-6">
-        {["All", "Chat", "Video", "Image", "Audio"].map((modality) => (
-          <button
-            key={modality}
-            onClick={() => setModalityFilter(modality)}
-            className={`px-6 py-3 text-sm font-semibold transition-colors relative ${
-              modalityFilter === modality
-                ? "text-zinc-900"
-                : "text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50"
-            }`}
-          >
-            {t(modality)}
-            {modalityFilter === modality && (
-               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2 mb-8 bg-zinc-50/50 p-2 rounded-xl border border-zinc-200 min-h-[48px]">
-        {['Model', 'API Key'].map((type) => {
-          const filtersOfType = activeFilters.filter(f => f.type === type);
-          if (filtersOfType.length === 0) return null;
-          
-          const firstValue = filtersOfType[0].value;
-          const remainingCount = filtersOfType.length - 1;
-          
-          return (
-            <div key={type} className="flex items-center text-sm bg-white border border-zinc-200 rounded-md shadow-sm overflow-hidden h-8">
-              <div className="px-2.5 py-1 bg-zinc-50 text-zinc-500 border-r border-zinc-200 font-medium whitespace-nowrap">
-                {type}
+      {/* Setup Guide */}
+      {showGuide && (
+        <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden mt-6 mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-zinc-900 mb-1">{t("Get started with your API Gateway in minutes")}</h2>
+                <p className="text-sm text-zinc-500">{t("Centralized view of keys, balances, routing, and service health.")}</p>
               </div>
-              <div className="px-2.5 py-1 text-zinc-400 font-medium text-xs whitespace-nowrap">
-                 is {filtersOfType.length > 1 ? "any of" : ""}
+              <div className="flex items-center gap-3 mt-4 md:mt-0">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 h-8 font-medium"
+                  onClick={() => setShowGuide(false)}
+                >
+                  <ChevronUp className="w-3.5 h-3.5 mr-1" /> {t("Hide guide")}
+                </Button>
               </div>
-              <div className="px-2.5 py-1 font-medium text-zinc-900 bg-zinc-50/50 whitespace-nowrap">
-                {firstValue} {remainingCount > 0 ? `, +${remainingCount} more` : ""}
-              </div>
-              <button 
-                onClick={() => setActiveFilters(prev => prev.filter(f => f.type !== type))}
-                className="px-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 h-full flex items-center justify-center transition-colors border-l border-zinc-100"
-              >
-                <X className="w-3 h-3" />
-              </button>
             </div>
-          );
-        })}
 
-        <Popover open={filterPopoverOpen} onOpenChange={(open) => { setFilterPopoverOpen(open); if (!open) setTimeout(() => {setFilterMenuState("root"); setFilterSearchQuery("");}, 200); }}>
-          <PopoverTrigger className="flex items-center justify-center h-8 w-8 rounded-md bg-white text-zinc-400 hover:text-zinc-700 transition-colors border border-zinc-200 hover:shadow-sm" onClick={() => setFilterPopoverOpen(true)}>
-            <Plus className="w-4 h-4" />
-          </PopoverTrigger>
-          <PopoverContent align="start" className={`${filterMenuState === "root" ? "w-48" : "w-64"} p-0 rounded-xl shadow-lg border-zinc-200 overflow-hidden transition-all duration-200`}>
-            {filterMenuState === "root" && (
-              <div className="p-2">
-                <div className="text-[11px] font-semibold text-zinc-400 mb-2 px-2 uppercase tracking-wider">{t("Jump to...")}</div>
-                <div className="space-y-1">
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setFilterMenuState("model");
-                      setFilterSearchQuery("");
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
-                  >
-                    <span>{t("Model")}</span>
-                    <div className="flex items-center gap-2">
-                       {activeFilters.filter(f => f.type === 'Model').length > 0 && (
-                         <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
-                           {activeFilters.filter(f => f.type === 'Model').length}
-                         </div>
-                       )}
-                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+            <div className="flex flex-col md:flex-row gap-4 relative">
+              {/* Connector line for desktop */}
+              <div className="hidden md:block absolute top-[50%] left-0 w-full h-px bg-zinc-200 z-0" />
+              
+              {/* Step 1 */}
+              <div className="flex-1 border border-zinc-100 shadow-sm hover:border-zinc-300 transition-colors p-4 rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative bg-white z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full border border-zinc-200 bg-white flex items-center justify-center shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-900" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Wallet className="w-4 h-4 text-zinc-700" />
+                      <h3 className="font-semibold text-zinc-900 text-sm">{t("1. Add Credits")}</h3>
                     </div>
-                  </button>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setFilterMenuState("apikey");
-                      setFilterSearchQuery("");
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
-                  >
-                    <span>{t("API Key")}</span>
-                    <div className="flex items-center gap-2">
-                       {activeFilters.filter(f => f.type === 'API Key').length > 0 && (
-                         <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
-                           {activeFilters.filter(f => f.type === 'API Key').length}
-                         </div>
-                       )}
-                      <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+                    <p className="text-xs text-zinc-500 line-clamp-1">{t("Maintain sufficient balance before production")}</p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm"
+                  className="bg-zinc-900 text-white hover:bg-zinc-800 ml-12 lg:ml-0 shrink-0"
+                  onClick={() => navigate('/billing')}
+                >
+                  {t("Top up")}
+                </Button>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex-1 border border-zinc-100 shadow-sm hover:border-zinc-300 transition-colors p-4 rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative bg-white z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full border border-zinc-200 bg-white flex items-center justify-center shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full border-2 border-zinc-300 bg-transparent" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Key className="w-4 h-4 text-zinc-700" />
+                      <h3 className="font-semibold text-zinc-900 text-sm">{t("2. Create API Key")}</h3>
                     </div>
-                  </button>
+                    <p className="text-xs text-zinc-500 line-clamp-1">{t("Create a key for your application or service")}</p>
+                  </div>
                 </div>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  className="bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 border-zinc-200 ml-12 lg:ml-0 shrink-0"
+                  onClick={() => navigate('/api-keys')}
+                >
+                  {t("Create Key")}
+                </Button>
               </div>
-            )}
-            
-            {(filterMenuState === "model" || filterMenuState === "apikey") && (
-              <div className="flex flex-col max-h-[300px]">
-                <div className="flex items-center px-3 py-2 border-b border-zinc-100 gap-2">
-                  <button onClick={(e) => { e.preventDefault(); setFilterMenuState("root"); }} className="text-zinc-400 hover:text-zinc-700">
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                  <Search className="w-4 h-4 text-zinc-400 shrink-0" />
-                  <input 
-                    type="text" 
-                    placeholder={`Search ${filterMenuState === 'model' ? 'models' : 'API keys'}`}
-                    value={filterSearchQuery}
-                    onChange={(e) => setFilterSearchQuery(e.target.value)}
-                    className="flex-1 bg-transparent border-none focus:outline-none text-sm text-zinc-800 placeholder:text-zinc-400 min-w-0"
-                    autoFocus
-                  />
+
+              {/* Step 3 */}
+              <div className="flex-1 border border-zinc-100 shadow-sm hover:border-zinc-300 transition-colors p-4 rounded-xl flex items-center gap-4 relative bg-white z-10">
+                <div className="w-8 h-8 rounded-full border border-zinc-200 bg-white flex items-center justify-center shrink-0">
+                  <div className="w-2.5 h-2.5 rounded-full border-2 border-zinc-300 bg-transparent" />
                 </div>
-                <div className="overflow-y-auto p-1 py-1.5">
-                  {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems)
-                    .filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase()))
-                    .map((item, i) => {
-                      const isSelected = activeFilters.some(f => f.type === (filterMenuState === 'model' ? 'Model' : 'API Key') && f.value === item.name);
-                      return (
-                        <button
-                          key={i}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const type = filterMenuState === 'model' ? 'Model' : 'API Key';
-                            if (isSelected) {
-                              setActiveFilters(prev => prev.filter(f => !(f.type === type && f.value === item.name)));
-                            } else {
-                              setActiveFilters(prev => [...prev, { type, value: item.name }]);
-                            }
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-zinc-50 rounded-lg group transition-colors"
-                        >
-                          <span className={`${isSelected ? 'text-zinc-900 font-medium' : 'text-zinc-600 group-hover:text-zinc-900'} truncate mr-3`}>{item.name}</span>
-                          {isSelected && <Check className="w-4 h-4 text-zinc-900 shrink-0" />}
-                        </button>
-                      );
-                    })
-                  }
-                  {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems).filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase())).length === 0 && (
-                    <div className="px-3 py-4 text-sm text-center text-zinc-500">No results found</div>
-                  )}
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Terminal className="w-4 h-4 text-zinc-700" />
+                    <h3 className="font-semibold text-zinc-900 text-sm">{t("3. Send Requests")}</h3>
+                  </div>
+                  <p className="text-xs text-zinc-500 line-clamp-1">{t("Verify routing using Playground or client")}</p>
                 </div>
+                <ChevronRight className="w-4 h-4 text-zinc-300 ml-auto shrink-0" />
               </div>
-            )}
-          </PopoverContent>
-        </Popover>
-
-        {activeFilters.length > 0 && (
-          <button 
-            onClick={() => setActiveFilters([])}
-            className="ml-auto text-sm text-zinc-500 hover:text-zinc-800 px-3 font-medium transition-colors"
-          >
-            {t("Clear")}
-          </button>
-        )}
-      </div>
-
-      {modalityFilter === "Image" && (
-        <div className="flex justify-start mb-4">
-          <div className="flex bg-zinc-100/80 p-0.5 rounded-lg border border-zinc-200/50 h-[34px]">
-            <button
-              onClick={() => setImageTopTaskMode("sync")}
-              className={cn(
-                "px-3 py-1 text-xs font-semibold rounded-md transition-all",
-                imageTopTaskMode === "sync"
-                  ? "bg-white text-zinc-800 shadow-sm border border-zinc-200/50"
-                  : "text-zinc-500 hover:text-zinc-700"
-              )}
-            >
-              {t("Sync")}
-            </button>
-            <button
-              onClick={() => setImageTopTaskMode("async")}
-              className={cn(
-                "px-3 py-1 text-xs font-semibold rounded-md transition-all",
-                imageTopTaskMode === "async"
-                  ? "bg-white text-zinc-800 shadow-sm border border-zinc-200/50"
-                  : "text-zinc-500 hover:text-zinc-700"
-              )}
-            >
-              {t("Async (Task)")}
-            </button>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {modalityFilter === "Video" || (modalityFilter === "Image" && imageTopTaskMode === "async") ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mt-2">
-          {/* Card 1: Today's Cost */}
+      {/* Level 2: 24h Global Overview */}
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-zinc-900">{t("Global Overview (Last 24h)")}</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-2">
+          {/* Card 1: Last 24h Cost */}
           <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
             <CardContent className="p-5 flex-grow flex flex-col justify-between">
               <div className="text-sm font-medium text-zinc-500">
-                {t("Today's Cost")}
+                {t("Last 24h Cost")}
               </div>
               <div className="flex flex-col gap-1 mt-1">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-4xl font-bold tracking-tight text-zinc-900">125</span>
+                  <span className={`text-4xl font-bold tracking-tight ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "250"}</span>
                   <span className="text-sm font-medium text-zinc-500">{t("credits")}</span>
                 </div>
-                <span className="text-sm font-medium text-zinc-400">$12.50 USD</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
-            <div className="text-[40px] leading-tight font-bold text-amber-500">8</div>
-            <div className="flex flex-col items-center">
-              <div className="text-sm font-medium text-zinc-700">{t("Queued")}</div>
-              <div className="text-xs text-zinc-400">{t("right now")}</div>
-            </div>
-          </Card>
-
-          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
-            <div className="text-[40px] leading-tight font-bold text-indigo-500">3</div>
-            <div className="flex flex-col items-center">
-              <div className="text-sm font-medium text-zinc-700">{t("Processing")}</div>
-              <div className="text-xs text-zinc-400">{t("right now")}</div>
-            </div>
-          </Card>
-
-          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
-            <div className="text-[40px] leading-tight font-bold text-emerald-500">142</div>
-            <div className="flex flex-col items-center">
-              <div className="text-sm font-medium text-zinc-700">{t("Completed")}</div>
-              <div className="text-xs text-zinc-400">{t("today")}</div>
-            </div>
-          </Card>
-
-          <Card className="bg-white border-zinc-200 shadow-sm flex flex-col items-center justify-center h-[160px] gap-2 pt-4">
-            <div className="text-[40px] leading-tight font-bold text-rose-500">2</div>
-            <div className="flex flex-col items-center">
-              <div className="text-sm font-medium text-zinc-700">{t("Failed")}</div>
-              <div className="text-xs text-zinc-400">{t("today")}</div>
-            </div>
-          </Card>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-2">
-          {/* Card 1: Today's Cost */}
-          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
-            <CardContent className="p-5 flex-grow flex flex-col justify-between">
-              <div className="text-sm font-medium text-zinc-500">
-                {t("Today's Cost")}
-              </div>
-              <div className="flex flex-col gap-1 mt-1">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-4xl font-bold tracking-tight text-zinc-900">125</span>
-                  <span className="text-sm font-medium text-zinc-500">{t("credits")}</span>
-                </div>
-                <span className="text-sm font-medium text-zinc-400">$12.50 USD</span>
+                <span className="text-sm font-medium text-zinc-400">{isEmptyState ? "$0.00 USD" : "$25.00 USD"}</span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card 2: Today's Requests */}
-          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
-            <CardContent className="p-0 flex-grow flex flex-col justify-between">
-              <div className="px-5 pt-5 text-sm font-medium text-zinc-500">
-                {t("Today's Requests")}
+          {/* Card 2: Last 24h Requests */}
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2 relative">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between z-10 relative">
+              <div className="text-sm font-medium text-zinc-500">
+                {t("Last 24h Requests")}
               </div>
-              <div className="px-5 mt-1">
-                <div className="text-4xl font-bold tracking-tight text-zinc-900">245</div>
-              </div>
-              
-              <div className="mt-2 h-[45px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendData}>
-                    <defs>
-                      <linearGradient id="colorCallsMetric" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="calls" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#colorCallsMetric)" isAnimationActive={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col justify-end mt-1">
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-4xl font-bold tracking-tight ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "290"}</span>
+                </div>
+                <div className="text-xs font-medium text-zinc-500 mt-2 flex gap-2">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
+                    <span className="font-semibold">{isEmptyState ? "0" : "245"}</span> {t("requests")}
+                  </div>
+                  {showTasks && (
+                    <TooltipProvider delay={100}>
+                      <UITooltip>
+                        <TooltipTrigger>
+                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 cursor-default hover:bg-zinc-200 transition-colors">
+                            <span className="font-semibold">{isEmptyState ? "0" : "45"}</span> {t("tasks")}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center" className="bg-zinc-900 border-zinc-800 text-zinc-300 shadow-xl px-0 py-1">
+                          <div className="text-sm">
+                            <div className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1 border-b border-zinc-800/50 pb-2">{t("Tasks Status")}</div>
+                            <div className="space-y-1 mt-1 px-3 py-1">
+                              <div className="flex justify-between items-center gap-6"><span className="text-zinc-400">{t("Queued")}</span> <span className="font-medium text-amber-400">{isEmptyState ? "0" : "8"}</span></div>
+                              <div className="flex justify-between items-center gap-6"><span className="text-zinc-400">{t("Processing")}</span> <span className="font-medium text-indigo-400">{isEmptyState ? "0" : "3"}</span></div>
+                              <div className="flex justify-between items-center gap-6"><span className="text-zinc-400">{t("Success")}</span> <span className="font-medium text-emerald-400">{isEmptyState ? "0" : "32"}</span></div>
+                              <div className="flex justify-between items-center gap-6"><span className="text-zinc-400">{t("Failed")}</span> <span className="font-medium text-rose-400">{isEmptyState ? "0" : "2"}</span></div>
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </UITooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Card 3: Avg Latency */}
-          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
-            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2 relative">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between z-10 relative">
               <div className="text-sm font-medium text-zinc-500">
-                {modalityFilter === "Image" ? t("Avg Gen Time") : t("Avg Latency")}
+                {t("Avg Latency")}
               </div>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-4xl font-bold tracking-tight text-zinc-900">420</span>
-                <span className="text-sm font-medium text-zinc-400">ms</span>
-              </div>
-
-              <div className="mt-4 flex flex-col justify-end">
-                <div className="w-full flex h-1.5 rounded-full overflow-hidden mb-2">
-                  <div className="h-full bg-emerald-500" style={{ width: '45%' }}></div>
-                  <div className="h-full bg-amber-400" style={{ width: '40%' }}></div>
-                  <div className="h-full bg-rose-500" style={{ width: '15%' }}></div>
+              <div className="flex flex-col justify-end mt-1">
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-4xl font-bold tracking-tight ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "20.2s"}</span>
                 </div>
-                <div className="flex justify-between items-center text-[10px] font-medium text-zinc-400">
-                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>{t("Fast")}</div>
-                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>{t("Normal")}</div>
-                  <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>{t("Slow")}</div>
+                <div className="text-xs font-medium text-zinc-500 mt-2 flex gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
+                    <span className="font-semibold">{isEmptyState ? "0" : "120ms"}</span> ({t("reqs")})
+                  </div>
+                  {showTasks && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
+                      <span className="font-semibold">{isEmptyState ? "0" : "~2m 10s"}</span> ({t("tasks")})
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Card 4: Success Rate */}
-          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2">
-            <CardContent className="p-5 flex-grow flex flex-col justify-between">
+          <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden h-[160px] flex flex-col pt-2 relative">
+            <CardContent className="p-5 flex-grow flex flex-col justify-between z-10 relative">
               <div className="text-sm font-medium text-zinc-500">
                 {t("Success Rate")}
               </div>
-              <div className="flex flex-col gap-1 mt-1 flex-grow">
-                <span className="text-4xl font-bold tracking-tight text-emerald-500">99.8%</span>
+              <div className="flex flex-col justify-end mt-1 flex-grow">
+                 <div className="flex items-baseline gap-1.5">
+                  <span className={`text-4xl font-bold tracking-tight ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0%" : "99.5%"}</span>
+                </div>
+                <div className="text-xs font-medium text-zinc-500 mt-2 flex gap-2">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
+                    <span className="font-semibold text-emerald-600">{isEmptyState ? "0%" : "99.8%"}</span> ({t("reqs")})
+                  </div>
+                  {showTasks && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600">
+                      <span className="font-semibold text-emerald-600">{isEmptyState ? "0%" : "95.2%"}</span> ({t("tasks")})
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
-      )}
+      
 
       {/* Level 3: Usage Charts */}
       <div>
@@ -543,20 +617,163 @@ export default function Dashboard() {
         </div>
 
         <Card className="bg-white border-zinc-200 shadow-sm overflow-hidden mb-6">
-          <div className="p-4 border-b border-zinc-100 flex justify-end items-center bg-zinc-50/50">
-            <div className="flex bg-zinc-100/80 p-1 rounded-lg border border-zinc-200/50 shadow-inner">
-               <button 
-                 onClick={() => setGroupFilter("By Model")}
-                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By Model' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
-               >
-                 {t("By Model")}
-               </button>
-               <button 
-                 onClick={() => setGroupFilter("By API Key")}
-                 className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By API Key' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
-               >
-                 {t("By API Key")}
-               </button>
+          <div className="p-4 border-b border-zinc-100 bg-zinc-50/50 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+               <h3 className="text-lg font-bold text-zinc-900">{t("Metrics Breakdown")}</h3>
+               <div className="flex bg-zinc-100/80 p-1 rounded-lg border border-zinc-200/50 shadow-inner">
+                 <button 
+                   onClick={() => setGroupFilter("By Model")}
+                   className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By Model' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
+                 >
+                   {t("By Model")}
+                 </button>
+                 <button 
+                   onClick={() => setGroupFilter("By API Key")}
+                   className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${groupFilter === 'By API Key' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-700'}`}
+                 >
+                   {t("By API Key")}
+                 </button>
+               </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 bg-zinc-50/50 p-2 rounded-xl border border-zinc-200 min-h-[48px]">
+              {['Model', 'API Key'].map((type) => {
+                const filtersOfType = activeFilters.filter(f => f.type === type);
+                if (filtersOfType.length === 0) return null;
+                
+                const firstValue = filtersOfType[0].value;
+                const remainingCount = filtersOfType.length - 1;
+                
+                return (
+                  <div key={type} className="flex items-center text-sm bg-white border border-zinc-200 rounded-md shadow-sm overflow-hidden h-8">
+                    <div className="px-2.5 py-1 bg-zinc-50 text-zinc-500 border-r border-zinc-200 font-medium whitespace-nowrap">
+                      {type}
+                    </div>
+                    <div className="px-2.5 py-1 text-zinc-400 font-medium text-xs whitespace-nowrap">
+                       is {filtersOfType.length > 1 ? "any of" : ""}
+                    </div>
+                    <div className="px-2.5 py-1 font-medium text-zinc-900 bg-zinc-50/50 whitespace-nowrap">
+                      {firstValue} {remainingCount > 0 ? `, +${remainingCount} more` : ""}
+                    </div>
+                    <button 
+                      onClick={() => setActiveFilters(prev => prev.filter(f => f.type !== type))}
+                      className="px-2 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 h-full flex items-center justify-center transition-colors border-l border-zinc-100"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+
+              <Popover open={filterPopoverOpen} onOpenChange={(open) => { setFilterPopoverOpen(open); if (!open) setTimeout(() => {setFilterMenuState("root"); setFilterSearchQuery("");}, 200); }}>
+                <PopoverTrigger className="flex items-center justify-center h-8 w-8 rounded-md bg-white text-zinc-400 hover:text-zinc-700 transition-colors border border-zinc-200 hover:shadow-sm" onClick={() => setFilterPopoverOpen(true)}>
+                  <Plus className="w-4 h-4" />
+                </PopoverTrigger>
+                <PopoverContent align="start" className={`${filterMenuState === "root" ? "w-48" : "w-64"} p-0 rounded-xl shadow-lg border-zinc-200 overflow-hidden transition-all duration-200`}>
+                  {filterMenuState === "root" && (
+                    <div className="p-2">
+                      <div className="text-[11px] font-semibold text-zinc-400 mb-2 px-2 uppercase tracking-wider">{t("Jump to...")}</div>
+                      <div className="space-y-1">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setFilterMenuState("model");
+                            setFilterSearchQuery("");
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
+                        >
+                          <span>{t("Model")}</span>
+                          <div className="flex items-center gap-2">
+                             {activeFilters.filter(f => f.type === 'Model').length > 0 && (
+                               <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
+                                 {activeFilters.filter(f => f.type === 'Model').length}
+                               </div>
+                             )}
+                            <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+                          </div>
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setFilterMenuState("apikey");
+                            setFilterSearchQuery("");
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg group transition-colors"
+                        >
+                          <span>{t("API Key")}</span>
+                          <div className="flex items-center gap-2">
+                             {activeFilters.filter(f => f.type === 'API Key').length > 0 && (
+                               <div className="px-1.5 py-0.5 rounded-md bg-zinc-200/60 text-zinc-500 text-[10px] font-semibold">
+                                 {activeFilters.filter(f => f.type === 'API Key').length}
+                               </div>
+                             )}
+                            <ChevronRight className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600" />
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(filterMenuState === "model" || filterMenuState === "apikey") && (
+                    <div className="flex flex-col max-h-[300px]">
+                      <div className="flex items-center px-3 py-2 border-b border-zinc-100 gap-2">
+                        <button onClick={(e) => { e.preventDefault(); setFilterMenuState("root"); }} className="text-zinc-400 hover:text-zinc-700">
+                          <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <Search className="w-4 h-4 text-zinc-400 shrink-0" />
+                        <input 
+                          type="text" 
+                          placeholder={`Search ${filterMenuState === 'model' ? 'models' : 'API keys'}`}
+                          value={filterSearchQuery}
+                          onChange={(e) => setFilterSearchQuery(e.target.value)}
+                          className="flex-1 bg-transparent border-none focus:outline-none text-sm text-zinc-800 placeholder:text-zinc-400 min-w-0"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="overflow-y-auto p-1 py-1.5">
+                        {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems)
+                          .filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase()))
+                          .map((item, i) => {
+                            const isSelected = activeFilters.some(f => f.type === (filterMenuState === 'model' ? 'Model' : 'API Key') && f.value === item.name);
+                            return (
+                              <button
+                                key={i}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const type = filterMenuState === 'model' ? 'Model' : 'API Key';
+                                  if (isSelected) {
+                                    setActiveFilters(prev => prev.filter(f => !(f.type === type && f.value === item.name)));
+                                  } else {
+                                    setActiveFilters(prev => [...prev, { type, value: item.name }]);
+                                  }
+                                }}
+                                className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-zinc-50 rounded-lg group transition-colors"
+                              >
+                                <span className={`${isSelected ? 'text-zinc-900 font-medium' : 'text-zinc-600 group-hover:text-zinc-900'} truncate mr-3`}>{item.name}</span>
+                                {isSelected && <Check className="w-4 h-4 text-zinc-900 shrink-0" />}
+                              </button>
+                            );
+                          })
+                        }
+                        {(filterMenuState === 'model' ? legendItems : apiKeyLegendItems).filter(item => item.name.toLowerCase().includes(filterSearchQuery.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-4 text-sm text-center text-zinc-500">No results found</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+
+              {activeFilters.length > 0 && (
+                <button 
+                  onClick={() => setActiveFilters([])}
+                  className="ml-auto text-sm text-zinc-500 hover:text-zinc-800 px-3 font-medium transition-colors"
+                >
+                  {t("Clear")}
+                </button>
+              )}
             </div>
           </div>
           <CardContent className="p-6">
@@ -567,22 +784,26 @@ export default function Dashboard() {
                 <div>
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Spend")}</div>
                   <div className="flex items-baseline gap-1">
-                    <div className="text-2xl font-bold text-zinc-900">13.2</div>
-                    <div className="text-xs text-zinc-500 font-medium">{t("credits")} <span className="text-zinc-400">($1.32)</span></div>
+                    <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "13.2"}</div>
+                    <div className="text-xs text-zinc-500 font-medium">{t("credits")} <span className="text-zinc-400">({isEmptyState ? "$0.00" : "$1.32"})</span></div>
                   </div>
                 </div>
               </div>
               
               <div className="h-[140px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
+                {isEmptyState ? (
+                  <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={currentData} barSize={12}>
+                      <XAxis dataKey="time" hide />
+                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                      {currentLegendItems.map((item, index) => (
+                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -590,9 +811,9 @@ export default function Dashboard() {
                   <div key={item.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                       <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                       <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
                     </div>
-                    <span className="text-zinc-500 font-mono text-xs">{item.value} <span className="text-zinc-400">({item.usd})</span></span>
+                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0" : item.value} <span className="text-zinc-400">({isEmptyState ? "$0.00" : item.usd})</span></span>
                   </div>
                 ))}
               </div>
@@ -603,20 +824,24 @@ export default function Dashboard() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Requests / Tasks")}</div>
-                  <div className="text-2xl font-bold text-zinc-900">70</div>
+                  <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "70"}</div>
                 </div>
               </div>
               
               <div className="h-[140px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
+                {isEmptyState ? (
+                  <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={currentData} barSize={12}>
+                      <XAxis dataKey="time" hide />
+                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                      {currentLegendItems.map((item, index) => (
+                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -624,9 +849,9 @@ export default function Dashboard() {
                   <div key={item.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                      <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                      <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
                     </div>
-                    <span className="text-zinc-500 font-mono text-xs">{item.reqs}</span>
+                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0" : item.reqs}</span>
                   </div>
                 ))}
               </div>
@@ -637,20 +862,24 @@ export default function Dashboard() {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Success Rate")}</div>
-                  <div className="text-2xl font-bold text-zinc-900">99.8%</div>
+                  <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0.00%" : "99.8%"}</div>
                 </div>
               </div>
               
               <div className="h-[140px] mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={currentData} barSize={12}>
-                    <XAxis dataKey="time" hide />
-                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                    {currentLegendItems.map((item, index) => (
-                      <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
+                {isEmptyState ? (
+                  <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={currentData} barSize={12}>
+                      <XAxis dataKey="time" hide />
+                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                      {currentLegendItems.map((item, index) => (
+                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -658,9 +887,9 @@ export default function Dashboard() {
                   <div key={item.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                       <span className="text-zinc-700 truncate max-w-[120px]">{item.name}</span>
+                       <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
                     </div>
-                    <span className="text-zinc-500 font-mono text-xs">{item.successRate}</span>
+                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0.00%" : item.successRate}</span>
                   </div>
                 ))}
               </div>
@@ -692,38 +921,52 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
-                  {appConsumptionData.map((app, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
-                      <td className="px-5 py-3.5 font-medium text-zinc-800">
-                        {t(app.name)}
+                  {isEmptyState ? (
+                    <tr>
+                      <td colSpan={5} className="py-12">
+                        <EmptyStatePlaceholder title={t("No data")} message="" icon={Terminal} />
                       </td>
-                      <td className="px-5 py-3.5 font-mono text-zinc-600">
-                        {app.credits} <span className="text-zinc-400 text-[10px]">({app.usd})</span>
-                      </td>
-                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.reqs}</td>
-                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.success}</td>
-                      <td className="px-5 py-3.5 font-mono text-zinc-600">{app.latency}</td>
                     </tr>
-                  ))}
+                  ) : (
+                    appConsumptionData.map((app, idx) => (
+                      <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                        <td className="px-5 py-3.5 font-medium text-zinc-800">
+                          {t(app.name)}
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-zinc-600">
+                          {app.credits} <span className="text-zinc-400 text-[10px]">({app.usd})</span>
+                        </td>
+                        <td className="px-5 py-3.5 font-mono text-zinc-600">{app.reqs}</td>
+                        <td className="px-5 py-3.5 font-mono text-zinc-600">{app.success}</td>
+                        <td className="px-5 py-3.5 font-mono text-zinc-600">{app.latency}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
-            <div className="p-5 mt-auto">
-              <div className="w-full flex h-2 rounded-full overflow-hidden mb-3 bg-zinc-100">
-                {appConsumptionData.map((app, idx) => (
-                  <div key={idx} className={`h-full ${app.color}`} style={{ width: `${app.progress}%` }}></div>
-                ))}
+            {isEmptyState ? (
+              <div className="p-5 mt-auto text-zinc-400 text-xs text-center border-t border-zinc-100/50 py-8">
+                {t("No relevant data found")}
               </div>
-              <div className="flex flex-wrap gap-4">
-                {appConsumptionData.map((app, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
-                    <div className={`w-2 h-2 rounded-full ${app.color}`}></div>
-                    {t(app.name)}
-                  </div>
-                ))}
+            ) : (
+              <div className="p-5 mt-auto">
+                <div className="w-full flex h-2 rounded-full overflow-hidden mb-3 bg-zinc-100">
+                  {appConsumptionData.map((app, idx) => (
+                    <div key={idx} className={`h-full ${app.color}`} style={{ width: `${app.progress}%` }}></div>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  {appConsumptionData.map((app, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
+                      <div className={`w-2 h-2 rounded-full ${app.color}`}></div>
+                      {t(app.name)}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -736,31 +979,35 @@ export default function Dashboard() {
             </div>
             
             <div className="p-5 space-y-5">
-              {apiKeyLegendItems.map((key, idx) => (
-                <div key={idx}>
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-md bg-zinc-100 text-zinc-600 flex items-center justify-center text-xs font-bold font-mono">
-                        {idx + 1}
+              {isEmptyState ? (
+                <EmptyStatePlaceholder title={t("No API keys used")} message="" icon={Key} />
+              ) : (
+                apiKeyLegendItems.map((key, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-md bg-zinc-100 text-zinc-600 flex items-center justify-center text-xs font-bold font-mono">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-zinc-800">{key.name}</div>
+                          <div className="text-xs text-zinc-400 font-mono mt-0.5">{key.keyString}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-zinc-800">{key.name}</div>
-                        <div className="text-xs text-zinc-400 font-mono mt-0.5">{key.keyString}</div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-zinc-900">{key.value} <span className="text-xs font-normal text-zinc-500">{t("credits")}</span> <span className="text-xs font-normal text-zinc-400">({key.usd})</span></div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-zinc-900">{key.value} <span className="text-xs font-normal text-zinc-500">credits</span> <span className="text-xs font-normal text-zinc-400">({key.usd})</span></div>
+                    <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-2">
+                      <div className="h-full bg-indigo-500" style={{ width: `${Math.max(10, 100 - idx * 25)}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-[11px] font-medium text-zinc-500">
+                      <span>{key.reqs} {t("Calls")}{key.tasks && key.tasks !== "0" ? ` + ${key.tasks} ${t("Tasks")}` : ""}</span>
+                      <span>{key.successRate} {t("Success")}</span>
                     </div>
                   </div>
-                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-2">
-                    <div className="h-full bg-indigo-500" style={{ width: `${Math.max(10, 100 - idx * 25)}%` }}></div>
-                  </div>
-                  <div className="flex justify-between text-[11px] font-medium text-zinc-500">
-                    <span>{key.reqs} {t("Calls")}</span>
-                    <span>{key.successRate} {t("Success")}</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -775,17 +1022,21 @@ export default function Dashboard() {
               <h3 className="font-bold text-zinc-900 text-base">{t("Top 5 Models by Cost")}</h3>
             </div>
             <div className="p-5 space-y-4">
-              {topCostModels1Week.map((model, idx) => (
-                <div key={idx}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-medium text-zinc-700">{model.name}</span>
-                    <span className="font-mono text-zinc-500 text-xs">{model.value}</span>
+              {isEmptyState ? (
+                <EmptyStatePlaceholder title={t("No model consumption")} message="" icon={Activity} />
+              ) : (
+                topCostModels1Week.map((model, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="font-medium text-zinc-700">{model.name}</span>
+                      <span className="font-mono text-zinc-500 text-xs">{model.value}</span>
+                    </div>
+                    <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: model.cost }}></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: model.cost }}></div>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -829,18 +1080,22 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="space-y-4 flex-grow">
-                {(providerHealthType === "sync" ? providerHealthDataSync : providerHealthDataAsync).map((provider, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-sm pb-4 border-b border-zinc-50 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2.5 h-2.5 rounded-full ${provider.dot}`}></div>
-                      <span className="font-medium text-zinc-900">{provider.name}</span>
+                {isEmptyState ? (
+                  <EmptyStatePlaceholder title={t("No provider queries")} message="" icon={Activity} />
+                ) : (
+                  (providerHealthType === "sync" ? providerHealthDataSync : providerHealthDataAsync).map((provider, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm pb-4 border-b border-zinc-50 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2.5 h-2.5 rounded-full ${provider.dot}`}></div>
+                        <span className="font-medium text-zinc-900">{provider.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between w-[40%] text-right font-mono text-xs">
+                        <span className={provider.successColor}>{provider.successRate}</span>
+                        <span className="text-zinc-900">{provider.latency}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between w-[40%] text-right font-mono text-xs">
-                      <span className={provider.successColor}>{provider.successRate}</span>
-                      <span className="text-zinc-900">{provider.latency}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <p className="text-xs text-zinc-500 mt-6 pt-5 border-t border-zinc-100">
                 {t("Success rate + Avg Latency, spot provider issues at a glance")}
@@ -859,75 +1114,83 @@ export default function Dashboard() {
                   <PopoverTrigger className="focus:outline-none flex items-center justify-center p-1 -m-1 rounded-full hover:bg-zinc-100 transition-colors">
                     <Info className="w-4 h-4 text-zinc-500 cursor-pointer" />
                   </PopoverTrigger>
-                  <PopoverContent align="start" className="w-[420px] bg-zinc-900 border border-zinc-800 rounded-lg p-5 shadow-xl max-h-[85vh] max-w-[90vw] overflow-y-auto z-50 text-left">
-                    <div className="space-y-5 text-sm text-zinc-300">
+                  <PopoverContent align="start" className="w-[460px] bg-zinc-900 border border-zinc-800 rounded-lg p-5 shadow-xl max-h-[85vh] max-w-[90vw] overflow-y-auto z-50 text-left">
+                    <div className="space-y-6 text-sm text-zinc-300">
                       
-                      {/* Model Attribution */}
                       <div>
-                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型等） — 适用于以下错误类型：</div>
+                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型ID展开）</div>
                         <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
-                          <div>Rate Limit Exceeded</div>
-                          <div>Model Overloaded</div>
-                          <div>Network Error</div>
-                          <div>Timeout</div>
-                          <div>502 Bad Gateway</div>
-                          <div>503 Service Unavailable</div>
-                          <div>Context Length Exceeded</div>
-                          <div>Invalid Parameters</div>
-                          <div>Content Filtered</div>
-                          <div>Unsupported Feature</div>
+                          <div>1. INVALID_PARAMETER: 请求参数错误</div>
+                          <div>5. MODEL_NOT_FOUND: 指定模型不存在</div>
+                          <div>6. RATE_LIMIT_REACHED: 触发限流</div>
                         </div>
-                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例：</div>
+                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (RATE_LIMIT_REACHED)：</div>
                         <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
                           <div className="flex justify-between text-zinc-200 font-medium">
-                            <span>Rate Limit Exceeded</span>
-                            <span>145 &nbsp;&nbsp;45%</span>
-                          </div>
-                          <div className="mt-1 flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── Claude Opus 4.6</span>
-                            <span>98 &nbsp;&nbsp;(67.6%)</span>
-                          </div>
-                          <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── GPT-4o-mini</span>
-                            <span>35 &nbsp;&nbsp;(24.1%)</span>
-                          </div>
-                          <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;└── gpt-oss-120b</span>
-                            <span>12 &nbsp;&nbsp;&nbsp;(8.3%)</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* API Key Attribution */}
-                      <div>
-                        <div className="text-zinc-100 font-bold mb-1">需要归因（按 API Key） — 适用于以下错误类型：</div>
-                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
-                          <div>Invalid API Key</div>
-                        </div>
-                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (Invalid API Key)：</div>
-                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
-                          <div className="flex justify-between text-zinc-200 font-medium">
-                            <span>Invalid API Key</span>
+                            <span>RATE_LIMIT_REACHED</span>
                             <span>30 &nbsp;&nbsp;&nbsp;10%</span>
                           </div>
                           <div className="mt-1 flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── sk-proj-a1B2...</span>
+                            <span>&nbsp;&nbsp;├── Claude 3.5 Sonnet</span>
                             <span>20 &nbsp;&nbsp;(66.7%)</span>
                           </div>
                           <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;└── sk-ant-api03...</span>
+                            <span>&nbsp;&nbsp;└── qwen-max</span>
                             <span>10 &nbsp;&nbsp;(33.3%)</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* No Attribution */}
                       <div>
-                        <div className="text-zinc-100 font-bold mb-1">不需要归因（用户侧问题） — 适用于以下错误类型：</div>
+                        <div className="text-zinc-100 font-bold mb-1">需要归因（按Key展开）</div>
+                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
+                          <div>2. AUTH_FAILED: 身份验证失败</div>
+                          <div>4. PERMISSION_DENIED: 权限不足</div>
+                        </div>
+                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (AUTH_FAILED)：</div>
+                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
+                          <div className="flex justify-between text-zinc-200 font-medium">
+                            <span>AUTH_FAILED</span>
+                            <span>120 &nbsp;&nbsp;&nbsp;35%</span>
+                          </div>
+                          <div className="mt-1 flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;├── sk-proj-a1B2...</span>
+                            <span>70 &nbsp;&nbsp;(58.3%)</span>
+                          </div>
+                          <div className="flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;└── sk-ant-api03...</span>
+                            <span>50 &nbsp;&nbsp;(41.7%)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型ID/供应商展开）</div>
+                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
+                          <div>7. SERVER_ERROR: 厂商或中转内部服务器错误</div>
+                          <div>8. SERVICE_UNAVAILABLE: 服务不可用或下线</div>
+                        </div>
+                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (SERVER_ERROR)：</div>
+                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
+                          <div className="flex justify-between text-zinc-200 font-medium">
+                            <span>SERVER_ERROR</span>
+                            <span>25 &nbsp;&nbsp;&nbsp;&nbsp;8%</span>
+                          </div>
+                          <div className="mt-1 flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;├── Claude Opus (Anthropic)</span>
+                            <span>15 &nbsp;&nbsp;(60.0%)</span>
+                          </div>
+                          <div className="flex justify-between text-zinc-400">
+                            <span>&nbsp;&nbsp;└── GPT-4o-mini (OpenAI)</span>
+                            <span>7 &nbsp;&nbsp;&nbsp;(28.0%)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-zinc-100 font-bold mb-1">无需归因展开</div>
                         <div className="pl-2 space-y-0.5 text-zinc-400">
-                          <div>Insufficient Balance</div>
-                          <div>Permission Denied</div>
-                          <div>Authentication Failed</div>
+                          <div>3. INSUFFICIENT_BALANCE: 余额不足</div>
                         </div>
                       </div>
 
@@ -947,16 +1210,19 @@ export default function Dashboard() {
             </div>
             
             <div className="p-5">
-              <div className="flex flex-col gap-2">
-                {topErrors.map((error, idx) => {
-                  const isExpanded = expandedErrors[idx];
-                  const hasAttributions = error.attributions && error.attributions.length > 0;
-                  return (
-                  <div key={idx} className="flex flex-col bg-zinc-50 border border-zinc-100 rounded-xl overflow-hidden transition-all duration-200">
-                    <button 
-                      className={`flex items-center justify-between p-3 ${hasAttributions ? 'cursor-pointer hover:bg-zinc-100/50' : 'cursor-default'} transition-colors w-full`}
-                      onClick={() => hasAttributions && toggleExpandedError(idx)}
-                    >
+              {isEmptyState ? (
+                <EmptyStatePlaceholder title={t("No errors")} message={t("All systems are operating normally.")} icon={Check} />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {topErrors.map((error, idx) => {
+                    const isExpanded = expandedErrors[idx];
+                    const hasAttributions = error.attributions && error.attributions.length > 0;
+                    return (
+                    <div key={idx} className="flex flex-col bg-zinc-50 border border-zinc-100 rounded-xl overflow-hidden transition-all duration-200">
+                      <button 
+                        className={`flex items-center justify-between p-3 ${hasAttributions ? 'cursor-pointer hover:bg-zinc-100/50' : 'cursor-default'} transition-colors w-full`}
+                        onClick={() => hasAttributions && toggleExpandedError(idx)}
+                      >
                       <div className="flex items-center gap-3">
                          <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold shrink-0">
                           {idx + 1}
@@ -997,24 +1263,12 @@ export default function Dashboard() {
                             );
                           })}
                         </div>
-                        {error.reason === "Invalid API Key" && (
-                          <div className="mt-3 ml-10 pl-2">
-                             <button
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 navigate('/api-keys');
-                               }}
-                               className="text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 shadow-sm hover:bg-zinc-50 px-3 py-1.5 rounded-md transition-colors"
-                             >
-                               {t("Manage API Keys")}
-                             </button>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
                 )})}
               </div>
+            )}
             </div>
           </CardContent>
         </Card>

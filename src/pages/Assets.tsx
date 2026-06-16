@@ -66,7 +66,7 @@ const OfficialAssetGrid = ({ items, onPreview }: { items: typeof OFFICIAL_ASSETS
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
             <span className="text-white text-sm font-medium leading-tight max-w-[70%] line-clamp-2">{asset.tags.join(' • ')}</span>
             <div className="flex gap-2 items-center">
-              <TooltipProvider delayDuration={100}>
+              <TooltipProvider delay={100}>
                 <Tooltip>
                   <TooltipTrigger 
                     className="p-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-md transition-colors relative cursor-pointer" 
@@ -604,7 +604,7 @@ export default function Assets() {
                    </div>
                  )}
                  {item.status !== 'error' && item.status !== 'uploading' && item.type === 'image' && (
-                   <img src={item.url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80'} alt="" className="w-full h-full object-cover" />
+                   <img src={('url' in item ? item.url : '') || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80'} alt="" className="w-full h-full object-cover" />
                  )}
                  {item.status !== 'error' && item.status !== 'uploading' && item.type === 'video' && (
                    <div className="w-full h-full bg-zinc-800 flex items-center justify-center relative inner-shadow">

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -434,7 +435,7 @@ export default function ModelDetails() {
                             const hasGlobalCache = pDatas.some(pData => pData.versions.some(v => v.cachePrice !== undefined));
                             
                             return pDatas.map(pData => (
-                              <React.Fragment key={pData.category}>
+                              <Fragment key={pData.category}>
                                 {pData.versions.map((version, idx) => (
                                   <tr key={`${pData.category}-${idx}`} className="border-b border-zinc-100 last:border-none hover:bg-zinc-50/50 transition-colors">
                                     <td className="py-4 px-6">
@@ -490,7 +491,7 @@ export default function ModelDetails() {
                                     </td>
                                   </tr>
                                 ))}
-                              </React.Fragment>
+                              </Fragment>
                             ));
                           })()}
                         </tbody></table>
