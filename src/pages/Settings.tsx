@@ -1,9 +1,29 @@
-import { ShieldCheck, Globe, Github } from "lucide-react";
+import { ShieldCheck, Globe, Github, Mail, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function Settings() {
   const { t } = useTranslation();
+  
+  // Mock states for account linking
+  const [emailConnected, setEmailConnected] = useState(true);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [showConflictDialog, setShowConflictDialog] = useState(false);
+  const [conflictType, setConflictType] = useState<"Google" | "GitHub" | "">("");
+
+  const handleConnect = (type: "Google" | "GitHub") => {
+    // For demo purposes, we will trigger the conflict error for GitHub, and success for Google.
+    if (type === "GitHub") {
+      setConflictType(type);
+      setShowConflictDialog(true);
+    } else {
+      setGoogleConnected(true);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -83,31 +103,23 @@ export default function Settings() {
         <DevAnnotation
           customContent={
             <div className="space-y-3 text-sm">
-              <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">身份认证 (Auth) [更新]</div>
-              <p><span className="font-semibold">第三方登录：</span>支持 Google 和 GitHub OAuth 2.0。</p>
+              <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">身份认证 (Auth) [邮箱+第三方]</div>
+              <p><span className="font-semibold">认证方式：</span>支持 邮箱密码注册/登录，以及 Google 和 GitHub OAuth 2.0。</p>
               
               <div className="space-y-1">
-                <div className="font-bold text-[#f57f17]">多账号关联 (Account Linking) [新增]</div>
+                <div className="font-bold text-[#f57f17]">多账号关联 (Account Linking)</div>
                 <div className="pl-2">
-                  <span className="font-semibold">逻辑描述：</span>允许已登录用户在“设置 (Settings)”页面关联另一个平台的社交账号。<br/>
-                  <span className="font-semibold">场景示例：</span>用户通过 Google 登录后，可以在设置中链接其 GitHub 账户。关联成功后，用户未来无论是通过 Google 还是 GitHub 登录，均指向同一个系统唯一 User ID，共享余额、密钥及日志。
+                  <span className="font-semibold">逻辑描述：</span>允许已登录用户在设置页面关联其他认证方式。<br/>
+                  <span className="font-semibold">场景示例：</span>用户通过邮箱注册后，可以链接其 Google 账户。关联成功后，未来通过邮箱和 Google 登录均进入同一账户。
                 </div>
               </div>
 
               <div className="space-y-1">
-                <div className="font-bold text-[#f57f17]">账户冲突处理与防冒领机制 [新增]</div>
+                <div className="font-bold text-[#f57f17]">账户冲突处理与防冒领机制</div>
                 <div className="pl-2">
-                  <span className="font-semibold">唯一性原则：</span>一个社交账号（如特定的 Google 邮箱或 GitHub ID）在全系统中只能绑定至一个用户 ID。<br/>
-                  <span className="font-semibold">冲突校验：</span>若用户尝试关联一个已经被其他系统账户绑定的社交账号时，系统必须拦截该请求。<br/>
-                  <span className="font-semibold">错误提示：</span>例如，用户 A (Google) 退出后，通过新的 GitHub 账号登录（产生用户 B）。若用户 B 尝试链接用户 A 已经绑定的 Google 账号，系统应弹出明确提示：“该 Google 账号已被其他用户绑定，请先在原账户解绑或联系支持。”
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="font-bold text-[#f57f17]">其他机制</div>
-                <div className="pl-2">
-                  <span className="font-semibold">退出登录 (Sign Out)：</span>清除 JWT Token 并重定向回产品首页。<br/>
-                  <span className="font-semibold">数据持久化：</span>基于第三方唯一 ID 锁定用户，再次登录自动承接历史余额、密钥及日志。
+                  <span className="font-semibold">同名邮箱隔离原则：</span>若用户使用 x@gmail.com 通过 Google 登录（账户 A），又尝试用 x@gmail.com 走邮箱注册流程（账户 B），系统视二者为两个互不关联的独立账户。<br/>
+                  <span className="font-semibold">唯一性与防冒领：</span>一个社交账号在全系统只能关联唯一用户 ID。若尝试绑定一个已被其他账户绑定的社交账号，系统拦截并报错。<br/>
+                  <span className="font-semibold">提示文案：</span>“该 [平台] 账号已被其他用户绑定，请先在原账户解绑或联系系统支持。”。
                 </div>
               </div>
             </div>
@@ -122,23 +134,27 @@ export default function Settings() {
         </DevAnnotation>
 
         <div className="space-y-4">
-          {/* Google Account */}
+          
+          {/* Email Password Account */}
           <DevAnnotation
-            elementName="已绑定的 Google 账号"
+            elementName="邮箱/密码 认证"
             componentType="List Item"
-            functionDesc="展示已关联的第三方账号状态"
-            interactionRule="当前已绑定，不可点击，不可解绑"
-            dataSource="用户绑定的 OAuth 提供商列表"
-            devNotes="根据后端返回的 provider 列表渲染"
+            functionDesc="展示邮箱注册/登录的关联状态"
+            interactionRule="不可解绑"
+            dataSource="当前用户会话"
+            devNotes="默认为Connected表示通过邮箱注册的用户"
           >
             <div className="flex items-center justify-between bg-[#f8fafc] rounded-3xl p-4 px-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm">
-                  <Globe className="w-6 h-6 text-slate-800" />
+                  <Mail className="w-6 h-6 text-slate-800" />
                 </div>
-                <span className="text-xl font-bold text-[#0f172a]">
-                  {t("Google Account")}
-                </span>
+                <div>
+                  <span className="text-xl font-bold text-[#0f172a] block">
+                    {t("Email & Password")}
+                  </span>
+                  <span className="text-xs text-slate-500">james_dev@global.io</span>
+                </div>
               </div>
               <span className="text-sm font-bold text-[#16a34a] tracking-wide uppercase">
                 {t("CONNECTED")}
@@ -146,37 +162,106 @@ export default function Settings() {
             </div>
           </DevAnnotation>
 
-          {/* GitHub Account */}
+          {/* Google Account */}
           <DevAnnotation
-            elementName="未绑定的 GitHub 账号"
+            elementName="Google 账号"
             componentType="List Item / Button"
-            functionDesc="提供绑定其他第三方账号的入口"
-            interactionRule="点击 CONNECT 触发 OAuth 绑定流程"
-            autoLogic="绑定成功后，状态更新为 CONNECTED 并点亮图标"
-            devNotes="需接入 GitHub OAuth 流程，并在回调后刷新当前页面状态"
+            functionDesc="展示已关联或未关联的状态"
+            interactionRule="点击可关联"
+            devNotes="此模拟中点击 CONNECT 将直接变绿 (模拟成功绑定)"
           >
             <div className="flex items-center justify-between bg-[#f8fafc] rounded-3xl p-4 px-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm opacity-50">
+                <div className={`w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm ${!googleConnected ? 'opacity-50' : ''}`}>
+                  <Globe className="w-6 h-6 text-slate-800" />
+                </div>
+                <span className={`text-xl font-bold ${googleConnected ? 'text-[#0f172a]' : 'text-slate-300'}`}>
+                  {t("Google Account")}
+                </span>
+              </div>
+              {googleConnected ? (
+                <span className="text-sm font-bold text-[#16a34a] tracking-wide uppercase">
+                  {t("CONNECTED")}
+                </span>
+              ) : (
+                <div className="relative group flex items-center">
+                  <button 
+                    onClick={() => handleConnect("Google")}
+                    className="text-sm font-bold text-blue-500 tracking-wide uppercase hover:underline"
+                  >
+                    {t("CONNECT")}
+                  </button>
+                  <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                    {t("Once connected, logging in with either account will access this same profile on the platform.")}
+                    <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DevAnnotation>
+
+          {/* GitHub Account */}
+          <DevAnnotation
+            elementName="GitHub 账号"
+            componentType="List Item / Button"
+            functionDesc="提供绑定其他第三方账号的入口"
+            interactionRule="点击 CONNECT 触发 OAuth 绑定流程"
+            autoLogic="此模拟中点击 CONNECT 将触发账户冲突报错"
+            devNotes="演示冲突场景拦截"
+          >
+            <div className="flex items-center justify-between bg-[#f8fafc] rounded-3xl p-4 px-6">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm ${!githubConnected ? 'opacity-50' : ''}`}>
                   <Github className="w-6 h-6 text-slate-800" />
                 </div>
-                <span className="text-xl font-bold text-slate-300">
+                <span className={`text-xl font-bold ${githubConnected ? 'text-[#0f172a]' : 'text-slate-300'}`}>
                   {t("GitHub Account")}
                 </span>
               </div>
-              <div className="relative group flex items-center">
-                <button className="text-sm font-bold text-blue-500 tracking-wide uppercase hover:underline">
-                  {t("CONNECT")}
-                </button>
-                <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
-                  {t("Once connected, logging in with either account will access this same profile on the platform.")}
-                  <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+              {githubConnected ? (
+                <span className="text-sm font-bold text-[#16a34a] tracking-wide uppercase">
+                  {t("CONNECTED")}
+                </span>
+              ) : (
+                <div className="relative group flex items-center">
+                  <button 
+                    onClick={() => handleConnect("GitHub")}
+                    className="text-sm font-bold text-blue-500 tracking-wide uppercase hover:underline"
+                  >
+                    {t("CONNECT")}
+                  </button>
+                  <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                    <span className="text-red-300 font-semibold block mb-1">Demo Behavior:</span>
+                    {t("Clicking this will simulate a conflict error, showing what happens when a credential is already bound to another account.")}
+                    <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </DevAnnotation>
         </div>
       </div>
+
+      {/* Conflict Error Dialog */}
+      <Dialog open={showConflictDialog} onOpenChange={setShowConflictDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+            </div>
+            <DialogTitle className="text-center text-xl">Account Linking Failed</DialogTitle>
+            <DialogDescription className="text-center pt-2 text-base text-zinc-600">
+              该 {conflictType} 账号已被其他用户绑定，请先在原账户解绑或联系系统支持。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button className="w-full" variant="outline" onClick={() => setShowConflictDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

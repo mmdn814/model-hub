@@ -38,8 +38,8 @@ export default function Layout() {
     // 1. Clear local Token/Session
     // localStorage.removeItem("token");
     // 2. Call backend logout API (optional)
-    // 3. Redirect to official website
-    window.location.href = "https://www.example.com"; // Placeholder for official website
+    // 3. Redirect to login page for demo purposes
+    navigate("/login");
   };
 
   const toggleLanguage = () => {
