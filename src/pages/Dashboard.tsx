@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip as UITooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, AreaChart, Area } from "recharts";
+import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, YAxis, AreaChart, Area, LineChart, Line } from "recharts";
 import { Filter, FileText, Maximize2, ChevronDown, ChevronUp, Plus, Check, Key, Info, Terminal, Wallet, AlertCircle, CircleDollarSign, Clock, Activity, Settings, BarChart2, Calendar as CalendarIcon, X, ChevronRight, Search, ArrowLeft, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -23,11 +23,13 @@ import { useState } from "react";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
 const data = [
-  { time: "1", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
-  { time: "2", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
-  { time: "3", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
-  { time: "4", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
-  { time: "5", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "Jun 16", "GPT-4o-mini": 1.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 0.5, "Others": 0.1 },
+  { time: "Jun 17", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "Jun 18", "GPT-4o-mini": 1.5, "Claude Opus 4.6": 3.0, "gpt-oss-120b": 0.8, "Others": 0.1 },
+  { time: "Jun 19", "GPT-4o-mini": 4.0, "Claude Opus 4.6": 1.0, "gpt-oss-120b": 2.0, "Others": 0.3 },
+  { time: "Jun 20", "GPT-4o-mini": 2.0, "Claude Opus 4.6": 2.0, "gpt-oss-120b": 1.0, "Others": 0.2 },
+  { time: "Jun 21", "GPT-4o-mini": 3.0, "Claude Opus 4.6": 1.5, "gpt-oss-120b": 1.2, "Others": 0.3 },
+  { time: "Jun 22", "GPT-4o-mini": 2.5, "Claude Opus 4.6": 2.5, "gpt-oss-120b": 1.5, "Others": 0.2 },
 ];
 
 const legendItems = [
@@ -38,11 +40,13 @@ const legendItems = [
 ];
 
 const apiKeyData = [
-  { time: "1", "lover-demp": 2.0, "test-bookmarks": 1.6 },
-  { time: "2", "lover-demp": 1.5, "test-bookmarks": 2.7 },
-  { time: "3", "lover-demp": 3.0, "test-bookmarks": 2.4 },
-  { time: "4", "lover-demp": 1.0, "test-bookmarks": 6.3 },
-  { time: "5", "lover-demp": 0.76, "test-bookmarks": 2.2 },
+  { time: "Jun 16", "lover-demp": 2.0, "test-bookmarks": 1.6 },
+  { time: "Jun 17", "lover-demp": 1.5, "test-bookmarks": 2.7 },
+  { time: "Jun 18", "lover-demp": 3.0, "test-bookmarks": 2.4 },
+  { time: "Jun 19", "lover-demp": 1.0, "test-bookmarks": 6.3 },
+  { time: "Jun 20", "lover-demp": 0.76, "test-bookmarks": 2.2 },
+  { time: "Jun 21", "lover-demp": 1.2, "test-bookmarks": 3.1 },
+  { time: "Jun 22", "lover-demp": 2.5, "test-bookmarks": 1.8 },
 ];
 
 const apiKeyLegendItems = [
@@ -71,26 +75,26 @@ const appConsumptionData = [
 
 const topErrors = [
   { 
-    reason: "INVALID_PARAMETER", 
+    reason: "QUOTA_EXHAUSTED", 
     count: 145, 
     percent: "45%",
     attributions: [
-      { name: "abab6.5-chat", count: 98, percent: "67.6%" },
-      { name: "Doubao-pro-32k", count: 35, percent: "24.1%" },
-      { name: "qwen-max", count: 12, percent: "8.3%" }
+      { name: "sk-proj-a1B2...", count: 98, percent: "67.6%" },
+      { name: "sk-ant-api03...", count: 35, percent: "24.1%" },
+      { name: "sk-qwen-max9...", count: 12, percent: "8.3%" }
     ]
   },
   { 
-    reason: "AUTH_FAILED", 
+    reason: "UPSTREAM_ERROR", 
     count: 120, 
     percent: "35%",
     attributions: [
-      { name: "sk-proj-a1B2...", count: 70, percent: "58.3%" },
-      { name: "sk-ant-api03...", count: 50, percent: "41.7%" }
+      { name: "abab6.5-chat", count: 70, percent: "58.3%" },
+      { name: "Doubao-pro-32k", count: 50, percent: "41.7%" }
     ]
   },
   { 
-    reason: "RATE_LIMIT_REACHED", 
+    reason: "RATE_LIMIT_OVERLOAD", 
     count: 30, 
     percent: "10%",
     attributions: [
@@ -99,23 +103,19 @@ const topErrors = [
     ]
   },
   { 
-    reason: "SERVER_ERROR", 
+    reason: "PERMISSION_DENIED", 
     count: 25, 
     percent: "8%",
     attributions: [
-      { name: "Claude Opus 4.6 (Anthropic)", count: 15, percent: "60%" },
-      { name: "GPT-4o-mini (OpenAI)", count: 7, percent: "28%" },
-      { name: "gpt-oss-120b (Together)", count: 3, percent: "12%" }
+      { name: "sk-test-x123...", count: 15, percent: "60%" },
+      { name: "sk-dev-y890...", count: 10, percent: "40%" }
     ]
   },
   { 
-    reason: "SERVICE_UNAVAILABLE", 
+    reason: "INTERNAL_ROUTING_ERROR", 
     count: 10, 
     percent: "2%",
-    attributions: [
-      { name: "Claude 3.5 Sonnet (Anthropic)", count: 6, percent: "60.0%" },
-      { name: "abab6.5-chat (Minimax)", count: 4, percent: "40.0%" }
-    ]
+    attributions: []
   },
 ];
 
@@ -157,6 +157,7 @@ export default function Dashboard() {
   const [providerHealthType, setProviderHealthType] = useState<"sync" | "async">("sync");
   const [isEmptyState, setIsEmptyState] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
+  const [activeMetricTab, setActiveMetricTab] = useState<"spend" | "requests" | "success">("spend");
 
   const EmptyStatePlaceholder = ({ 
     title = t("No data"), 
@@ -207,10 +208,12 @@ export default function Dashboard() {
           </h1>
           <Popover>
             <PopoverTrigger asChild>
-              <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
-                <Info className="w-3.5 h-3.5" />
-                【2026616需求】
-              </button>
+              <div>
+                <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+                  <Info className="w-3.5 h-3.5" />
+                  【2026616需求】
+                </button>
+              </div>
             </PopoverTrigger>
             <PopoverContent side="bottom" align="start" className="w-[800px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5 text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-xl border-zinc-200 bg-white text-zinc-800 break-words z-50">
                 <div className="space-y-4">
@@ -777,123 +780,78 @@ export default function Dashboard() {
             </div>
           </div>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:divide-x divide-zinc-100">
-          {/* Spend Card */}
-          <div className="md:pr-8 md:first:pl-0 pl-0 pt-6 md:pt-0 first:pt-0">
-              <div className="flex justify-between items-start mb-6">
-                <div>
+            <div className="flex flex-col gap-6">
+              {/* Tabs */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Spend Tab */}
+                <div 
+                  className={`cursor-pointer transition-all duration-200 border rounded-xl p-4 ${activeMetricTab === 'spend' ? 'bg-zinc-50 border-zinc-200 shadow-sm' : 'border-transparent hover:bg-zinc-50/50'}`}
+                  onClick={() => setActiveMetricTab('spend')}
+                >
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Spend")}</div>
                   <div className="flex items-baseline gap-1">
                     <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "13.2"}</div>
                     <div className="text-xs text-zinc-500 font-medium">{t("credits")} <span className="text-zinc-400">({isEmptyState ? "$0.00" : "$1.32"})</span></div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="h-[140px] mb-6">
-                {isEmptyState ? (
-                  <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={currentData} barSize={12}>
-                      <XAxis dataKey="time" hide />
-                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                      {currentLegendItems.map((item, index) => (
-                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                      ))}
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
 
-              <div className="space-y-3">
-                {currentLegendItems.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                       <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
-                    </div>
-                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0" : item.value} <span className="text-zinc-400">({isEmptyState ? "$0.00" : item.usd})</span></span>
-                  </div>
-                ))}
-              </div>
-          </div>
-
-          {/* Requests Card */}
-          <div className="md:px-8 pl-0 pt-6 md:pt-0">
-              <div className="flex justify-between items-start mb-6">
-                <div>
+                {/* Requests Tab */}
+                <div 
+                  className={`cursor-pointer transition-all duration-200 border rounded-xl p-4 ${activeMetricTab === 'requests' ? 'bg-zinc-50 border-zinc-200 shadow-sm' : 'border-transparent hover:bg-zinc-50/50'}`}
+                  onClick={() => setActiveMetricTab('requests')}
+                >
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Requests / Tasks")}</div>
                   <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : "70"}</div>
                 </div>
-              </div>
-              
-              <div className="h-[140px] mb-6">
-                {isEmptyState ? (
-                  <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={currentData} barSize={12}>
-                      <XAxis dataKey="time" hide />
-                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                      {currentLegendItems.map((item, index) => (
-                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
-                      ))}
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
 
-              <div className="space-y-3">
-                {currentLegendItems.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                      <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
-                    </div>
-                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0" : item.reqs}</span>
-                  </div>
-                ))}
-              </div>
-          </div>
-
-          {/* Success Rate Card */}
-          <div className="md:pl-8 pl-0 pt-6 md:pt-0">
-              <div className="flex justify-between items-start mb-6">
-                <div>
+                {/* Success Rate Tab */}
+                <div 
+                  className={`cursor-pointer transition-all duration-200 border rounded-xl p-4 ${activeMetricTab === 'success' ? 'bg-zinc-50 border-zinc-200 shadow-sm' : 'border-transparent hover:bg-zinc-50/50'}`}
+                  onClick={() => setActiveMetricTab('success')}
+                >
                   <div className="text-sm font-medium text-zinc-500 mb-1">{t("Success Rate")}</div>
                   <div className={`text-2xl font-bold ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0.00%" : "99.8%"}</div>
                 </div>
               </div>
-              
-              <div className="h-[140px] mb-6">
+
+              {/* Chart */}
+              <div className="h-[280px] w-full mt-4 -ml-4">
                 {isEmptyState ? (
                   <EmptyStatePlaceholder title="No chart data" message="" icon={BarChart2} />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={currentData} barSize={12}>
-                      <XAxis dataKey="time" hide />
-                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
-                      {currentLegendItems.map((item, index) => (
-                        <Bar key={item.name} dataKey={item.name} stackId="a" fill={item.color} radius={index === currentLegendItems.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                    <LineChart data={currentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#71717a'}} dy={10} />
+                      <YAxis tickLine={false} axisLine={false} tick={{fontSize: 12, fill: '#71717a'}} width={40} />
+                      <Tooltip cursor={{stroke: '#e4e4e7', strokeWidth: 1, strokeDasharray: '4 4'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '12px' }} />
+                      {currentLegendItems.filter(item => item.name !== 'Others').map((item) => (
+                        <Line type="monotone" key={item.name} dataKey={item.name} stroke={item.color} strokeWidth={2} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                       ))}
-                    </BarChart>
+                    </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>
 
-              <div className="space-y-3">
+              {/* Legend */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 w-full">
                 {currentLegendItems.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
+                  <div key={item.name} className="flex flex-col justify-center items-start gap-1 p-4 bg-zinc-50 border border-zinc-100 rounded-xl">
                     <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                       <span className={`truncate max-w-[120px] ${isEmptyState ? "text-zinc-400" : "text-zinc-700"}`}>{item.name}</span>
+                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>
+                       <span className={`truncate text-xs font-medium ${isEmptyState ? "text-zinc-400" : "text-zinc-600"}`}>{item.name}</span>
                     </div>
-                    <span className={`font-mono text-xs ${isEmptyState ? "text-zinc-300" : "text-zinc-500"}`}>{isEmptyState ? "0.00%" : item.successRate}</span>
+                    {activeMetricTab === 'spend' && (
+                      <div className={`font-mono text-xl font-semibold mt-1 ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : item.value} <span className="text-zinc-400 text-xs font-normal">({isEmptyState ? "$0.00" : item.usd})</span></div>
+                    )}
+                    {activeMetricTab === 'requests' && (
+                      <div className={`font-mono text-xl font-semibold mt-1 ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0" : item.reqs}</div>
+                    )}
+                    {activeMetricTab === 'success' && (
+                      <div className={`font-mono text-xl font-semibold mt-1 ${isEmptyState ? "text-zinc-300" : "text-zinc-900"}`}>{isEmptyState ? "0.00%" : item.successRate}</div>
+                    )}
                   </div>
                 ))}
               </div>
-          </div>
             </div>
           </CardContent>
         </Card>
@@ -1111,86 +1069,145 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-zinc-900 text-base">{t("Top 5 Error Rates")}</h3>
                 <Popover>
-                  <PopoverTrigger className="focus:outline-none flex items-center justify-center p-1 -m-1 rounded-full hover:bg-zinc-100 transition-colors">
-                    <Info className="w-4 h-4 text-zinc-500 cursor-pointer" />
+                  <PopoverTrigger asChild>
+                    <div>
+                      <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+                        <Info className="w-3.5 h-3.5" />
+                        【2026616需求】
+                      </button>
+                    </div>
                   </PopoverTrigger>
-                  <PopoverContent align="start" className="w-[460px] bg-zinc-900 border border-zinc-800 rounded-lg p-5 shadow-xl max-h-[85vh] max-w-[90vw] overflow-y-auto z-50 text-left">
-                    <div className="space-y-6 text-sm text-zinc-300">
-                      
-                      <div>
-                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型ID展开）</div>
-                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
-                          <div>1. INVALID_PARAMETER: 请求参数错误</div>
-                          <div>5. MODEL_NOT_FOUND: 指定模型不存在</div>
-                          <div>6. RATE_LIMIT_REACHED: 触发限流</div>
-                        </div>
-                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (RATE_LIMIT_REACHED)：</div>
-                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
-                          <div className="flex justify-between text-zinc-200 font-medium">
-                            <span>RATE_LIMIT_REACHED</span>
-                            <span>30 &nbsp;&nbsp;&nbsp;10%</span>
-                          </div>
-                          <div className="mt-1 flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── Claude 3.5 Sonnet</span>
-                            <span>20 &nbsp;&nbsp;(66.7%)</span>
-                          </div>
-                          <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;└── qwen-max</span>
-                            <span>10 &nbsp;&nbsp;(33.3%)</span>
-                          </div>
+                  <PopoverContent align="start" className="w-[800px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5 text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-xl border-zinc-200 bg-white text-zinc-800 break-words z-50">
+                    <div className="space-y-6 text-sm">
+                      {/* Top instruction section */}
+                      <div className="space-y-2">
+                        <p className="font-semibold text-zinc-900 border-b border-zinc-100 pb-2">TOP 5 ErrorRates 统计规则说明</p>
+                        <p className="text-zinc-600 leading-relaxed text-xs">
+                          TOP 5 ErrorRates 只显示 8 种大类，每种大类的统计数量由其下面的各个细分类别错误数量加总得出计算。占比则根据总的大类错误数进行计算。
+                        </p>
+                        <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100 text-xs text-zinc-600 space-y-1.5 font-mono">
+                          <p className="font-semibold text-zinc-800">举例说明：</p>
+                          <p>单位时间内 <span className="font-semibold text-zinc-800">QUOTA_EXHAUSTED</span> 类别下面这三种错误的总数是 145，</p>
+                          <p>当前用户总错误数量是 322.2，</p>
+                          <p>那么当前错误类型的占比就是：145 / 322.2 = <span className="font-semibold text-zinc-800">45%</span></p>
                         </div>
                       </div>
 
+                      {/* Section 1: 按 Key 归因 */}
                       <div>
-                        <div className="text-zinc-100 font-bold mb-1">需要归因（按Key展开）</div>
-                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
-                          <div>2. AUTH_FAILED: 身份验证失败</div>
-                          <div>4. PERMISSION_DENIED: 权限不足</div>
-                        </div>
-                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (AUTH_FAILED)：</div>
-                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
-                          <div className="flex justify-between text-zinc-200 font-medium">
-                            <span>AUTH_FAILED</span>
-                            <span>120 &nbsp;&nbsp;&nbsp;35%</span>
+                        <h4 className="font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                          按照 Key 归因
+                        </h4>
+                        <div className="space-y-4 pl-4 border-l-2 border-zinc-100 ml-1">
+                          
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">1. 额度与资产耗尽 <span className="text-xs font-mono bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">QUOTA_EXHAUSTED</span></h5>
+                            <p className="text-xs text-zinc-500">特征：用户的账号、订阅或具体令牌没钱/没额度了。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-red-500">500</span> token_quota_exhausted (额度耗尽)</li>
+                              <li><span className="font-bold text-orange-500">403</span> insufficient_user_quota (余额不足 / 订阅不足)</li>
+                              <li><span className="font-bold text-orange-500">403</span> pre_consume_token_quota_failed (预扣失败)</li>
+                            </ul>
                           </div>
-                          <div className="mt-1 flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── sk-proj-a1B2...</span>
-                            <span>70 &nbsp;&nbsp;(58.3%)</span>
+
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">2. 凭证失效与封禁 <span className="text-xs font-mono bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">AUTH_INVALID</span></h5>
+                            <p className="text-xs text-zinc-500">特征：Key 本身的状态发生变化，不能再使用了。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-red-500">500</span> token_expired (令牌过期)</li>
+                              <li><span className="font-bold text-red-500">500</span> token_disabled (令牌被禁用)</li>
+                              <li><span className="font-bold text-orange-500">403</span> [空] (用户被封禁)</li>
+                            </ul>
                           </div>
-                          <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;└── sk-ant-api03...</span>
-                            <span>50 &nbsp;&nbsp;(41.7%)</span>
+
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">3. 越权与策略拦截 <span className="text-xs font-mono bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">PERMISSION_DENIED</span></h5>
+                            <p className="text-xs text-zinc-500">特征：Key 正常且有钱，但是在试图白嫖没有权限的模型/分组，或不在 IP 白名单内。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-orange-500">403</span> access_denied (IP 限制)</li>
+                              <li><span className="font-bold text-orange-500">403</span> [空] (token 分组无权限 / playground 无权限)</li>
+                              <li><span className="font-bold text-orange-500">403</span> [空] (token 模型权限为空 / 禁用某模型)</li>
+                              <li><span className="font-bold text-orange-500">403</span> [空] (分组废弃 / 指定渠道被禁用 / 普通用户指定渠道)</li>
+                            </ul>
                           </div>
+
                         </div>
                       </div>
 
+                      {/* Section 2: 按模型 ID 归因 */}
                       <div>
-                        <div className="text-zinc-100 font-bold mb-1">需要归因（按模型ID/供应商展开）</div>
-                        <div className="pl-2 space-y-0.5 text-zinc-400 mb-2">
-                          <div>7. SERVER_ERROR: 厂商或中转内部服务器错误</div>
-                          <div>8. SERVICE_UNAVAILABLE: 服务不可用或下线</div>
-                        </div>
-                        <div className="font-bold text-zinc-300 mb-1">展开后显示格式示例 (SERVER_ERROR)：</div>
-                        <div className="bg-zinc-800/50 rounded-md p-2 font-mono text-xs border border-zinc-700/50">
-                          <div className="flex justify-between text-zinc-200 font-medium">
-                            <span>SERVER_ERROR</span>
-                            <span>25 &nbsp;&nbsp;&nbsp;&nbsp;8%</span>
+                        <h4 className="font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                          按模型 ID 归因
+                        </h4>
+                        <div className="space-y-4 pl-4 border-l-2 border-zinc-100 ml-1">
+                          
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">4. 安全合规与风控 <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">CONTENT_VIOLATION</span></h5>
+                            <p className="text-xs text-zinc-500">特征：触发了黄暴恐或敏感词。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-red-500">500</span> sensitive_words_detected (敏感词命中)</li>
+                            </ul>
                           </div>
-                          <div className="mt-1 flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;├── Claude Opus (Anthropic)</span>
-                            <span>15 &nbsp;&nbsp;(60.0%)</span>
+
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">5. 触碰限流与超负荷 <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">RATE_LIMIT_OVERLOAD</span></h5>
+                            <p className="text-xs text-zinc-500">特征：当前并发太高，被系统策略或者上游挡住了。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-orange-500">429</span> [无 body] (内存限流拦截)</li>
+                              <li><span className="font-bold text-orange-500">429</span>/500 [空] / rate_limit_check_failed (模型请求数限流 / 限流检查失败)</li>
+                              <li><span className="font-bold text-red-500">503</span> system_cpu_overloaded等 (全局性系统负载保护)</li>
+                            </ul>
                           </div>
-                          <div className="flex justify-between text-zinc-400">
-                            <span>&nbsp;&nbsp;└── GPT-4o-mini (OpenAI)</span>
-                            <span>7 &nbsp;&nbsp;&nbsp;(28.0%)</span>
+
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">6. 无效请求/客户端参数错误 <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">BAD_REQUEST</span></h5>
+                            <p className="text-xs text-zinc-500">特征：用户发来的 JSON 格式不对、体积太大，或者少传了必填项。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-amber-500">400</span> [空] (请求体解析失败 / 未指定模型 / 指定渠道无效)</li>
+                              <li><span className="font-bold text-red-500">500</span> / <span className="font-bold text-amber-500">413</span> invalid_request / read_request_body_failed (JSON格式不对/Body过大)</li>
+                              <li><span className="font-bold text-amber-500">400</span> invalid_request (参数覆盖拦截)</li>
+                            </ul>
                           </div>
+
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">7. 上游服务与网络异常 <span className="text-xs font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">UPSTREAM_ERROR</span></h5>
+                            <p className="text-xs text-zinc-500">特征：我们系统没问题，但调上游接口时挂了或返回乱码。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-red-500">500</span> do_request_failed (网络不通/请求上游超时)</li>
+                              <li><span className="font-bold text-red-500">500</span> read_response_body_failed (读取上游响应流失败)</li>
+                              <li><span className="font-bold text-red-500">500</span> bad_response_body / bad_response 等 (上游返回非预期结构)</li>
+                              <li><span className="font-bold text-zinc-500">(透传)</span> bad_response_status_code (上游非 200 报错)</li>
+                            </ul>
+                          </div>
+
                         </div>
                       </div>
 
+                      {/* Section 3: 不归因 */}
                       <div>
-                        <div className="text-zinc-100 font-bold mb-1">无需归因展开</div>
-                        <div className="pl-2 space-y-0.5 text-zinc-400">
-                          <div>3. INSUFFICIENT_BALANCE: 余额不足</div>
+                        <h4 className="font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-zinc-400"></div>
+                          不归因
+                        </h4>
+                        <div className="space-y-4 pl-4 border-l-2 border-zinc-100 ml-1">
+                          
+                          <div className="space-y-1.5">
+                            <h5 className="font-semibold text-zinc-800 text-sm">8. 系统内部调度与配置错误 <span className="text-xs font-mono bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">INTERNAL_ROUTING_ERROR</span></h5>
+                            <p className="text-xs text-zinc-500">特征：管理员配置失误或并发导致选不到渠道的纯内部底座错误。</p>
+                            <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
+                              <li><span className="font-bold text-red-500">503</span> model_not_found (无可用渠道 / 选渠失败)</li>
+                              <li><span className="font-bold text-red-500">500</span> get_channel_failed (channel 为空 / retry 失败)</li>
+                              <li><span className="font-bold text-red-500">500</span> channel:no_available_key (多key渠道没拿到可用key)</li>
+                              <li><span className="font-bold text-red-500">500</span> channel:model_mapped_error (映射配置错误)</li>
+                              <li><span className="font-bold text-red-500">500</span> model_price_error (没配置该模型倍率)</li>
+                              <li><span className="font-bold text-red-500">500</span>/<span className="font-bold text-red-500">501</span> invalid_api_type / api_not_implemented (不支持 / 未实现)</li>
+                              <li><span className="font-bold text-red-500">500</span> convert_request_failed / json_marshal_failed 等 (转换计数失败)</li>
+                              <li><span className="font-bold text-red-500">500</span> query_data_error / update_data_error (计费 DB 故障)</li>
+                            </ul>
+                          </div>
+
                         </div>
                       </div>
 

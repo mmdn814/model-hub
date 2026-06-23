@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Search, Info, PlayCircle, Image as ImageIcon, Music, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { models } from "@/data/models";
 import { cn } from "@/lib/utils";
@@ -104,14 +105,31 @@ export default function Pricing() {
         >
           <h1 className="text-4xl font-extrabold text-[#0B1120] mb-3 tracking-tight flex items-center gap-2 w-fit">
             {t("Pricing")}
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-5 h-5 text-zinc-400 cursor-help ml-1 mt-1 hover:text-zinc-600 transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm text-sm p-3 bg-white text-zinc-800 border-zinc-200 shadow-lg">
-                <p>{t("定价来自后端的定价，非chat模型的下显示的名称，来自后端【适用场景组合】字段，单位来自【计价单位字段】")}</p>
-              </TooltipContent>
-            </Tooltip>
+            <Popover>
+              <PopoverTrigger asChild>
+                <div>
+                  <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ml-2">
+                    <Info className="w-3.5 h-3.5" />
+                    【2026616需求】
+                  </button>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[400px] max-w-[90vw] p-5 text-sm shadow-xl border-zinc-200 bg-white z-50">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-bold text-zinc-900 mb-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                      Pricing 数据来源说明
+                    </h4>
+                    <div className="space-y-1.5 pl-4 border-l-2 border-zinc-100 ml-1 text-xs text-zinc-600">
+                      <p>● 定价数据均来自后端的定价系统。</p>
+                      <p>● 对于<span className="font-semibold text-zinc-800">非 chat 模型</span>下显示的名称，来自于后端【适用场景组合】字段。</p>
+                      <p>● 显示的单位来自于后端配置的【计价单位字段】。</p>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </h1>
         </DevAnnotation>
         <p className="text-lg text-zinc-500 font-medium">
@@ -266,14 +284,29 @@ export default function Pricing() {
                           <th className="py-3 px-6 text-sm font-semibold text-zinc-500 w-[25%]">
                             <div className="flex items-center gap-1">
                               {t("Credits / Gen")}
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info className="w-3.5 h-3.5 text-zinc-400 cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{t("1 USD = 1000 Credits")}</p>
-                                </TooltipContent>
-                              </Tooltip>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div>
+                                    <button className="px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1 focus:outline-none ml-2">
+                                      <Info className="w-3 h-3" />
+                                      【2026616需求】
+                                    </button>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent align="start" className="w-[300px] p-4 text-sm shadow-xl border-zinc-200 bg-white z-50">
+                                  <div className="space-y-3">
+                                    <div>
+                                      <h4 className="font-bold text-zinc-900 mb-2 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                        计费换算说明
+                                      </h4>
+                                      <div className="pl-4 border-l-2 border-zinc-100 ml-1 text-xs text-zinc-600 font-mono">
+                                        <p>1 USD = 1000 Credits</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           </th>
                           {hasCachePrice && (
