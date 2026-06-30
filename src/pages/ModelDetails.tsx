@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ArrowLeft, Copy, Terminal, Check, ShieldCheck, Play, History, Sparkles, ChevronDown, FileText, Code, Info, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
+import { DiscountBadge } from "@/components/DiscountBadge";
 import { models } from "@/data/models";
 import { pricingData } from "@/data/pricing";
 
@@ -98,6 +99,7 @@ export default function ModelDetails() {
             <div className="flex-1 space-y-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900">{model.id}</h1>
+                {model.discount && <DiscountBadge discount={model.discount} />}
                 <button onClick={handleCopy} className="text-zinc-400 hover:text-zinc-600 transition-colors">
                   {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
                 </button>
@@ -364,17 +366,20 @@ export default function ModelDetails() {
 
               {/* 6. Pricing Details */}
               <section id="pricing">
-                <h2 className="text-2xl font-bold text-[#0B1120] mb-4 flex items-center gap-2">
-                  <span className="text-yellow-600">💰</span> 6. Pricing Details
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-5 h-5 text-zinc-400 cursor-help ml-1 mt-1 hover:text-zinc-600 transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm text-sm p-3 bg-white text-zinc-800 border-zinc-200 shadow-lg">
-                      <p>{t("定价来自后端的定价，非chat模型的下显示的名称，来自后端【适用场景组合】字段，单位来自【计价单位字段】")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </h2>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-2xl font-bold text-[#0B1120] flex items-center gap-2 mb-0">
+                    <span className="text-yellow-600">💰</span> 6. Pricing Details
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-5 h-5 text-zinc-400 cursor-help ml-1 mt-1 hover:text-zinc-600 transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm text-sm p-3 bg-white text-zinc-800 border-zinc-200 shadow-lg">
+                        <p>{t("定价来自后端的定价，非chat模型的下显示的名称，来自后端【适用场景组合】字段，单位来自【计价单位字段】")}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </h2>
+                  {model.discount && <DiscountBadge discount={model.discount} />}
+                </div>
                 
                 <DevAnnotation
                   elementName="Pricing Details Description"

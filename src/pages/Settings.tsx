@@ -55,6 +55,7 @@ export default function Settings() {
               </h2>
               <div className="flex items-center gap-3">
                 <span className="text-xl text-slate-500">{t("james_dev@global.io")}</span>
+                <span className="text-sm text-slate-400 font-mono ml-2 border-l border-slate-200 pl-3">ID: usr_c93b8f1a2e4d</span>
                 <DevAnnotation
                   customContent={
                     <div className="space-y-3 text-sm">

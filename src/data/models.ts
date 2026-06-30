@@ -10,7 +10,8 @@ export const models = [
     category: "chat",
     playgroundType: "chat_completion",
     previewUrl: "https://picsum.photos/seed/qwen-chat/400/225",
-    providerLogo: "A"
+    providerLogo: "A",
+    discount: "20% OFF"
   },
   {
     id: "wan2.7-image-pro",
@@ -23,7 +24,8 @@ export const models = [
     category: "image",
     playgroundType: "text_to_image",
     previewUrl: "https://picsum.photos/seed/qwen-image-2.0-pro/400/225",
-    providerLogo: "W"
+    providerLogo: "W",
+    discount: "50% OFF"
   },
   {
     id: "image-01",

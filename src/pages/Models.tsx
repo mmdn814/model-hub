@@ -9,6 +9,8 @@ import { DevAnnotation } from "@/components/DevAnnotation";
 import { cn } from "@/lib/utils";
 import { models } from "@/data/models";
 
+import { DiscountBadge } from "@/components/DiscountBadge";
+
 const categories = [
   {
     id: "video",
@@ -225,7 +227,10 @@ export default function Models() {
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-lg text-zinc-900 truncate font-mono">{model.id}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg text-zinc-900 truncate font-mono">{model.id}</h3>
+                          {model.discount && <DiscountBadge discount={model.discount} />}
+                        </div>
                       </div>
                     </div>
                     

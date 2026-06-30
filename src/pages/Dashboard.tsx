@@ -207,13 +207,9 @@ export default function Dashboard() {
             Dashboard
           </h1>
           <Popover>
-            <PopoverTrigger asChild>
-              <div>
-                <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
-                  <Info className="w-3.5 h-3.5" />
-                  【2026616需求】
-                </button>
-              </div>
+            <PopoverTrigger className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+              <Info className="w-3.5 h-3.5" />
+              【2026616需求】
             </PopoverTrigger>
             <PopoverContent side="bottom" align="start" className="w-[800px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5 text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-xl border-zinc-200 bg-white text-zinc-800 break-words z-50">
                 <div className="space-y-4">
@@ -1069,13 +1065,9 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-zinc-900 text-base">{t("Top 5 Error Rates")}</h3>
                 <Popover>
-                  <PopoverTrigger asChild>
-                    <div>
-                      <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
-                        <Info className="w-3.5 h-3.5" />
-                        【2026616需求】
-                      </button>
-                    </div>
+                  <PopoverTrigger className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+                    <Info className="w-3.5 h-3.5" />
+                    【2026616需求】
                   </PopoverTrigger>
                   <PopoverContent align="start" className="w-[800px] max-w-[90vw] max-h-[85vh] overflow-y-auto p-5 text-xs font-mono whitespace-pre-wrap leading-relaxed shadow-xl border-zinc-200 bg-white text-zinc-800 break-words z-50">
                     <div className="space-y-6 text-sm">
@@ -1125,7 +1117,9 @@ export default function Dashboard() {
                             <h5 className="font-semibold text-zinc-800 text-sm">3. 越权与策略拦截 <span className="text-xs font-mono bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded">PERMISSION_DENIED</span></h5>
                             <p className="text-xs text-zinc-500">特征：Key 正常且有钱，但是在试图白嫖没有权限的模型/分组，或不在 IP 白名单内。</p>
                             <ul className="text-xs font-mono text-zinc-600 space-y-1 list-disc pl-4">
-                              <li><span className="font-bold text-orange-500">403</span> access_denied (IP 限制)</li>
+                              <li><span className="font-bold text-orange-500">403</span> ip_not_allowed (API Key IP 限制)</li>
+                              <li><span className="font-bold text-orange-500">403</span> model_not_allowed (API Key 模型限制)</li>
+                              <li><span className="font-bold text-orange-500">403</span> access_denied (网关系统级 IP 限制)</li>
                               <li><span className="font-bold text-orange-500">403</span> [空] (token 分组无权限 / playground 无权限)</li>
                               <li><span className="font-bold text-orange-500">403</span> [空] (token 模型权限为空 / 禁用某模型)</li>
                               <li><span className="font-bold text-orange-500">403</span> [空] (分组废弃 / 指定渠道被禁用 / 普通用户指定渠道)</li>

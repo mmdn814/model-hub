@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { models } from "@/data/models";
 import { cn } from "@/lib/utils";
 import { DevAnnotation } from "@/components/DevAnnotation";
+import { DiscountBadge } from "@/components/DiscountBadge";
 
 const categories = [
   {
@@ -106,13 +107,9 @@ export default function Pricing() {
           <h1 className="text-4xl font-extrabold text-[#0B1120] mb-3 tracking-tight flex items-center gap-2 w-fit">
             {t("Pricing")}
             <Popover>
-              <PopoverTrigger asChild>
-                <div>
-                  <button className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ml-2">
-                    <Info className="w-3.5 h-3.5" />
-                    【2026616需求】
-                  </button>
-                </div>
+              <PopoverTrigger className="px-2.5 py-1 text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ml-2">
+                <Info className="w-3.5 h-3.5" />
+                【2026616需求】
               </PopoverTrigger>
               <PopoverContent align="start" className="w-[400px] max-w-[90vw] p-5 text-sm shadow-xl border-zinc-200 bg-white z-50">
                 <div className="space-y-4">
@@ -267,9 +264,12 @@ export default function Pricing() {
                       {providerLogo}
                     </div>
                     <div>
-                      <Link to={`/models/${modelId}`} className="hover:underline text-xl font-bold text-zinc-900 leading-tight block w-fit">
-                        {fullModel?.name || modelId}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link to={`/models/${modelId}`} className="hover:underline text-xl font-bold text-zinc-900 leading-tight block w-fit">
+                          {fullModel?.name || modelId}
+                        </Link>
+                        {fullModel?.discount && <DiscountBadge discount={fullModel.discount} />}
+                      </div>
                       <p className="text-sm text-zinc-500 mt-0.5 font-medium">{fullModel?.description || "High-performance AI model"}</p>
                     </div>
                   </div>
@@ -285,13 +285,9 @@ export default function Pricing() {
                             <div className="flex items-center gap-1">
                               {t("Credits / Gen")}
                               <Popover>
-                                <PopoverTrigger asChild>
-                                  <div>
-                                    <button className="px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1 focus:outline-none ml-2">
-                                      <Info className="w-3 h-3" />
-                                      【2026616需求】
-                                    </button>
-                                  </div>
+                                <PopoverTrigger className="px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md border bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1 focus:outline-none ml-2">
+                                  <Info className="w-3 h-3" />
+                                  【2026616需求】
                                 </PopoverTrigger>
                                 <PopoverContent align="start" className="w-[300px] p-4 text-sm shadow-xl border-zinc-200 bg-white z-50">
                                   <div className="space-y-3">

@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
 import Assets from "./pages/Assets";
+import { Requirements } from "./pages/Requirements";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AssetProvider } from "./contexts/AssetContext";
 
@@ -26,6 +27,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/requirements" element={<Requirements />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="models" element={<Models />} />

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTranslation } from "react-i18next";
@@ -303,6 +303,11 @@ export default function Layout() {
               </PopoverContent>
             </Popover>
           </div>
+          
+          <Link to="/requirements" className="flex items-center gap-3 px-3 py-2 mt-4 mx-3 rounded-md text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+            <ClipboardList className="w-4 h-4" />
+            需求详情
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-zinc-200 space-y-1">
@@ -352,6 +357,9 @@ export default function Layout() {
                     <div className="px-4 py-2 border-b border-zinc-100">
                       <p className="text-sm font-medium text-zinc-900">James Developer</p>
                       <p className="text-xs text-zinc-500 truncate">james_dev@global.io</p>
+                      <p className="text-[10px] text-zinc-400 mt-1.5 flex items-center gap-1 font-mono tracking-wide">
+                        ID: usr_c93b8f1a2e4d
+                      </p>
                     </div>
                     <button
                       onClick={handleSignOut}

@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Info, MoreVertical, Activity, Edit, XCircle, Trash2, X, Check, Copy, ChevronDown } from "lucide-react";
+import { Info, MoreVertical, Activity, Edit, XCircle, Trash2, X, Check, Copy, ChevronDown, ShieldCheck, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useNavigate } from "react-router-dom";
+import { models as availableModelsData } from "@/data/models";
 
 interface ApiKey {
   id: string;
@@ -16,6 +17,8 @@ interface ApiKey {
   limit: number;
   reset: string;
   status: "active" | "disabled";
+  allowedIps?: string;
+  allowedModels?: string[];
 }
 
 export default function ApiKeys() {
@@ -33,7 +36,9 @@ export default function ApiKeys() {
       usage: 0.005,
       limit: 1,
       reset: "TOTAL",
-      status: "active"
+      status: "active",
+      allowedIps: "192.168.1.1, 8.8.8.8",
+      allowedModels: ["qwen-chat", "gpt-4"]
     },
     {
       id: "2",
@@ -45,7 +50,9 @@ export default function ApiKeys() {
       usage: 0.008,
       limit: 2,
       reset: "MONTHLY",
-      status: "active"
+      status: "active",
+      allowedIps: "",
+      allowedModels: []
     },
     {
       id: "3",
@@ -57,7 +64,9 @@ export default function ApiKeys() {
       usage: 0.346,
       limit: 2,
       reset: "TOTAL",
-      status: "active"
+      status: "active",
+      allowedIps: "10.0.0.1",
+      allowedModels: []
     },
     {
       id: "4",
@@ -69,7 +78,9 @@ export default function ApiKeys() {
       usage: 1.234,
       limit: 0,
       reset: "TOTAL",
-      status: "active"
+      status: "active",
+      allowedIps: "",
+      allowedModels: ["deepseek-chat"]
     }
   ]);
 
@@ -85,15 +96,20 @@ export default function ApiKeys() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editKey, setEditKey] = useState<ApiKey | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration" });
+  const [editForm, setEditForm] = useState({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration", allowedIps: "", allowedModels: [] as string[] });
   
   const [createForm, setCreateForm] = useState({
     name: "",
     limit: "",
     reset: "TOTAL",
     customDays: "30",
-    expiration: "No expiration"
+    expiration: "No expiration",
+    allowedIps: "",
+    allowedModels: [] as string[]
   });
+
+  const [createModelSearch, setCreateModelSearch] = useState("");
+  const [editModelSearch, setEditModelSearch] = useState("");
 
   const formatLocalTime = (dateString: string | null) => {
     if (!dateString || dateString === "Never") return t("Never");
@@ -138,13 +154,15 @@ export default function ApiKeys() {
       usage: 0,
       limit: createForm.limit ? parseFloat(createForm.limit) : 0, // 0 means unlimited here for display
       reset: createForm.reset === "CUSTOM" ? `CUSTOM (${createForm.customDays} days)` : createForm.reset,
-      status: "active"
+      status: "active",
+      allowedIps: createForm.allowedIps,
+      allowedModels: createForm.allowedModels
     };
     
     setKeys([newKey, ...keys]);
     setIsCreateModalOpen(false);
     setIsKeyCreatedModalOpen(true);
-    setCreateForm({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration" });
+    setCreateForm({ name: "", limit: "", reset: "TOTAL", customDays: "30", expiration: "No expiration", allowedIps: "", allowedModels: [] });
   };
 
   const handleDeleteConfirm = () => {
@@ -162,7 +180,9 @@ export default function ApiKeys() {
         name: editForm.name || k.name, 
         limit: editForm.limit ? parseFloat(editForm.limit) : 0,
         reset: editForm.reset === "CUSTOM" ? `CUSTOM (${editForm.customDays} days)` : editForm.reset,
-        expires: editForm.expiration === "No expiration" ? null : editForm.expiration
+        expires: editForm.expiration === "No expiration" ? null : editForm.expiration,
+        allowedIps: editForm.allowedIps,
+        allowedModels: editForm.allowedModels
       } : k));
       setIsEditModalOpen(false);
       setEditKey(null);
@@ -222,6 +242,7 @@ export default function ApiKeys() {
                   <div className="w-4 h-4 rounded border border-slate-300"></div>
                 </th>
                 <th className="py-4 px-4 font-medium">{t("Key")}</th>
+                <th className="py-4 px-4 font-medium">{t("Restrictions")}</th>
                 <th className="py-4 px-4 font-medium">{t("Expires")}</th>
                 <th className="py-4 px-4 font-medium">{t("Last Used")}</th>
                 <th className="py-4 px-4 font-medium">{t("Usage")}</th>
@@ -243,6 +264,40 @@ export default function ApiKeys() {
                       )}
                     </div>
                     <div className="text-slate-400 text-sm font-mono mt-0.5">{k.key}</div>
+                  </td>
+                  <td className="py-4 px-4 text-slate-500 text-sm">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="relative group/ip flex items-center w-fit">
+                        {k.allowedIps ? (
+                          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded tracking-wider cursor-help flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" /> IP Restricted
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded tracking-wider">No IP Restriction</span>
+                        )}
+                        {k.allowedIps && (
+                          <div className="absolute left-0 bottom-full mb-2 hidden group-hover/ip:block w-48 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none break-all">
+                            {k.allowedIps}
+                            <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="relative group/model flex items-center w-fit">
+                        {k.allowedModels && k.allowedModels.length > 0 ? (
+                          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded tracking-wider cursor-help flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" /> Model Restricted
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded tracking-wider">No Model Restriction</span>
+                        )}
+                        {k.allowedModels && k.allowedModels.length > 0 && (
+                          <div className="absolute left-0 bottom-full mb-2 hidden group-hover/model:block w-48 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none break-all">
+                            {k.allowedModels.join(', ')}
+                            <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="py-4 px-4 text-slate-500 text-sm">{formatUTCTime(k.expires)}</td>
                   <td className="py-4 px-4 text-slate-500 text-sm">{formatLocalTime(k.lastUsed)}</td>
@@ -338,7 +393,9 @@ export default function ApiKeys() {
                                     limit: k.limit === 0 ? "" : k.limit.toString(),
                                     reset: resetType,
                                     customDays: customDays,
-                                    expiration: k.expires ? k.expires : "No expiration"
+                                    expiration: k.expires ? k.expires : "No expiration",
+                                    allowedIps: k.allowedIps || "",
+                                    allowedModels: k.allowedModels || []
                                   });
                                   setIsEditModalOpen(true);
                                   setActiveDropdown(null);
@@ -398,18 +455,19 @@ export default function ApiKeys() {
 
       {/* Create Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative">
-            <button 
-              onClick={() => setIsCreateModalOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-semibold">{t("Create new secret key")}</h2>
+              <button 
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
             
-            <h2 className="text-xl font-semibold mb-6">{t("Create new secret key")}</h2>
-            
-            <div className="space-y-5">
+            <div className="p-6 space-y-5 overflow-y-auto min-h-0">
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
                   {t("Name")} <Info className="w-3.5 h-3.5 text-slate-400" />
@@ -541,9 +599,87 @@ export default function ApiKeys() {
                 </div>
                 <p className="text-xs text-slate-400 mt-1.5">{t("Expiration time is based on UTC-0 server time.")}</p>
               </div>
+              
+              <div className="pt-4 border-t border-slate-100">
+                <h3 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-indigo-500" />
+                  {t("Security Restrictions")}
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("IP Whitelist")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("Leave blank for no restrictions. Separate multiple IPs with commas, semicolons, or newlines (e.g. 192.168.1.1, 8.8.8.8).")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                    </label>
+                    <textarea 
+                      placeholder={t("e.g. 192.168.1.1, 8.8.8.8")}
+                      className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[80px]"
+                      value={createForm.allowedIps}
+                      onChange={(e) => setCreateForm({...createForm, allowedIps: e.target.value})}
+                    />
+                    <p className="text-xs text-slate-400 mt-1.5">{t("Supports multiple IPs separated by comma, semicolon, or newline.")}</p>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Model Restrictions")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("Leave blank to allow access to all models. Select specific models to restrict access.")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                      {createForm.allowedModels.length > 0 && (
+                        <span className="ml-auto text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                          {createForm.allowedModels.length} {t("selected")}
+                        </span>
+                      )}
+                    </label>
+                    <div className="bg-[#f8fafc] border-none rounded-xl p-3 flex flex-col gap-2">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input 
+                          type="text"
+                          placeholder={t("Search models...")}
+                          className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                          value={createModelSearch}
+                          onChange={(e) => setCreateModelSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="max-h-[160px] overflow-y-auto mt-1">
+                        {availableModelsData.filter(m => m.id.toLowerCase().includes(createModelSearch.toLowerCase())).map(m => (
+                          <label key={m.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={createForm.allowedModels.includes(m.id)}
+                              onChange={(e) => {
+                                const newModels = e.target.checked 
+                                  ? [...createForm.allowedModels, m.id]
+                                  : createForm.allowedModels.filter(id => id !== m.id);
+                                setCreateForm({...createForm, allowedModels: newModels});
+                              }}
+                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            />
+                            <span className="text-sm text-slate-700 font-mono">{m.id}</span>
+                          </label>
+                        ))}
+                        {availableModelsData.filter(m => m.id.toLowerCase().includes(createModelSearch.toLowerCase())).length === 0 && (
+                          <div className="text-sm text-slate-500 p-2 text-center">{t("No models found.")}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="mt-8 flex justify-end gap-3">
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0">
               <button 
                 onClick={() => setIsCreateModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
@@ -681,6 +817,14 @@ export default function ApiKeys() {
                 <span className="font-medium">{overviewKey.reset}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
+                <span className="text-slate-500">{t("IP Whitelist")}</span>
+                <span className="font-medium break-all text-right max-w-[200px]">{overviewKey.allowedIps || t("None (All IPs allowed)")}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-slate-500">{t("Model Restrictions")}</span>
+                <span className="font-medium break-all text-right max-w-[200px]">{overviewKey.allowedModels && overviewKey.allowedModels.length > 0 ? overviewKey.allowedModels.join(', ') : t("None (All models allowed)")}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
                 <span className="text-slate-500">{t("First Used")}</span>
                 <span className="font-medium">{formatLocalTime(overviewKey.firstUsed)}</span>
               </div>
@@ -707,18 +851,19 @@ export default function ApiKeys() {
 
       {/* Edit Modal */}
       {isEditModalOpen && editKey && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative">
-            <button 
-              onClick={() => setIsEditModalOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
-            >
-              <XCircle className="w-6 h-6" />
-            </button>
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-semibold">{t("Edit API Key")}</h2>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
             
-            <h2 className="text-xl font-semibold mb-6">{t("Edit API Key")}</h2>
-            
-            <div className="space-y-5">
+            <div className="p-6 space-y-5 overflow-y-auto min-h-0">
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
                   {t("Name")}
@@ -847,9 +992,87 @@ export default function ApiKeys() {
                 </div>
                 <p className="text-xs text-slate-400 mt-1.5">{t("Expiration time is based on UTC-0 server time.")}</p>
               </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <h3 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-indigo-500" />
+                  {t("Security Restrictions")}
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("IP Whitelist")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("Leave blank for no restrictions. Separate multiple IPs with commas, semicolons, or newlines (e.g. 192.168.1.1, 8.8.8.8).")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                    </label>
+                    <textarea 
+                      placeholder={t("e.g. 192.168.1.1, 8.8.8.8")}
+                      className="w-full bg-[#f8fafc] border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[80px]"
+                      value={editForm.allowedIps}
+                      onChange={(e) => setEditForm({...editForm, allowedIps: e.target.value})}
+                    />
+                    <p className="text-xs text-slate-400 mt-1.5">{t("Supports multiple IPs separated by comma, semicolon, or newline.")}</p>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-2">
+                      {t("Model Restrictions")}
+                      <div className="relative group flex items-center">
+                        <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                        <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 hidden group-hover:block w-72 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
+                          {t("Leave blank to allow access to all models. Select specific models to restrict access.")}
+                          <div className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-slate-800"></div>
+                        </div>
+                      </div>
+                      {editForm.allowedModels.length > 0 && (
+                        <span className="ml-auto text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                          {editForm.allowedModels.length} {t("selected")}
+                        </span>
+                      )}
+                    </label>
+                    <div className="bg-[#f8fafc] border-none rounded-xl p-3 flex flex-col gap-2">
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input 
+                          type="text"
+                          placeholder={t("Search models...")}
+                          className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                          value={editModelSearch}
+                          onChange={(e) => setEditModelSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="max-h-[160px] overflow-y-auto mt-1">
+                        {availableModelsData.filter(m => m.id.toLowerCase().includes(editModelSearch.toLowerCase())).map(m => (
+                          <label key={m.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={editForm.allowedModels.includes(m.id)}
+                              onChange={(e) => {
+                                const newModels = e.target.checked 
+                                  ? [...editForm.allowedModels, m.id]
+                                  : editForm.allowedModels.filter(id => id !== m.id);
+                                setEditForm({...editForm, allowedModels: newModels});
+                              }}
+                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            />
+                            <span className="text-sm text-slate-700 font-mono">{m.id}</span>
+                          </label>
+                        ))}
+                        {availableModelsData.filter(m => m.id.toLowerCase().includes(editModelSearch.toLowerCase())).length === 0 && (
+                          <div className="text-sm text-slate-500 p-2 text-center">{t("No models found.")}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="mt-8 flex justify-end gap-3">
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0">
               <button 
                 onClick={() => setIsEditModalOpen(false)}
                 className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
