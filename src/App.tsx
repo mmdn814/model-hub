@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Models from "./pages/Models";
+import Providers from "./pages/Providers";
 import ModelDetails from "./pages/ModelDetails";
 import Playground from "./pages/Playground";
 import Pricing from "./pages/Pricing";
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/requirements" element={<Requirements />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
+              <Route path="providers" element={<Providers />} />
               <Route path="models" element={<Models />} />
               <Route path="models/:id" element={<ModelDetails />} />
               <Route path="models/:id/playground" element={<Playground />} />

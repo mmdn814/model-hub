@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare, ClipboardList, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { DevAnnotation } from "@/components/DevAnnotation";
 
 const navItems = [
   { icon: LayoutDashboard, labelKey: "Dashboard", path: "/" },
+  { icon: Building2, labelKey: "Providers", path: "/providers" },
   { icon: Box, labelKey: "Models", path: "/models" },
   { icon: ImageIcon, labelKey: "Asset Library", path: "/assets" },
   { icon: Tag, labelKey: "Pricing", path: "/pricing" },

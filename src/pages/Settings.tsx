@@ -12,14 +12,18 @@ export default function Settings() {
   const [emailConnected, setEmailConnected] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [githubConnected, setGithubConnected] = useState(false);
-  const [showConflictDialog, setShowConflictDialog] = useState(false);
-  const [conflictType, setConflictType] = useState<"Google" | "GitHub" | "">("");
+
+  // Scenario 2 (One other login method detected)
+  const [showScenario2, setShowScenario2] = useState(false);
+
+  // Scenario 3 (Two other login methods detected)
+  const [showScenario3, setShowScenario3] = useState(false);
+  const [s3GoogleVerified, setS3GoogleVerified] = useState(false);
+  const [s3GithubVerified, setS3GithubVerified] = useState(false);
 
   const handleConnect = (type: "Google" | "GitHub") => {
-    // For demo purposes, we will trigger the conflict error for GitHub, and success for Google.
     if (type === "GitHub") {
-      setConflictType(type);
-      setShowConflictDialog(true);
+      setGithubConnected(true);
     } else {
       setGoogleConnected(true);
     }
@@ -100,27 +104,61 @@ export default function Settings() {
         </div>
       </DevAnnotation>
 
+      <DevAnnotation
+        elementName="账户统一测试工具 (合并流程 Demo)"
+        componentType="Card"
+        functionDesc="模拟多登录方式下的账户统一强制绑定流程"
+        devNotes="点击按钮演示场景二和场景三弹窗。实际流程中，由于弹窗处于登录成功后的必经路径，且不可关闭，这里主要展示 UI 和交互逻辑。废弃了原来的不同邮箱绑定报错，改为相同邮箱强制合并。"
+      >
+        <div className="bg-indigo-50 border border-indigo-100 rounded-[2rem] p-8 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-xl font-bold text-indigo-900 tracking-tight">
+              {t("Account Merging Demo (v2.0)")}
+            </h3>
+          </div>
+          <p className="text-sm text-indigo-700 mb-6 max-w-2xl">
+            {t("Simulate logging in with an email that has historical accounts associated with other login methods. The user must verify them before entering the product.")}
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+              onClick={() => setShowScenario2(true)}
+            >
+              {t("Simulate Scenario 2 (1 Other Method)")}
+            </Button>
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl"
+              onClick={() => {
+                setS3GoogleVerified(false);
+                setS3GithubVerified(false);
+                setShowScenario3(true);
+              }}
+            >
+              {t("Simulate Scenario 3 (2 Other Methods)")}
+            </Button>
+          </div>
+        </div>
+      </DevAnnotation>
+
       <div className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm">
         <DevAnnotation
           customContent={
             <div className="space-y-3 text-sm">
-              <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">身份认证 (Auth) [邮箱+第三方]</div>
-              <p><span className="font-semibold">认证方式：</span>支持 邮箱密码注册/登录，以及 Google 和 GitHub OAuth 2.0。</p>
+              <div className="font-bold text-base border-b border-[#fbc02d] pb-1 mb-2">身份认证与账号统一 (Account Merging v2.0)</div>
+              <p><span className="font-semibold">核心原则：</span>同一个邮箱只对应一个 PowerTokens 用户，一个用户可以绑定多种登录方式。</p>
               
               <div className="space-y-1">
-                <div className="font-bold text-[#f57f17]">多账号关联 (Account Linking)</div>
+                <div className="font-bold text-[#f57f17]">相同邮箱的多历史账号合并</div>
                 <div className="pl-2">
-                  <span className="font-semibold">逻辑描述：</span>允许已登录用户在设置页面关联其他认证方式。<br/>
-                  <span className="font-semibold">场景示例：</span>用户通过邮箱注册后，可以链接其 Google 账户。关联成功后，未来通过邮箱和 Google 登录均进入同一账户。
+                  <span className="font-semibold">逻辑描述：</span>当用户通过某种方式（如邮箱）登录，系统检测到该邮箱曾通过其他方式（如 Google 或 GitHub）注册过历史账户时，会进入强制合并流程。<br/>
+                  <span className="font-semibold">数据统一：</span>验证并绑定后，充值记录、调用日志、API Key 和素材库将全部合并到当前唯一用户。
                 </div>
               </div>
 
               <div className="space-y-1">
-                <div className="font-bold text-[#f57f17]">账户冲突处理与防冒领机制</div>
+                <div className="font-bold text-[#f57f17]">废弃跨邮箱绑定</div>
                 <div className="pl-2">
-                  <span className="font-semibold">同名邮箱隔离原则：</span>若用户使用 x@gmail.com 通过 Google 登录（账户 A），又尝试用 x@gmail.com 走邮箱注册流程（账户 B），系统视二者为两个互不关联的独立账户。<br/>
-                  <span className="font-semibold">唯一性与防冒领：</span>一个社交账号在全系统只能关联唯一用户 ID。若尝试绑定一个已被其他账户绑定的社交账号，系统拦截并报错。<br/>
-                  <span className="font-semibold">提示文案：</span>“该 [平台] 账号已被其他用户绑定，请先在原账户解绑或联系系统支持。”。
+                  不再允许新增将 A 邮箱的 Google 登录绑定到 B 邮箱的 GitHub 登录。
                 </div>
               </div>
             </div>
@@ -129,7 +167,7 @@ export default function Settings() {
           <div className="flex items-center gap-2 mb-8">
             <ShieldCheck className="w-5 h-5 text-blue-500" />
             <h3 className="text-sm font-bold text-slate-400 tracking-widest uppercase">
-              {t("LINKED ACCOUNTS")}
+              {t("LINKED LOGIN METHODS")}
             </h3>
           </div>
         </DevAnnotation>
@@ -207,8 +245,6 @@ export default function Settings() {
             componentType="List Item / Button"
             functionDesc="提供绑定其他第三方账号的入口"
             interactionRule="点击 CONNECT 触发 OAuth 绑定流程"
-            autoLogic="此模拟中点击 CONNECT 将触发账户冲突报错"
-            devNotes="演示冲突场景拦截"
           >
             <div className="flex items-center justify-between bg-[#f8fafc] rounded-3xl p-4 px-6">
               <div className="flex items-center gap-4">
@@ -231,11 +267,6 @@ export default function Settings() {
                   >
                     {t("CONNECT")}
                   </button>
-                  <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-64 bg-slate-800 text-white text-xs leading-relaxed rounded-xl p-3 shadow-lg z-10 pointer-events-none">
-                    <span className="text-red-300 font-semibold block mb-1">Demo Behavior:</span>
-                    {t("Clicking this will simulate a conflict error, showing what happens when a credential is already bound to another account.")}
-                    <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800"></div>
-                  </div>
                 </div>
               )}
             </div>
@@ -243,21 +274,131 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Conflict Error Dialog */}
-      <Dialog open={showConflictDialog} onOpenChange={setShowConflictDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4">
-              <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+      {/* Scenario 2 Dialog (1 Other Login Method) */}
+      <Dialog open={showScenario2} onOpenChange={setShowScenario2}>
+        <DialogContent className="sm:max-w-[480px] [&>button]:hidden outline-none">
+          <DialogHeader className="mb-2">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50 mb-4">
+              <ShieldCheck className="h-7 w-7 text-indigo-600" aria-hidden="true" />
             </div>
-            <DialogTitle className="text-center text-xl">Account Linking Failed</DialogTitle>
-            <DialogDescription className="text-center pt-2 text-base text-zinc-600">
-              该 {conflictType} 账号已被其他用户绑定，请先在原账户解绑或联系系统支持。
-            </DialogDescription>
+            <DialogTitle className="text-center text-xl font-bold text-zinc-900">
+              {t("检测到相同邮箱的其他登录方式")}
+            </DialogTitle>
           </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button className="w-full" variant="outline" onClick={() => setShowConflictDialog(false)}>
-              Close
+          <div className="text-sm text-zinc-600 space-y-4">
+            <p>
+              我们检测到邮箱 <strong className="text-zinc-900 font-mono">james_dev@global.io</strong> 曾通过 <strong className="text-zinc-900">GitHub</strong> 登录 PowerTokens。
+            </p>
+            <p>
+              请验证并绑定该 GitHub 登录方式。完成后，相关充值记录、调用日志、API Key 和素材库将统一到当前用户。
+            </p>
+            <p className="text-zinc-500">
+              下次您可以使用不同的登录方式进入同一个 PowerTokens 用户。
+            </p>
+          </div>
+          <DialogFooter className="mt-6 flex-col sm:flex-col gap-3">
+            <Button 
+              className="w-full bg-zinc-900 text-white hover:bg-zinc-800 h-11" 
+              onClick={() => {
+                setGithubConnected(true);
+                setShowScenario2(false);
+              }}
+            >
+              {t("验证并绑定 GitHub")}
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-zinc-400 hover:text-zinc-600 text-xs" 
+              onClick={() => setShowScenario2(false)}
+            >
+              {t("（演示专用：退出模拟）")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Scenario 3 Dialog (2 Other Login Methods) */}
+      <Dialog open={showScenario3} onOpenChange={setShowScenario3}>
+        <DialogContent className="sm:max-w-[500px] [&>button]:hidden outline-none">
+          <DialogHeader className="mb-2">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-indigo-50 mb-4">
+              <ShieldCheck className="h-7 w-7 text-indigo-600" aria-hidden="true" />
+            </div>
+            <DialogTitle className="text-center text-xl font-bold text-zinc-900">
+              {t("检测到相同邮箱的其他登录方式")}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="text-sm text-zinc-600 space-y-4">
+            <p>
+              我们检测到邮箱 <strong className="text-zinc-900 font-mono">james_dev@global.io</strong> 曾通过以下方式登录 PowerTokens：
+            </p>
+            <ol className="list-decimal pl-5 space-y-1 font-medium text-zinc-800">
+              <li>Google 登录</li>
+              <li>GitHub 登录</li>
+            </ol>
+            <p>
+              请依次完成验证并绑定以上登录方式。完成后，相关充值记录、调用日志、API Key 和素材库将全部统一到当前用户。
+            </p>
+            
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-mono text-sm space-y-3 mt-4">
+              <div className="flex justify-between items-center text-zinc-900">
+                <span>邮箱验证码</span>
+                <span className="text-emerald-600 font-semibold text-xs px-2 py-1 bg-emerald-50 rounded-md">已验证</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className={s3GoogleVerified ? "text-zinc-900" : "text-zinc-500"}>Google</span>
+                {s3GoogleVerified ? (
+                  <span className="text-emerald-600 font-semibold text-xs px-2 py-1 bg-emerald-50 rounded-md">已验证</span>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className="h-7 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                    onClick={() => setS3GoogleVerified(true)}
+                  >
+                    去验证
+                  </Button>
+                )}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className={s3GithubVerified ? "text-zinc-900" : "text-zinc-500"}>GitHub</span>
+                {s3GithubVerified ? (
+                  <span className="text-emerald-600 font-semibold text-xs px-2 py-1 bg-emerald-50 rounded-md">已验证</span>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className="h-7 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                    onClick={() => setS3GithubVerified(true)}
+                  >
+                    去验证
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-zinc-500 text-xs">
+              下次您可以使用任意已绑定方式进入同一个 PowerTokens 用户。
+            </p>
+          </div>
+
+          <DialogFooter className="mt-6 flex-col sm:flex-col gap-3">
+            <Button 
+              className="w-full h-11 bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:opacity-100" 
+              disabled={!s3GoogleVerified || !s3GithubVerified}
+              onClick={() => {
+                setGoogleConnected(true);
+                setGithubConnected(true);
+                setShowScenario3(false);
+              }}
+            >
+              {(!s3GoogleVerified || !s3GithubVerified) ? t("请先完成上方验证") : t("完成并进入产品")}
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="w-full text-zinc-400 hover:text-zinc-600 text-xs" 
+              onClick={() => setShowScenario3(false)}
+            >
+              {t("（演示专用：退出模拟）")}
             </Button>
           </DialogFooter>
         </DialogContent>

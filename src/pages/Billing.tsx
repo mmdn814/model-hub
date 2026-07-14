@@ -21,6 +21,13 @@ export default function Billing() {
     paymentMethod: string;
   } | null>(null);
 
+  // Balance Alert Settings
+  const [balanceAlertEnabled, setBalanceAlertEnabled] = useState(false);
+  const [alertThreshold, setAlertThreshold] = useState("1000");
+  const [alertInterval, setAlertInterval] = useState("120");
+  const [alertTimes, setAlertTimes] = useState("3");
+  const [alertOnZero, setAlertOnZero] = useState(false);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div>
@@ -28,7 +35,7 @@ export default function Billing() {
         <p className="text-zinc-500">{t("Manage your balance, payment methods, and billing history.")}</p>
       </div>
 
-      <div className="max-w-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Balance Card */}
         <Card className="bg-zinc-900 text-zinc-50 border-zinc-800">
           <CardHeader>
@@ -57,6 +64,104 @@ export default function Billing() {
             </DevAnnotation>
           </CardContent>
         </Card>
+
+        {/* Balance Alert Settings */}
+        <DevAnnotation customContent={<div className="whitespace-pre-wrap">余额预警：设置当余额低于设定值时的提醒频率和次数。只做展示与基础交互。</div>}>
+          <Card className="border-zinc-200 shadow-sm h-full">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl">{t("Balance Alert")}</CardTitle>
+                  <CardDescription>{t("Get notified when your balance is low")}</CardDescription>
+                </div>
+                <Switch 
+                  checked={balanceAlertEnabled}
+                  onCheckedChange={setBalanceAlertEnabled}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {balanceAlertEnabled ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-zinc-700">{t("Alert Threshold")}</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-zinc-500 whitespace-nowrap">{t("When credits <")}</span>
+                      <div className="relative flex-1">
+                        <Input 
+                          type="number" 
+                          value={alertThreshold}
+                          onChange={(e) => setAlertThreshold(e.target.value)}
+                          className="pr-16" 
+                        />
+                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                          <span className="text-sm text-zinc-500">credits</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-zinc-700">{t("Alert Interval")}</label>
+                      <Select value={alertInterval} onValueChange={setAlertInterval}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 {t("Minutes")}</SelectItem>
+                          <SelectItem value="60">60 {t("Minutes")}</SelectItem>
+                          <SelectItem value="90">90 {t("Minutes")}</SelectItem>
+                          <SelectItem value="120">120 {t("Minutes")}</SelectItem>
+                          <SelectItem value="180">3 {t("Hours")}</SelectItem>
+                          <SelectItem value="240">4 {t("Hours")}</SelectItem>
+                          <SelectItem value="300">5 {t("Hours")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-zinc-700">{t("Times to Send")}</label>
+                      <Select value={alertTimes} onValueChange={setAlertTimes}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 {t("Time")}</SelectItem>
+                          <SelectItem value="2">2 {t("Times")}</SelectItem>
+                          <SelectItem value="3">3 {t("Times")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <label className="flex items-start gap-2 cursor-pointer mt-2 group">
+                    <div className="relative flex items-center justify-center mt-0.5 shrink-0">
+                      <input 
+                        type="checkbox" 
+                        className="peer sr-only"
+                        checked={alertOnZero}
+                        onChange={(e) => setAlertOnZero(e.target.checked)}
+                      />
+                      <div className="w-4 h-4 rounded border border-zinc-300 bg-white peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-colors"></div>
+                      <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <span className="text-sm text-zinc-600 select-none group-hover:text-zinc-900 transition-colors leading-tight">
+                      {t("Send additional alert when balance reaches 0 or below")}
+                    </span>
+                  </label>
+
+                  <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100/50 text-xs text-indigo-700/80 leading-relaxed">
+                    {t("Once triggered, the alert emails will pause until you make a new top-up, after which they will resume according to your settings.")}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-zinc-500 py-6 flex items-center justify-center bg-zinc-50 rounded-lg border border-zinc-100/50 border-dashed">
+                  {t("Balance alerts are currently disabled.")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </DevAnnotation>
       </div>
 
       {/* Credit Packages */}

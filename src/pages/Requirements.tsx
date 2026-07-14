@@ -102,6 +102,17 @@ export function Requirements() {
               <div className={`w-1.5 h-1.5 rounded-full ${activeTab === "gtm" ? "bg-indigo-500" : "bg-zinc-300"}`} />
               2026629GTM需求
             </button>
+            <button
+              onClick={() => setActiveTab("phase2026710")}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "phase2026710"
+                  ? "bg-white text-indigo-600 shadow-sm border border-zinc-200/60"
+                  : "text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900"
+              }`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full ${activeTab === "phase2026710" ? "bg-indigo-500" : "bg-zinc-300"}`} />
+              2026710需求
+            </button>
           </nav>
         </div>
 
@@ -1878,6 +1889,313 @@ if (!localStorage.getItem(key)) {
                       <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-xl text-indigo-900 mt-6 shadow-sm">
                         <p className="font-semibold mb-1 text-lg">这一版重点：</p>
                         <p>装 GTM、删 GA4 直连、加 lib/gtm.ts、在正确业务节点调用 3 个事件、purchase 防重复。</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {activeTab === "phase2026710" && (
+            <div className="max-w-4xl space-y-10">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 mb-2 border-b border-zinc-100 pb-4">2026710需求范围</h2>
+                <p className="text-zinc-600 mb-6 mt-4">主要增加 供应商（Providers）统计分析页面 及关联全局导航更新。</p>
+              </div>
+
+              {/* Section 1: 供应商 Providers 页面 */}
+              <section className="space-y-4">
+                <h3 className="text-xl font-semibold text-zinc-800 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">1</div>
+                  供应商（Providers）页面
+                </h3>
+
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
+                  <div className="px-4 py-3 bg-zinc-100/50 border-b border-zinc-100 font-semibold text-zinc-700 text-sm">1.1 页面与核心功能</div>
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-white border-b border-zinc-100 text-zinc-500">
+                      <tr><th className="px-4 py-2 font-medium w-1/4">功能模块</th><th className="px-4 py-2 font-medium w-1/4">数据范围</th><th className="px-4 py-2 font-medium">详情描述</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-50 bg-white">
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">全局入口</td><td className="px-4 py-3 text-zinc-600">全部页面可见</td><td className="px-4 py-3 text-zinc-600">在左侧全局导航中增加 Providers 入口，路由路径：/providers。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">数据统计</td><td className="px-4 py-3 text-zinc-600">按提供商分组</td><td className="px-4 py-3 text-zinc-600">动态统计每个提供商拥有的模型分类及对应的模型数量。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">有效模型过滤</td><td className="px-4 py-3 text-zinc-600">仅 Active 状态</td><td className="px-4 py-3 text-zinc-600">仅统计并展示状态为 Active / Visible 的模型，Hidden 模型排除在外。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">模型性能概览</td><td className="px-4 py-3 text-zinc-600">昨日全平台数据</td><td className="px-4 py-3 text-zinc-600">
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>总请求次数 (Requests)：</strong>前一天全平台范围内的汇总请求次数（包含同步请求与异步任务请求）。</li>
+                          <li><strong>成功率 (Success Rate)：</strong>计算公式为 (成功处理的请求数 / 总请求数) * 100%。</li>
+                          <li><strong>平均延迟 (Latency)：</strong>计算公式为总耗时除以成功请求数，范围仅包含成功的请求。若该供应商支持异步任务，则延时指标拆分为<strong>同步延时 (Sync)</strong>与<strong>异步延时 (Async)</strong>分别计算展示。</li>
+                        </ul>
+                      </td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">模型交互</td><td className="px-4 py-3 text-zinc-600">支持点击跳转</td><td className="px-4 py-3 text-zinc-600">点击列表中的具体模型即可跳转至对应的模型详情页面 (/models/:id)。</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden mt-4">
+                  <div className="px-4 py-3 bg-zinc-100/50 border-b border-zinc-100 font-semibold text-zinc-700 text-sm">1.2 页面设计要点</div>
+                  <div className="p-4 space-y-4 text-sm text-zinc-600">
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><strong>无搜索栏：</strong>由于目前接入的供应商较少，整体数据可读性强，去除了顶部搜索框以保持页面极简结构。</li>
+                      <li><strong>模型平铺展示：</strong>展开单个供应商时，直接按类别或平铺呈现具体的可用模型卡片。</li>
+                      <li><strong>悬停交互：</strong>模型卡片支持悬停及光标反馈 (Hover effect & cursor-pointer) 以表明其可跳转性。</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 2: 余额预警功能 */}
+              <section className="space-y-4 mt-8">
+                <h3 className="text-xl font-semibold text-zinc-800 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">2</div>
+                  Billing 余额预警 (Balance Alert)
+                </h3>
+
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden">
+                  <div className="px-4 py-3 bg-zinc-100/50 border-b border-zinc-100 font-semibold text-zinc-700 text-sm">2.1 预警设置规则</div>
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-white border-b border-zinc-100 text-zinc-500">
+                      <tr><th className="px-4 py-2 font-medium w-1/4">功能模块</th><th className="px-4 py-2 font-medium">详情描述</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-50 bg-white">
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">总开关</td><td className="px-4 py-3 text-zinc-600">在 Billing 页面增加「余额预警」开关，控制是否启用低余额提醒。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">阈值设置</td><td className="px-4 py-3 text-zinc-600">用户可输入触发提醒的 credits 额度（不可小于当前余额），当剩余 credits 小于该阈值时触发。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">提醒频率</td><td className="px-4 py-3 text-zinc-600">支持通过下拉框选择：30分钟、60分钟、90分钟、120分钟、3小时、4小时、5小时 触发一次。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">提醒次数</td><td className="px-4 py-3 text-zinc-600">支持通过下拉框选择连续发送：1次、2次、3次。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">清零提醒</td><td className="px-4 py-3 text-zinc-600">提供单选框，勾选后当余额等于或小于 0 时额外发送预警邮件。</td></tr>
+                      <tr><td className="px-4 py-3 text-zinc-800 font-medium">重置机制</td><td className="px-4 py-3 text-zinc-600">页面增加提示语："直到您完成一次充值后再次触发预警邮件,会再次按照您上面的设置发送余额预警邮件"。</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-zinc-50 rounded-xl border border-zinc-100 overflow-hidden mt-4">
+                  <div className="px-4 py-3 bg-zinc-100/50 border-b border-zinc-100 font-semibold text-zinc-700 text-sm">2.2 邮件文案模版</div>
+                  <div className="p-4 space-y-4 text-sm text-zinc-600">
+                    <div>
+                      <p className="font-medium text-zinc-800 mb-2">邮件 B：余额不足告警</p>
+                      <div className="bg-white p-3 rounded-lg border border-zinc-200 text-zinc-700 space-y-2 font-mono text-xs whitespace-pre-wrap">
+                        <p><strong>邮件主题 (Subject):</strong> Low Balance Alert - Please Top Up Your Account</p>
+                        <div className="h-px bg-zinc-100 my-2"></div>
+                        <p>Hi {"{{username}}"},</p>
+                        <p>Your current account balance has fallen below the configured balance alert threshold.</p>
+                        <p>Your API service usage is subject to your real-time account balance. To avoid service interruption, we recommend topping up your account or enabling automatic top-up as soon as possible.</p>
+                        <p>Here are your current balance details:</p>
+                        <ul className="list-disc pl-5">
+                          <li>Current balance: ${"{{current_balance}}"}</li>
+                          <li>Alert threshold: ${"{{alert_threshold}}"}</li>
+                          <li>Alert time: {"{{alert_time}}"} UTC</li>
+                        </ul>
+                        <div className="bg-zinc-50 p-2 border border-zinc-200 rounded my-2 space-y-2">
+                          <p className="text-zinc-500 font-sans font-medium text-xs">【第一次提醒时显示】</p>
+                          <p>This is your first low balance reminder. If your balance remains below ${"{{next_alert_threshold}}"}, we will send you another reminder in approximately {"{{next_reminder_interval}}"} hours.</p>
+                          <p className="text-zinc-500 font-sans font-medium text-xs mt-2">【第二次提醒时显示】</p>
+                          <p>This is your second low balance reminder. If your balance remains below ${"{{next_alert_threshold}}"}, we will send you a final reminder in approximately {"{{next_reminder_interval}}"} hours.</p>
+                          <p className="text-zinc-500 font-sans font-medium text-xs mt-2">【第三次提醒时显示】</p>
+                          <p>This is your third and final low balance reminder. Your account may soon run out of available balance, which could interrupt your API services. Please top up your account as soon as possible.</p>
+                        </div>
+                        <p>You can complete manual top-up or configure automatic top-up via the link below:</p>
+                        <p>👉 Billing & Recharge Center: {"{{billing_settings_url}}"}</p>
+                        <p>If you have any questions, please contact us via {"{{support_email}}"}.</p>
+                        <p>Thank you for building with Powertokens!</p>
+                        <p>Best regards,<br/>The Powertokens Team</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-medium text-zinc-800 mb-2">邮件 C：余额为 0 提醒</p>
+                      <div className="bg-white p-3 rounded-lg border border-zinc-200 text-zinc-700 space-y-2 font-mono text-xs whitespace-pre-wrap">
+                        <p><strong>邮件主题 (Subject):</strong> Account Balance Reached $0 - API Services May Be Interrupted</p>
+                        <div className="h-px bg-zinc-100 my-2"></div>
+                        <p>Hi {"{{username}}"},</p>
+                        <p>Your Powertokens account balance has reached $0.</p>
+                        <p>Requests that require a positive available balance may now be rejected, and your API services may be interrupted until your account is topped up.</p>
+                        <p>Here are your account balance details:</p>
+                        <ul className="list-disc pl-5">
+                          <li>Current balance: ${"{{current_balance}}"}</li>
+                          <li>Balance reached $0 at: {"{{balance_zero_time}}"} UTC</li>
+                          <li>Automatic top-up status: {"{{auto_top_up_status}}"}</li>
+                        </ul>
+                        <p>To restore normal API service usage, please complete a manual top-up or review your automatic top-up settings via the link below:</p>
+                        <p>👉 Billing & Recharge Center: {"{{billing_settings_url}}"}</p>
+                        <p>After your payment is successfully completed and your balance is updated, you can continue using Powertokens services normally.</p>
+                        <p>If you have any questions, please contact us via {"{{support_email}}"}.</p>
+                        <p>Thank you for building with Powertokens!</p>
+                        <p>Best regards,<br/>The Powertokens Team</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 text-blue-700 text-xs">
+                      <p><strong>注：</strong>建议三个余额阈值分别使用 <code>{"{{first_alert_threshold}}"}</code>、<code>{"{{second_alert_threshold}}"}</code> 和 <code>{"{{third_alert_threshold}}"}</code>，方便后台区分 X、Y、Z 三档触发条件。</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Section 3: 用户账号合并 (Account Merging) */}
+              <section className="space-y-4 mt-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">3</div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-zinc-800">一邮一用户、多登录方式</h3>
+                    <p className="text-sm text-zinc-500 mt-1">产品逻辑规格 v2.0</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* 1 & 2 */}
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">产品目标与核心原则</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-2">1. 产品目标</p>
+                        <ul className="list-disc pl-5 space-y-1 mb-2">
+                          <li>PowerTokens 支持：Google 登录、GitHub 登录、邮箱验证码登录</li>
+                        </ul>
+                        <div className="bg-indigo-50/50 text-indigo-800 p-3 rounded-lg border border-indigo-100 mb-2 font-medium">
+                          统一规则：同一个邮箱只对应一个 PowerTokens 用户，一个用户可以绑定多种登录方式。
+                        </div>
+                        <p>用户使用任意已绑定方式登录，进入的都是同一个用户。（注：本期只处理同一个人的多登录方式问题。多个用户共同使用企业账户的需求，在二期通过企业邀请和成员权限实现。）</p>
+                      </div>
+                      <div className="h-px bg-zinc-100 my-4"></div>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-2">2. 核心原则</p>
+                        <ul className="list-decimal pl-5 space-y-1.5">
+                          <li>用户通过任意方式登录成功后，均按本次验证成功的邮箱检查是否存在相同邮箱的用户。</li>
+                          <li>如果没有相同邮箱，按照新用户流程处理，现有注册流程不变。</li>
+                          <li>如果相同邮箱只有一个用户，登录或绑定到该用户，不创建重复用户。如果已经存在的绑定是同一个邮箱的账户，就是统一的 User ID。</li>
+                          <li>目前 Settings 页面里的绑定操作只允许绑定相同的邮箱，原来的 Linked Accounts 概念修改成 Linked 登录方式。</li>
+                          <li>如果相同邮箱存在多个历史用户，必须验证其他登录方式并完成统一。</li>
+                          <li>强制统一不可跳过，完成前不能进入产品主界面。</li>
+                          <li>未完成对应登录方式验证前，不展示该历史用户的具体数据。</li>
+                          <li>统一后，充值记录、调用日志、API Key、素材库等数据全部合并展示。</li>
+                          <li>原有 API Key 继续有效，不影响正在运行的 API 服务。</li>
+                          <li>本期不调整当前数据库结构。</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3 & 4 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">3. 场景一：库中没有相同邮箱</div>
+                      <div className="p-4 space-y-3 text-sm text-zinc-600">
+                        <p>用户通过任意方式（Google、GitHub、邮箱验证码）完成登录验证，登录成功后，如果库中不存在相同邮箱：</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>按照新用户处理</li>
+                          <li>创建新用户</li>
+                          <li>本次登录方式作为该用户的登录方式</li>
+                          <li>原有新用户注册和登录流程保持不变</li>
+                          <li>直接进入产品</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">4. 场景二：检测到一种其他登录方式</div>
+                      <div className="p-4 space-y-3 text-sm text-zinc-600">
+                        <p>用户通过某种方式登录成功后，如果检测到相同邮箱还存在另一种登录方式对应的历史用户：</p>
+                        <ul className="list-decimal pl-5 space-y-1">
+                          <li>用户跳转到 Settings 页面</li>
+                          <li>自动弹出强制绑定弹窗</li>
+                          <li>弹窗不可关闭，不能跳过</li>
+                          <li>用户必须完成对应登录方式的验证</li>
+                          <li>验证成功后，将该登录方式绑定到当前用户</li>
+                          <li>对应历史数据统一到当前用户</li>
+                          <li>完成后进入产品</li>
+                        </ul>
+                        <div className="mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-200">
+                          <p className="font-medium text-zinc-800 mb-1">弹窗文案：</p>
+                          <p><strong>标题：</strong>检测到相同邮箱的其他登录方式</p>
+                          <p><strong>正文：</strong>我们检测到邮箱 <code>XXXX@X.com</code> 曾通过 GitHub 登录 PowerTokens。请验证并绑定该 GitHub 登录方式。完成后，相关充值记录、调用日志、API Key 和素材库将统一到当前用户。下次您可以使用不同的登录方式进入同一个 PowerTokens 用户。</p>
+                          <p><strong>按钮：</strong>验证并绑定 GitHub</p>
+                          <p className="text-xs text-zinc-500 mt-1">（"GitHub" 根据实际情况替换为 Google 或邮箱验证码）</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5 */}
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">5. 场景三：检测到两种其他登录方式</div>
+                    <div className="p-4 space-y-3 text-sm text-zinc-600">
+                      <p>用户通过某种方式登录成功后，如果检测到相同邮箱还存在另外两种登录方式：</p>
+                      <ul className="list-decimal pl-5 space-y-1">
+                        <li>跳转到 Settings 页面并打开强制绑定弹窗</li>
+                        <li>弹窗一次性说明检测到的两种登录方式</li>
+                        <li>用户依次完成两种方式的验证</li>
+                        <li>全部完成前不能关闭、跳过或进入产品</li>
+                        <li>全部验证成功后，将相关登录方式绑定到当前用户</li>
+                        <li>相关历史数据统一到当前用户，用户进入产品</li>
+                      </ul>
+                      <div className="mt-3 p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+                        <p className="font-medium text-zinc-800 mb-2">弹窗文案：</p>
+                        <p><strong>标题：</strong>检测到相同邮箱的其他登录方式</p>
+                        <p><strong>正文：</strong>我们检测到邮箱 <code>XXXX@X.com</code> 曾通过以下方式登录 PowerTokens：<br/>1. Google 登录<br/>2. GitHub 登录<br/><br/>请依次完成验证并绑定以上登录方式。完成后，相关充值记录、调用日志、API Key 和素材库将全部统一到当前用户。<br/>下次您可以使用任意已绑定方式进入同一个 PowerTokens 用户。</p>
+                        <div className="my-3 p-3 bg-white border border-zinc-200 rounded font-mono text-xs">
+                          <p>邮箱验证码　已验证</p>
+                          <p>Google　　　待验证</p>
+                          <p>GitHub　　　待验证</p>
+                        </div>
+                        <p><strong>按钮：</strong>开始验证并绑定</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 6 & 7 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">6. 验证与中断规则</div>
+                      <div className="p-4 text-sm text-zinc-600">
+                        <ul className="list-disc pl-5 space-y-1.5">
+                          <li>本次登录成功的方式视为已验证，不需要重复验证。</li>
+                          <li>其他登录方式必须分别验证，不能相互替代。</li>
+                          <li>验证前只展示邮箱和登录方式，不展示余额、充值记录、日志、API Key 或素材库。</li>
+                          <li>用户中途退出后，下次登录继续进入强制绑定流程。</li>
+                          <li>已完成的步骤不需要重复处理。</li>
+                          <li>验证失败时允许重试，但不能进入产品主界面。</li>
+                          <li>无法完成验证时，提供联系客服入口。</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">7. 统一后的结果</div>
+                      <div className="p-4 text-sm text-zinc-600">
+                        <p className="mb-2 font-medium">完成后：</p>
+                        <ul className="list-disc pl-5 space-y-1.5">
+                          <li>同一个邮箱只对应一个用户；</li>
+                          <li>Google、GitHub、邮箱验证码成为该用户的不同登录方式；</li>
+                          <li>任意已绑定方式均进入同一个用户；</li>
+                          <li>充值记录统一；调用日志统一；素材库统一；</li>
+                          <li>API Key 统一且原有 Key 继续有效；</li>
+                          <li>后续产生的数据均归入该用户。</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 8 & 9 */}
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">8. 废弃跨邮箱绑定 & 9. 最终规则</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">8. 废弃跨邮箱绑定</p>
+                        <p>停止新增不同邮箱之间的登录方式绑定。例如“A 邮箱的 Google 登录”绑定“B 邮箱的 GitHub 登录”不再允许。</p>
+                        <ul className="list-disc pl-5 space-y-1 mt-2">
+                          <li>下线相关产品入口；</li>
+                          <li>不允许新增跨邮箱绑定；</li>
+                          <li>已存在的跨邮箱绑定暂时保留，不主动拆分；</li>
+                          <li>历史关系不参与本期同邮箱统一流程；</li>
+                          <li>二期通过企业邀请和成员权限机制处理多人协作。</li>
+                        </ul>
+                      </div>
+                      <div className="h-px bg-zinc-100"></div>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-2">9. 最终规则</p>
+                        <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-200 text-zinc-700">
+                          用户通过任意方式登录后，系统按本次验证成功的邮箱查找用户。没有相同邮箱时，按照现有新用户流程处理；存在同邮箱其他登录方式时，用户必须完成验证和绑定。完成后，同一个邮箱只对应一个用户，不同登录方式均进入该用户，充值记录、调用日志、API Key 和素材库统一展示。
+                        </div>
                       </div>
                     </div>
                   </div>
