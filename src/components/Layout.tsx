@@ -1,34 +1,73 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare, ClipboardList, Building2 } from "lucide-react";
+import { LayoutDashboard, Box, CreditCard, Key, LogOut, Globe, FileText, Settings as SettingsIcon, User, Tag, Image as ImageIcon, MessageSquare, ClipboardList, Building2, Users, ChevronDown, Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
-const navItems = [
+const MOCK_WORKSPACES = [
+  { id: 'personal', name: 'Personal Space', isEnterprise: false, role: 'Administrator' },
+  { id: 'ent-1', name: 'Acme Corp (Admin)', isEnterprise: true, role: 'Administrator' },
+  { id: 'ent-2', name: 'Global Tech (Finance)', isEnterprise: true, role: 'Finance' },
+  { id: 'ent-3', name: 'Stark Industries (Dev)', isEnterprise: true, role: 'Developer' },
+];
+
+const commonNavItems = [
   { icon: LayoutDashboard, labelKey: "Dashboard", path: "/" },
   { icon: Building2, labelKey: "Providers", path: "/providers" },
   { icon: Box, labelKey: "Models", path: "/models" },
-  { icon: ImageIcon, labelKey: "Asset Library", path: "/assets" },
   { icon: Tag, labelKey: "Pricing", path: "/pricing" },
-  { icon: CreditCard, labelKey: "Billing", path: "/billing" },
-  { icon: Key, labelKey: "API Keys", path: "/keys" },
-  { icon: FileText, labelKey: "Logs", path: "/logs" },
-  { icon: SettingsIcon, labelKey: "Settings", path: "/settings" },
 ];
+
+const assetLibraryNavItem = { icon: ImageIcon, labelKey: "Asset Library", path: "/assets" };
+const billingNavItem = { icon: CreditCard, labelKey: "Billing", path: "/billing" };
+const keysNavItem = { icon: Key, labelKey: "API Keys", path: "/keys" };
+const logsNavItem = { icon: FileText, labelKey: "Logs", path: "/logs" };
+const teamNavItem = { icon: Users, labelKey: "Team Members", path: "/team" };
+const auditLogsNavItem = { icon: ClipboardList, labelKey: "Audit Logs", path: "/audit-logs" };
+const settingsNavItem = { icon: SettingsIcon, labelKey: "Settings", path: "/settings" };
+
+const getNavItemsForRole = (role: string, isEnterprise: boolean) => {
+  const items = [...commonNavItems];
+  if (role === 'Administrator') {
+    items.push(assetLibraryNavItem, billingNavItem, keysNavItem, logsNavItem);
+    if (isEnterprise) {
+      items.push(teamNavItem, auditLogsNavItem);
+    }
+    items.push(settingsNavItem);
+  } else if (role === 'Finance') {
+    items.push(billingNavItem);
+  } else if (role === 'Developer') {
+    items.push(keysNavItem, logsNavItem);
+  }
+  return items;
+};
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
+  const [selectedWorkspace, setSelectedWorkspace] = useState(MOCK_WORKSPACES[1]);
   const profileRef = useRef<HTMLDivElement>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  const isEnterprise = selectedWorkspace.isEnterprise;
+  const userRole = selectedWorkspace.role || 'Administrator';
+
+  const navItems = getNavItemsForRole(userRole, isEnterprise);
+
+  const allRoutes = [...commonNavItems, assetLibraryNavItem, billingNavItem, keysNavItem, logsNavItem, teamNavItem, auditLogsNavItem, settingsNavItem];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
+      }
+      if (workspaceRef.current && !workspaceRef.current.contains(event.target as Node)) {
+        setIsWorkspaceOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -52,7 +91,7 @@ export default function Layout() {
     <div className="flex h-screen w-full bg-zinc-50 text-zinc-950 font-sans">
       {/* Sidebar */}
       <aside className="w-64 border-r border-zinc-200 bg-white flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-zinc-200">
+        <div className="h-16 flex items-center px-6 border-b border-zinc-200 shrink-0">
           <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
             <div className="w-8 h-8 bg-zinc-900 rounded-md flex items-center justify-center">
               <span className="text-white text-sm">PT</span>
@@ -61,8 +100,9 @@ export default function Layout() {
           </div>
         </div>
         
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
+        <nav className="flex-1 p-4 space-y-1 flex flex-col overflow-y-auto">
+          <div className="space-y-1">
+            {navItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
               <div key={item.path} className={cn("flex items-center w-full group relative rounded-md", isActive ? "bg-zinc-100" : "hover:bg-zinc-50")}>
@@ -278,9 +318,11 @@ export default function Layout() {
               </div>
             );
           })}
+          </div>
           
-          <div className="flex items-center w-full px-3 py-2 rounded-md transition-colors hover:bg-indigo-50 group">
-            <a
+          <div className="mt-auto pt-4 space-y-1 border-t border-zinc-100">
+            <div className="flex items-center w-full px-3 py-2 rounded-md transition-colors hover:bg-indigo-50 group">
+              <a
               href="https://discord.com/invite/W33EWChT9"
               target="_blank"
               rel="noopener noreferrer"
@@ -306,12 +348,27 @@ export default function Layout() {
           </div>
           
           <Link to="/requirements" className="flex items-center gap-3 px-3 py-2 mt-4 mx-3 rounded-md text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-colors">
-            <ClipboardList className="w-4 h-4" />
-            需求详情
+            <ClipboardList className="w-4 h-4 shrink-0" />
+            <div className="flex flex-col">
+              <span>需求详情</span>
+              <span className="text-[10px] text-indigo-400 font-normal leading-tight">原型专用，上线后不显示</span>
+            </div>
           </Link>
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-zinc-200 space-y-1">
+        <div className="p-4 border-t border-zinc-200 flex flex-col gap-3">
+          <div className="bg-zinc-100/80 rounded-xl p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-zinc-500">{t("Balance")}</span>
+              <span className="text-sm font-bold text-zinc-900">124,500</span>
+            </div>
+            <button className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white border border-zinc-200 shadow-sm rounded-lg text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-300 transition-all">
+              <CreditCard className="w-3.5 h-3.5" />
+              {t("Add Funds")}
+            </button>
+          </div>
+
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
@@ -326,17 +383,69 @@ export default function Layout() {
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 border-b border-zinc-200 bg-white flex items-center px-8 justify-between shrink-0">
           <h1 className="text-lg font-semibold">
-            {t(navItems.find(item => location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path)))?.labelKey || "Dashboard")}
+            {t(allRoutes.find(item => location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path)))?.labelKey || "Dashboard")}
           </h1>
           <div className="flex items-center gap-4">
-            <button 
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors px-2 py-1 rounded-md hover:bg-zinc-100"
-            >
-              <Globe className="w-4 h-4" />
-              {i18n.language === 'en' ? 'EN' : '中'}
-            </button>
-            <div className="text-sm text-zinc-500">{t("Balance")}: <span className="font-semibold text-zinc-900">124,500 {t("credits")}</span></div>
+            <div className="relative w-48" ref={workspaceRef}>
+              <button 
+                onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
+                className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-zinc-100 rounded-md transition-colors"
+              >
+                <div className="flex items-center gap-2 font-bold tracking-tight text-zinc-900 overflow-hidden">
+                  <div className="w-6 h-6 bg-zinc-900 rounded-md flex items-center justify-center shrink-0">
+                    <span className="text-white text-[10px]">{selectedWorkspace.name.substring(0, 2).toUpperCase()}</span>
+                  </div>
+                  <span className="truncate text-sm">{selectedWorkspace.name}</span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+              </button>
+              
+              {isWorkspaceOpen && (
+                <div className="absolute top-full right-0 mt-1 w-full min-w-[200px] bg-white rounded-xl shadow-lg border border-zinc-200 py-1 z-50 overflow-hidden">
+                  <div className="px-3 py-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    {t("Workspaces")}
+                  </div>
+                  <div className="max-h-[240px] overflow-y-auto">
+                    {MOCK_WORKSPACES.map(ws => (
+                      <button
+                        key={ws.id}
+                        onClick={() => { 
+                          setSelectedWorkspace(ws); 
+                          setIsWorkspaceOpen(false); 
+                          
+                          const newRole = ws.role || 'Administrator';
+                          const newNavItems = getNavItemsForRole(newRole, ws.isEnterprise);
+                          
+                          const allowed = newNavItems.some(item => 
+                            item.path === '/' 
+                              ? location.pathname === '/' 
+                              : location.pathname.startsWith(item.path)
+                          );
+                          
+                          if (!allowed) {
+                            if (newRole === 'Finance') {
+                              navigate("/billing");
+                            } else if (newRole === 'Developer') {
+                              navigate("/keys");
+                            } else {
+                              navigate("/");
+                            }
+                          }
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-center gap-2"
+                      >
+                        <div className="w-6 h-6 bg-zinc-200 rounded-md flex items-center justify-center shrink-0">
+                          <span className="text-zinc-600 text-[10px] font-bold">{ws.name.substring(0, 2).toUpperCase()}</span>
+                        </div>
+                        <span className="truncate flex-1 font-medium">{ws.name}</span>
+                        {selectedWorkspace.id === ws.id && <Check className="w-4 h-4 text-indigo-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <DevAnnotation
               elementName="顶部用户头像与下拉菜单"
               componentType="Dropdown"
@@ -362,6 +471,51 @@ export default function Layout() {
                         ID: usr_c93b8f1a2e4d
                       </p>
                     </div>
+                    <div className="py-1 border-b border-zinc-100">
+                      <div className="relative group">
+                        <button 
+                          className="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4" />
+                            {{
+                              'en': 'English',
+                              'zh': '中文',
+                              'es': 'Español',
+                              'fr': 'Français',
+                              'du': 'Deutsch'
+                            }[i18n.language as string] || 'Language'}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-zinc-400" />
+                        </button>
+                        
+                        <div className="absolute top-0 right-full mr-1 hidden group-hover:block w-32 bg-white rounded-xl shadow-lg border border-zinc-200 py-1 z-50">
+                          {[
+                            { code: 'en', label: 'English' },
+                            { code: 'zh', label: '中文' },
+                            { code: 'es', label: 'Español' },
+                            { code: 'fr', label: 'Français' },
+                            { code: 'du', label: 'Deutsch' }
+                          ].map(lang => (
+                            <button
+                              key={lang.code}
+                              onClick={() => { i18n.changeLanguage(lang.code); setIsProfileOpen(false); }}
+                              className="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-center justify-between"
+                            >
+                              {lang.label}
+                              {i18n.language === lang.code && <Check className="w-4 h-4 text-indigo-600" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => { setIsProfileOpen(false); navigate('/settings'); }}
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-center gap-2"
+                      >
+                        <SettingsIcon className="w-4 h-4" />
+                        {t("Settings")}
+                      </button>
+                    </div>
                     <button
                       onClick={handleSignOut}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
@@ -376,7 +530,7 @@ export default function Layout() {
           </div>
         </header>
         <div className={cn("flex-1 overflow-auto", !location.pathname.includes('/playground') && "p-8")}>
-          <Outlet />
+          <Outlet context={{ userRole, isEnterprise, selectedWorkspace }} />
         </div>
       </main>
     </div>

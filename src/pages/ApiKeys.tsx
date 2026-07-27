@@ -10,6 +10,7 @@ interface ApiKey {
   id: string;
   name: string;
   key: string;
+  creator: string;
   expires: string | null;
   firstUsed: string | null;
   lastUsed: string | null;
@@ -30,6 +31,7 @@ export default function ApiKeys() {
       id: "1",
       name: "test-bookmarks",
       key: "sk-or-v1-0d4...8bb",
+      creator: "james_dev@global.io",
       expires: null,
       firstUsed: "2024-03-01T10:00:00Z",
       lastUsed: "2024-03-15T14:30:00Z",
@@ -44,6 +46,7 @@ export default function ApiKeys() {
       id: "2",
       name: "lover-demp",
       key: "sk-or-v1-146...fdc",
+      creator: "finance@global.io",
       expires: "2024-12-31T23:59:59Z",
       firstUsed: "2024-03-05T08:15:00Z",
       lastUsed: "2024-03-14T09:20:00Z",
@@ -58,6 +61,7 @@ export default function ApiKeys() {
       id: "3",
       name: "openclaw",
       key: "sk-or-v1-6db...b0d",
+      creator: "james_dev@global.io",
       expires: null,
       firstUsed: "2024-02-15T11:45:00Z",
       lastUsed: "2024-02-28T16:10:00Z",
@@ -72,6 +76,7 @@ export default function ApiKeys() {
       id: "4",
       name: "unlimited-key",
       key: "sk-or-v1-999...999",
+      creator: "james_dev@global.io",
       expires: null,
       firstUsed: "2024-03-10T10:00:00Z",
       lastUsed: "2024-03-19T14:30:00Z",
@@ -148,6 +153,7 @@ export default function ApiKeys() {
       id: Date.now().toString(),
       name: createForm.name || "Untitled Key",
       key: newKeyString.substring(0, 13) + "..." + newKeyString.substring(newKeyString.length - 3),
+      creator: "james_dev@global.io",
       expires: createForm.expiration === "No expiration" ? null : createForm.expiration,
       firstUsed: null,
       lastUsed: null,
@@ -242,6 +248,7 @@ export default function ApiKeys() {
                   <div className="w-4 h-4 rounded border border-slate-300"></div>
                 </th>
                 <th className="py-4 px-4 font-medium">{t("Key")}</th>
+                <th className="py-4 px-4 font-medium">Creator</th>
                 <th className="py-4 px-4 font-medium">{t("Restrictions")}</th>
                 <th className="py-4 px-4 font-medium">{t("Expires")}</th>
                 <th className="py-4 px-4 font-medium">{t("Last Used")}</th>
@@ -265,6 +272,7 @@ export default function ApiKeys() {
                     </div>
                     <div className="text-slate-400 text-sm font-mono mt-0.5">{k.key}</div>
                   </td>
+                  <td className="py-4 px-4 text-slate-500 text-sm">{k.creator}</td>
                   <td className="py-4 px-4 text-slate-500 text-sm">
                     <div className="flex flex-col gap-1.5">
                       <div className="relative group/ip flex items-center w-fit">

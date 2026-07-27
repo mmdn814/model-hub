@@ -18,6 +18,8 @@ import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
 import Assets from "./pages/Assets";
 import { Requirements } from "./pages/Requirements";
+import TeamMembers from "./pages/TeamMembers";
+import AuditLogs from "./pages/AuditLogs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AssetProvider } from "./contexts/AssetContext";
 
@@ -40,6 +42,8 @@ export default function App() {
               <Route path="billing" element={<Billing />} />
               <Route path="keys" element={<ApiKeys />} />
               <Route path="logs" element={<Logs />} />
+              <Route path="team" element={<TeamMembers />} />
+              <Route path="audit-logs" element={<AuditLogs />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>

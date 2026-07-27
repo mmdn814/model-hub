@@ -830,6 +830,34 @@ export default function Assets() {
   );
 };
 
+  if (!hasSignedAgreement) {
+    return (
+      <div className="max-w-2xl mx-auto mt-24 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-indigo-100">
+          <Library className="w-10 h-10" />
+        </div>
+        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Asset Library Agreement Required</h1>
+        <p className="text-zinc-500 max-w-md mx-auto leading-relaxed">
+          To access the Asset Library, you must first read and sign the Asset Liability Agreement. This is required for all new administrators.
+        </p>
+        <div className="pt-4">
+          <Button onClick={() => setLegalDialogOpen(true)} className="h-11 px-8 rounded-full shadow-sm bg-zinc-900 hover:bg-zinc-800 text-white font-medium">
+            Read and Sign Agreement
+          </Button>
+        </div>
+        <AssetAgreementDialog 
+          open={legalDialogOpen}
+          onOpenChange={setLegalDialogOpen}
+          onAccept={() => {
+            signAgreement();
+            setLegalDialogOpen(false);
+          }}
+          onCancel={() => setLegalDialogOpen(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-[1600px] w-full mx-auto space-y-6">
       <div className="flex flex-col gap-4">

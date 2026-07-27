@@ -113,6 +113,17 @@ export function Requirements() {
               <div className={`w-1.5 h-1.5 rounded-full ${activeTab === "phase2026710" ? "bg-indigo-500" : "bg-zinc-300"}`} />
               2026710需求
             </button>
+            <button
+              onClick={() => setActiveTab("phase2026724")}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "phase2026724"
+                  ? "bg-white text-indigo-600 shadow-sm border border-zinc-200/60"
+                  : "text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900"
+              }`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full ${activeTab === "phase2026724" ? "bg-indigo-500" : "bg-zinc-300"}`} />
+              2026724需求
+            </button>
           </nav>
         </div>
 
@@ -2197,6 +2208,273 @@ if (!localStorage.getItem(key)) {
                           用户通过任意方式登录后，系统按本次验证成功的邮箱查找用户。没有相同邮箱时，按照现有新用户流程处理；存在同邮箱其他登录方式时，用户必须完成验证和绑定。完成后，同一个邮箱只对应一个用户，不同登录方式均进入该用户，充值记录、调用日志、API Key 和素材库统一展示。
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {activeTab === "phase2026724" && (
+            <div className="max-w-4xl space-y-10">
+              <div>
+                <h2 className="text-2xl font-bold text-zinc-900 mb-2 border-b border-zinc-100 pb-4">2026724需求</h2>
+                <p className="text-zinc-600 mb-6 mt-4">企业空间与多角色协作 (Enterprise Workspace & RBAC)</p>
+              </div>
+
+              {/* Section 1: 企业空间与多角色协作 (Enterprise Workspace & RBAC) */}
+              <section className="space-y-4 mt-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">1</div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-zinc-800">企业空间与多角色协作 (Enterprise Workspace & RBAC)</h3>
+                    <p className="text-sm text-zinc-500 mt-1">支持多用户共享资产、资金池与分权管理</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">1. 核心架构重构（User ID 与 Account ID 拆分）</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <p>这是本次需求的基础架构变动。技术团队需在底层将 User 与 Account 进行概念和实体拆分，关系为 <strong>多对多（N:N）</strong>。</p>
+                      
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">User ID（用户主体/自然人）</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>定义：</strong>代表操作系统的具体的人。</li>
+                          <li><strong>职责：</strong>仅负责身份认证（登录校验、邮箱验证码、密码验证）与个人通用偏好（如界面语言、深浅色主题）。</li>
+                          <li><strong>绑定关系：</strong>包含其关联的多个登录方式（如：A 邮箱、B 邮箱对应的 Google/GitHub 等，遵循已有的同邮箱合并逻辑）。</li>
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">Account ID（工作空间/企业账户）</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>定义：</strong>代表资产、业务和计费的实体。</li>
+                          <li><strong>职责：</strong>所有业务数据均挂载于 Account ID 之下。</li>
+                          <li><strong>包含资产：</strong>API Key 管理、充值记录、扣费与调用日志、Playground 生成记录、素材资产库等。</li>
+                          <li><strong>自动生成逻辑：</strong>对于历史存量用户和新注册用户，系统默认自动生成一个与该 User ID 绑定的专属 Account ID（即个人默认空间）。</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">2. 个人空间升维企业空间及协议逻辑</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">原地升维机制</p>
+                        <p>在现有的运营后台（管理端）中，针对 Account ID 维度增加一个「开启企业协作」的开关。目前暂由运营人员手动开启。</p>
+                        <ul className="list-disc pl-5 space-y-1 mt-2">
+                          <li><strong>默认状态（关闭）：</strong>该 Account ID 表现为个人版，客户端侧边栏隐藏协作管理相关入口。</li>
+                          <li><strong>原地升维：</strong>企业空间的开启为“原地升维”。即当前个人的 Account ID 直接升级为企业空间，而非分裂出新的空间。</li>
+                          <li><strong>空间归属：</strong>升维后，该用户原本的个人空间不复存在，当前账号仅拥有该企业空间（作为初始管理员）。</li>
+                          <li><strong>被邀请逻辑：</strong>如果该用户（作为普通个人用户）被邀请进入其他企业空间，则该用户将同时拥有自己的个人空间，以及受邀进入的企业空间，支持在侧边栏顶部切换。</li>
+                        </ul>
+                      </div>
+                      <div className="h-px bg-zinc-100 my-4"></div>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">资产库协议签署逻辑 (Asset Library Agreements)</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>管理权限：</strong>资产库（Asset Library）仅管理员（Administrator）有权限访问和使用。</li>
+                          <li><strong>前置签署保留：</strong>如果管理员在个人空间升级为企业空间前，已经签署过资产库相关协议，升级成企业空间后原管理员依然保留权限，无需重签。</li>
+                          <li><strong>新管理员强校验：</strong>如果企业空间管理员邀请了新成员并赋予了“管理员”权限，该新管理员在点击资产库 Tab 时，必须<strong>独立签署一遍资产库协议</strong>，签署后才能够点击进去正常使用。</li>
+                        </ul>
+                      </div>
+                      <div className="h-px bg-zinc-100 my-4"></div>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-2">空间与资产归属最终形态总结：</p>
+                        <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-zinc-50 border-b border-zinc-200 text-xs text-zinc-700">
+                                <th className="px-3 py-2 border-r border-zinc-200 font-medium">用户身份</th>
+                                <th className="px-3 py-2 border-r border-zinc-200 font-medium">拥有的工作空间 (Workspaces)</th>
+                                <th className="px-3 py-2 border-r border-zinc-200 font-medium">空间内的资产/账单归属</th>
+                                <th className="px-3 py-2 font-medium">资产库协议状态</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-200 text-xs">
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-3 py-2 border-r border-zinc-200 font-medium">创始人 (升级者)</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">仅有 1 个：自己的企业空间</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">属于该企业 Account ID</td>
+                                <td className="px-3 py-2">继承其作为个人时的签署状态</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-3 py-2 border-r border-zinc-200 font-medium">被邀请的管理员</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">至少 2 个：自己的个人空间 + 别人的企业空间</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">根据当前切换的空间隔离</td>
+                                <td className="px-3 py-2">在企业空间首次点击资产库时需独立签署</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-3 py-2 border-r border-zinc-200 font-medium">被邀请的技术/财务</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">至少 2 个：自己的个人空间 + 别人的企业空间</td>
+                                <td className="px-3 py-2 border-r border-zinc-200">根据当前切换的空间隔离</td>
+                                <td className="px-3 py-2">左侧菜单不可见资产库，无需签署</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">3. 成员管理功能 (Team Members)</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <p>当 Account ID 开启企业空间后，在左侧导航栏出现「成员管理」模块。</p>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">功能要求</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>邮箱邀请机制：</strong>管理员可通过邮箱发送邀请链接。被邀请的用户点击链接后可加入该工作空间。</li>
+                          <li><strong>邀请状态管理：</strong>管理员可查看邀请的接受状态（例如“待接受”）。</li>
+                          <li><strong>取消邀请：</strong>如果用户尚未接受邀请，管理员可以取消邀请。取消后，原先发送到邮箱内的邀请链接即刻失效；如果非被邀请人（邮箱不匹配）尝试通过转发的链接进入，也会报错/阻止进入。</li>
+                          <li><strong>移除成员：</strong>如果将某技术成员从空间中移除，仅移除其身份，其此前创建的 API Key 不会自动删除，需由管理员自行决定是否停用。</li>
+                          <li><strong>限制要求：</strong>每个企业空间必须至少保留一名管理员（Administrator），不可将最后一名管理员移除或降级。</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">4. 多角色权限控制 (RBAC)</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <p>企业空间支持配置以下三种主要角色，基于左侧侧边栏可见性进行权限划分（注：Dashboard, Providers, Models 等模块所有人都可见）：</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+                          <p className="font-medium text-zinc-800 mb-2">管理员 (Administrator)</p>
+                          <p className="text-xs mb-2">最高权限，负责整体空间管控。</p>
+                          <p className="text-xs font-semibold text-zinc-700">可见专属功能/Tab：</p>
+                          <ul className="list-disc pl-4 text-xs space-y-1">
+                            <li>全部可用</li>
+                            <li>Team Members</li>
+                            <li>Audit Logs</li>
+                            <li>Settings</li>
+                            <li>Billing, API Keys, Logs</li>
+                            <li>Asset Library</li>
+                            <li>Playground</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+                          <p className="font-medium text-zinc-800 mb-2">财务 (Finance)</p>
+                          <p className="text-xs mb-2">负责充值、发票、余额预警等计费管理。</p>
+                          <p className="text-xs font-semibold text-zinc-700">可见专属功能/Tab：</p>
+                          <ul className="list-disc pl-4 text-xs space-y-1">
+                            <li>Billing</li>
+                          </ul>
+                          <p className="text-xs font-semibold text-zinc-700 mt-2">不可见/不可用：</p>
+                          <p className="text-xs text-zinc-500">API Keys, Logs, Team Members, Audit Logs, Settings, Asset Library, Playground</p>
+                        </div>
+                        
+                        <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
+                          <p className="font-medium text-zinc-800 mb-2">技术操作 (Developer)</p>
+                          <p className="text-xs mb-2">负责对接 API、调试与查看调用日志。</p>
+                          <p className="text-xs font-semibold text-zinc-700">可见专属功能/Tab：</p>
+                          <ul className="list-disc pl-4 text-xs space-y-1">
+                            <li>API Keys</li>
+                            <li>Logs (调用日志)</li>
+                            <li>Playground</li>
+                          </ul>
+                          <p className="text-xs font-semibold text-zinc-700 mt-2">不可见/不可用：</p>
+                          <p className="text-xs text-zinc-500">Billing, Team Members, Audit Logs, Settings, Asset Library</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-zinc-100">
+                        <p className="font-semibold text-zinc-800 mb-2">角色切换/空间切换的页面重定向逻辑：</p>
+                        <ul className="list-disc pl-5 space-y-1 text-xs">
+                          <li>如果用户在当前空间处于某个专属页面（例如财务处于 Billing），然后切换至另一个扮演不同角色的空间（如技术）。</li>
+                          <li>系统会判断切换后的新角色是否有权限访问当前停留在的页面。</li>
+                          <li>如果有权限，则停留在当前页面不变；如果没有权限，则根据新角色跳转至该角色的默认页面：
+                            <ul className="list-circle pl-5 mt-1 space-y-1 text-zinc-500">
+                              <li><strong>管理员/普通个人用户：</strong> 默认跳转至 Dashboard (首页)</li>
+                              <li><strong>财务 (Finance)：</strong> 默认跳转至 Billing (账单页面)</li>
+                              <li><strong>技术 (Developer)：</strong> 默认跳转至 API Keys (密钥管理页面)</li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">5. 操作日志 (Audit/Action Logs)</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <p><strong>功能说明：</strong>当开启企业空间后，在侧边栏增加「操作日志」Tab，专用于账号行为审计（区别于 API 调用的 Logs）。</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>记录范围：</strong>空间内任何成员产生的核心变动动作都需要被记录并归档在 Account ID 下。</li>
+                        <li><strong>日志字段：</strong>操作时间（UTC）、操作人（User ID/邮箱）、IP 地址、动作类型（如：创建 API Key、充值、邀请成员、修改成员角色等）、动作详情。</li>
+                        <li><strong>权限约束：</strong>仅管理员（Owner/Admin）有权限查看此操作日志列表。</li>
+                      </ul>
+                      
+                      <div className="mt-6">
+                        <p className="font-semibold text-zinc-800 mb-2">已支持的日志动作列表：</p>
+                        <div className="overflow-x-auto rounded-lg border border-zinc-200">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-zinc-50 border-b border-zinc-200">
+                                <th className="px-4 py-2 font-medium text-zinc-900 border-r border-zinc-200">动作类型 (Action Type)</th>
+                                <th className="px-4 py-2 font-medium text-zinc-900">动作详情示例 (Details)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-200">
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">User Login</td>
+                                <td className="px-4 py-2">Logged into the workspace.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Enable Auto-Recharge</td>
+                                <td className="px-4 py-2">Enabled auto-recharge for $100 when balance falls below $20.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Enable Alert</td>
+                                <td className="px-4 py-2">Enabled balance alert threshold at $10.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Disable Auto-Recharge</td>
+                                <td className="px-4 py-2">Disabled auto-recharge.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Disable Alert</td>
+                                <td className="px-4 py-2">Disabled balance alert.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Invite Member</td>
+                                <td className="px-4 py-2">Invited dev2@company.com with Developer role.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Create API Key</td>
+                                <td className="px-4 py-2">Created key 'Production Key v2'.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Recharge</td>
+                                <td className="px-4 py-2">Recharged $500.00 via Stripe.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Change Role</td>
+                                <td className="px-4 py-2">Changed role of finance@company.com to Finance.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Enable Enterprise</td>
+                                <td className="px-4 py-2">Enabled Enterprise Workspace.</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200 font-semibold text-zinc-800 text-sm">6. API Keys 优化与登录补充</div>
+                    <div className="p-4 space-y-4 text-sm text-zinc-600">
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>创建人字段：</strong>由于工作空间内支持多技术人员，需在 API Keys 列表中新增一列「创建人」（展示创建者的邮箱或 User ID），以便溯源。</li>
+                        <li><strong>密码登录支持：</strong>除现有的邮箱验证码、第三方登录外，增加支持「密码登录」功能（此需求作为登录基础体验优化，与企业空间并行实施）。</li>
+                      </ul>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useOutletContext } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,7 +34,10 @@ const ModelIdCopyButton = ({ id }: { id: string }) => {
 export default function ModelDetails() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<"playground" | "readme">("playground");
+  const { userRole } = useOutletContext<{ userRole?: string }>() || {};
+  const canUsePlayground = userRole === 'Administrator';
+  
+  const [activeTab, setActiveTab] = useState<"playground" | "readme">(canUsePlayground ? "playground" : "readme");
   const [copied, setCopied] = useState(false);
 
   const model = models.find(m => m.id === id);
@@ -219,18 +222,20 @@ export default function ModelDetails() {
       {/* Tabs */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
         <div className="flex border-b border-zinc-200 px-4 pt-4 gap-6">
-          <DevAnnotation
-            elementName="Playground Tab"
-            componentType="Tab"
-            functionDesc="Interactive testing area"
-          >
-            <button
-              onClick={() => setActiveTab("playground")}
-              className={cn("pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2", activeTab === "playground" ? "border-blue-600 text-blue-600" : "border-transparent text-zinc-500 hover:text-zinc-900")}
+          {canUsePlayground && (
+            <DevAnnotation
+              elementName="Playground Tab"
+              componentType="Tab"
+              functionDesc="Interactive testing area"
             >
-              <Play className="w-4 h-4" /> Playground
-            </button>
-          </DevAnnotation>
+              <button
+                onClick={() => setActiveTab("playground")}
+                className={cn("pb-3 text-sm font-bold transition-colors flex items-center gap-2 border-b-2", activeTab === "playground" ? "border-blue-600 text-blue-600" : "border-transparent text-zinc-500 hover:text-zinc-900")}
+              >
+                <Play className="w-4 h-4" /> Playground
+              </button>
+            </DevAnnotation>
+          )}
           <DevAnnotation
             elementName="README Tab"
             componentType="Tab"
