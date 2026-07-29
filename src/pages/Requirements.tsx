@@ -2253,7 +2253,7 @@ if (!localStorage.getItem(key)) {
                           <li><strong>定义：</strong>代表资产、业务和计费的实体。</li>
                           <li><strong>职责：</strong>所有业务数据均挂载于 Account ID 之下。</li>
                           <li><strong>包含资产：</strong>API Key 管理、充值记录、扣费与调用日志、Playground 生成记录、素材资产库等。</li>
-                          <li><strong>自动生成逻辑：</strong>对于历史存量用户和新注册用户，系统默认自动生成一个与该 User ID 绑定的专属 Account ID（即个人默认空间）。</li>
+                          <li><strong>自动生成逻辑：</strong>对于历史存量用户和新注册用户，系统默认自动生成一个与该 User ID 绑定的专属 Account ID（即个人默认空间）。无论是新注册还是新被邀请进企业的用户都会有个人空间，只有一种情况没有个人空间，就是个人的空间被升级成了企业空间。</li>
                         </ul>
                       </div>
                     </div>

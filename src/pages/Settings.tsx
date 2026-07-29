@@ -11,6 +11,7 @@ export default function Settings() {
 
   const [passwordLoginEnabled, setPasswordLoginEnabled] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -135,16 +136,37 @@ export default function Settings() {
               <h4 className="font-semibold text-zinc-900">{t("Password Login")}</h4>
               <p className="text-sm text-zinc-500">{t("Allow logging in with an email and password.")}</p>
             </div>
-            <Switch 
-              checked={passwordLoginEnabled} 
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  setShowPasswordDialog(true);
-                } else {
-                  setPasswordLoginEnabled(false);
-                }
-              }} 
-            />
+            <div className="flex items-center gap-4">
+              {passwordLoginEnabled && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setPasswordError('');
+                    setIsChangingPassword(true);
+                    setShowPasswordDialog(true);
+                  }}
+                >
+                  {t("Change Password")}
+                </Button>
+              )}
+              <Switch 
+                checked={passwordLoginEnabled} 
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setPasswordError('');
+                    setIsChangingPassword(false);
+                    setShowPasswordDialog(true);
+                  } else {
+                    setPasswordLoginEnabled(false);
+                  }
+                }} 
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -155,9 +177,9 @@ export default function Settings() {
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
               <KeyRound className="w-6 h-6" />
             </div>
-            <DialogTitle className="text-xl">{t("Set Password")}</DialogTitle>
+            <DialogTitle className="text-xl">{isChangingPassword ? t("Change Password") : t("Set Password")}</DialogTitle>
             <DialogDescription>
-              {t("Create a password to enable password login. It must be at least 8 characters long and contain both uppercase and lowercase letters.")}
+              {isChangingPassword ? t("Enter a new password for your account. It must be at least 8 characters long and contain both uppercase and lowercase letters.") : t("Create a password to enable password login. It must be at least 8 characters long and contain both uppercase and lowercase letters.")}
             </DialogDescription>
           </DialogHeader>
           
@@ -201,7 +223,7 @@ export default function Settings() {
               {t("Cancel")}
             </Button>
             <Button onClick={handleSetPassword} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {t("Enable Password Login")}
+              {isChangingPassword ? t("Update Password") : t("Enable Password Login")}
             </Button>
           </DialogFooter>
         </DialogContent>
