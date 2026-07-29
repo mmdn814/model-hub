@@ -2474,6 +2474,9 @@ if (!localStorage.getItem(key)) {
                       <ul className="list-disc pl-5 space-y-1">
                         <li><strong>创建人字段：</strong>由于工作空间内支持多技术人员，需在 API Keys 列表中新增一列「创建人」（展示创建者的邮箱或 User ID），以便溯源。</li>
                         <li><strong>密码登录支持：</strong>除现有的邮箱验证码、第三方登录外，增加支持「密码登录」功能（此需求作为登录基础体验优化，与企业空间并行实施）。</li>
+                        <li><strong>简化登录交互与设置密码：</strong>登录页仅保留“密码登录”与“验证码登录”，摒弃繁琐的注册与找回密码流程。用户若忘记密码，可直接通过验证码/Magic Link完成登录。</li>
+                        <li><strong>用户设置新增安全模块：</strong>用户登录后，可在 Settings 页面新增的“安全 (Security)”模块中随时设置或修改密码。</li>
+                        <li><strong>第三方账号关联简化：</strong>默认同一邮箱对应的不同登录方式（密码、验证码、Google、GitHub等）自动统一映射至同一用户（Account ID），移除在 Settings 中的手动第三方账号关联/解绑功能。</li>
                       </ul>
                     </div>
                   </div>

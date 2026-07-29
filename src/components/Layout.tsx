@@ -35,7 +35,6 @@ const getNavItemsForRole = (role: string, isEnterprise: boolean) => {
     if (isEnterprise) {
       items.push(teamNavItem, auditLogsNavItem);
     }
-    items.push(settingsNavItem);
   } else if (role === 'Finance') {
     items.push(billingNavItem);
   } else if (role === 'Developer') {
@@ -358,16 +357,7 @@ export default function Layout() {
         </nav>
 
         <div className="p-4 border-t border-zinc-200 flex flex-col gap-3">
-          <div className="bg-zinc-100/80 rounded-xl p-3 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-500">{t("Balance")}</span>
-              <span className="text-sm font-bold text-zinc-900">124,500</span>
-            </div>
-            <button className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white border border-zinc-200 shadow-sm rounded-lg text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-300 transition-all">
-              <CreditCard className="w-3.5 h-3.5" />
-              {t("Add Funds")}
-            </button>
-          </div>
+          
 
           <button
             onClick={handleSignOut}
