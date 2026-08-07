@@ -2272,6 +2272,15 @@ if (!localStorage.getItem(key)) {
                           <li><strong>被邀请逻辑：</strong>如果该用户（作为普通个人用户）被邀请进入其他企业空间，则该用户将同时拥有自己的个人空间，以及受邀进入的企业空间，支持在侧边栏顶部切换。</li>
                         </ul>
                       </div>
+                      
+                      <div className="h-px bg-zinc-100 my-4"></div>
+                      <div>
+                        <p className="font-medium text-zinc-800 mb-1">企业空间名称与标识展示 (Workspace Display UI)</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li><strong>标识与名称：</strong>由于本期企业空间暂不支持自定义修改名称，企业空间的名称将默认继承其升级前的用户名。为了在视觉上区分个人空间与企业空间，会在企业空间的用户名右侧新增一个 <code>Team</code> 的标签。</li>
+                          <li><strong>ID 显示位置调整：</strong>因原个人的 User ID 已原地升维为该企业空间的 Account ID，该 ID 不应再作为“个人用户”的 ID 在个人设置等处孤立显示，而是直接展示在企业空间名称的下方（即作为该企业空间的唯一标识）。</li>
+                        </ul>
+                      </div>
                       <div className="h-px bg-zinc-100 my-4"></div>
                       <div>
                         <p className="font-medium text-zinc-800 mb-1">资产库协议签署逻辑 (Asset Library Agreements)</p>
@@ -2448,6 +2457,18 @@ if (!localStorage.getItem(key)) {
                               <tr className="hover:bg-zinc-50">
                                 <td className="px-4 py-2 border-r border-zinc-200">Create API Key</td>
                                 <td className="px-4 py-2">Created key 'Production Key v2'.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Edit API Key</td>
+                                <td className="px-4 py-2">Updated key 'Production Key v2' name or spending limit.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Disable API Key</td>
+                                <td className="px-4 py-2">Disabled key 'Production Key v2'.</td>
+                              </tr>
+                              <tr className="hover:bg-zinc-50">
+                                <td className="px-4 py-2 border-r border-zinc-200">Delete API Key</td>
+                                <td className="px-4 py-2">Deleted key 'Production Key v2'.</td>
                               </tr>
                               <tr className="hover:bg-zinc-50">
                                 <td className="px-4 py-2 border-r border-zinc-200">Recharge</td>

@@ -7,10 +7,10 @@ import { useTranslation } from "react-i18next";
 import { DevAnnotation } from "@/components/DevAnnotation";
 
 const MOCK_WORKSPACES = [
-  { id: 'personal', name: 'Personal Space', isEnterprise: false, role: 'Administrator' },
-  { id: 'ent-1', name: 'Acme Corp (Admin)', isEnterprise: true, role: 'Administrator' },
-  { id: 'ent-2', name: 'Global Tech (Finance)', isEnterprise: true, role: 'Finance' },
-  { id: 'ent-3', name: 'Stark Industries (Dev)', isEnterprise: true, role: 'Developer' },
+  { id: 'personal', name: 'Personal Space', isEnterprise: false, role: 'Administrator', balance: 1250 },
+  { id: 'ent-1', name: 'Acme Corp (Admin)', isEnterprise: true, role: 'Administrator', balance: 50000 },
+  { id: 'ent-2', name: 'Global Tech (Finance)', isEnterprise: true, role: 'Finance', balance: 8500 },
+  { id: 'ent-3', name: 'Stark Industries (Dev)', isEnterprise: true, role: 'Developer', balance: 320 },
 ];
 
 const commonNavItems = [
@@ -376,18 +376,28 @@ export default function Layout() {
             {t(allRoutes.find(item => location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path)))?.labelKey || "Dashboard")}
           </h1>
           <div className="flex items-center gap-4">
-            <div className="relative w-48" ref={workspaceRef}>
+            <div className="relative w-64" ref={workspaceRef}>
               <button 
                 onClick={() => setIsWorkspaceOpen(!isWorkspaceOpen)}
                 className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-zinc-100 rounded-md transition-colors"
               >
-                <div className="flex items-center gap-2 font-bold tracking-tight text-zinc-900 overflow-hidden">
-                  <div className="w-6 h-6 bg-zinc-900 rounded-md flex items-center justify-center shrink-0">
-                    <span className="text-white text-[10px]">{selectedWorkspace.name.substring(0, 2).toUpperCase()}</span>
+                <div className="flex flex-col items-start overflow-hidden">
+                  <div className="flex items-center gap-2 font-bold tracking-tight text-zinc-900 overflow-hidden">
+                    <div className="w-6 h-6 bg-zinc-900 rounded-md flex items-center justify-center shrink-0">
+                      <span className="text-white text-[10px]">{selectedWorkspace.name.substring(0, 2).toUpperCase()}</span>
+                    </div>
+                    <span className="truncate text-sm">{selectedWorkspace.name}</span>
+                    {selectedWorkspace.isEnterprise && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700 shrink-0">Team</span>
+                    )}
                   </div>
-                  <span className="truncate text-sm">{selectedWorkspace.name}</span>
+                  <div className="flex items-center gap-2 mt-0.5 ml-8">
+                    <span className="text-[10px] text-zinc-500 font-mono">{selectedWorkspace.id}</span>
+                    <span className="text-[10px] text-zinc-400 font-medium">·</span>
+                    <span className="text-[10px] font-medium text-emerald-600 font-mono">{selectedWorkspace.balance.toLocaleString()} PT</span>
+                  </div>
                 </div>
-                <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+                <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0 ml-2" />
               </button>
               
               {isWorkspaceOpen && (
@@ -422,13 +432,25 @@ export default function Layout() {
                             }
                           }
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-center gap-2"
+                        className="w-full text-left px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 flex items-start gap-2"
                       >
-                        <div className="w-6 h-6 bg-zinc-200 rounded-md flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 bg-zinc-200 rounded-md flex items-center justify-center shrink-0 mt-0.5">
                           <span className="text-zinc-600 text-[10px] font-bold">{ws.name.substring(0, 2).toUpperCase()}</span>
                         </div>
-                        <span className="truncate flex-1 font-medium">{ws.name}</span>
-                        {selectedWorkspace.id === ws.id && <Check className="w-4 h-4 text-indigo-600" />}
+                        <div className="flex flex-col flex-1 overflow-hidden">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate font-medium">{ws.name}</span>
+                            {ws.isEnterprise && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700 shrink-0">Team</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-zinc-500 font-mono">{ws.id}</span>
+                            <span className="text-[10px] text-zinc-400 font-medium">·</span>
+                            <span className="text-[10px] font-medium text-emerald-600 font-mono">{ws.balance.toLocaleString()} PT</span>
+                          </div>
+                        </div>
+                        {selectedWorkspace.id === ws.id && <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-1" />}
                       </button>
                     ))}
                   </div>
@@ -457,9 +479,6 @@ export default function Layout() {
                     <div className="px-4 py-2 border-b border-zinc-100">
                       <p className="text-sm font-medium text-zinc-900">James Developer</p>
                       <p className="text-xs text-zinc-500 truncate">james_dev@global.io</p>
-                      <p className="text-[10px] text-zinc-400 mt-1.5 flex items-center gap-1 font-mono tracking-wide">
-                        ID: usr_c93b8f1a2e4d
-                      </p>
                     </div>
                     <div className="py-1 border-b border-zinc-100">
                       <div className="relative group">
